@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Laravel\Head;
+
+use Illuminate\Support\Str;
+use Laravel\Head\Schema\Article;
+use Laravel\Head\Schema\BlogPosting;
+use Laravel\Head\Schema\Breadcrumbs;
+use Laravel\Head\Schema\Faq;
+use Laravel\Head\Schema\GenericSchemaObject;
+use Laravel\Head\Schema\Offer;
+use Laravel\Head\Schema\Organization;
+use Laravel\Head\Schema\Person;
+use Laravel\Head\Schema\Product;
+use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\Schema\WebPage;
+use Laravel\Head\Schema\WebSite;
+use ReflectionClass;
+
+class Schema
+{
+    /** @var array<string, class-string<SchemaObject>> */
+    protected array $types = [];
+
+    public function __construct()
+    {
+        $this->register(Article::class);
+        $this->register(BlogPosting::class);
+        $this->register(Product::class);
+        $this->register(Offer::class);
+        $this->register(Breadcrumbs::class);
+        $this->register(Faq::class);
+        $this->register(Organization::class);
+        $this->register(Person::class);
+        $this->register(WebPage::class);
+        $this->register(WebSite::class);
+    }
+
+    /**
+     * Register a first-class schema object type.
+     *
+     * @param  class-string<SchemaObject>  $class
+     */
+    public function register(string $class): static
+    {
+        $this->types[Str::camel($this->typeFor($class))] = $class;
+
+        return $this;
+    }
+
+    public function make(string $type): SchemaObject
+    {
+        $class = $this->types[Str::camel($type)] ?? null;
+
+        return $class ? new $class : new GenericSchemaObject(Str::studly($type));
+    }
+
+    /**
+     * @param  array<int, mixed>  $parameters
+     */
+    public function __call(string $method, array $parameters): SchemaObject
+    {
+        return $this->make($method);
+    }
+
+    /**
+     * @param  class-string<SchemaObject>  $class
+     */
+    protected function typeFor(string $class): string
+    {
+        $reflection = new ReflectionClass($class);
+        $attributes = $reflection->getAttributes(SchemaType::class);
+
+        return $attributes === []
+            ? $reflection->getShortName()
+            : $attributes[0]->newInstance()->name;
+    }
+}

@@ -1,0 +1,301 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Laravel\Head;
+
+use Illuminate\Http\Request;
+use Laravel\Head\Schema\SchemaObject;
+
+class HeadRenderer
+{
+    public function __construct(protected SchemaValidator $schemas) {}
+
+    public function render(HeadData $head, ?Request $request = null): string
+    {
+        return collect($this->tags($head, $request))
+            ->filter()
+            ->implode(PHP_EOL);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(HeadData $head, ?Request $request = null): array
+    {
+        return [
+            'title' => $this->title($head),
+            'description' => $head->description,
+            'canonical' => $this->canonical($head, $request),
+            'robots' => $head->robots ? implode(', ', $head->robots) : null,
+            'openGraph' => $this->openGraph($head),
+            'twitter' => $this->twitter($head),
+            'links' => [
+                'performance' => [
+                    'preload' => array_values($head->preloads),
+                    'prefetch' => array_values($head->prefetches),
+                    'preconnect' => array_values($head->preconnects),
+                    'dnsPrefetch' => array_values($head->dnsPrefetches),
+                ],
+                'pagination' => $head->links,
+                'alternates' => $head->alternates,
+                'feeds' => array_values($head->feeds),
+            ],
+            'schemas' => array_map(
+                fn (SchemaObject|array $schema): array => $this->schema($schema),
+                array_values($head->schemas),
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, string|null>
+     */
+    protected function tags(HeadData $head, ?Request $request): array
+    {
+        return [
+            $this->titleTag($head),
+            $head->description ? $this->meta('name', 'description', $head->description) : null,
+            ($canonical = $this->canonical($head, $request)) ? $this->link('canonical', $canonical) : null,
+            $head->robots ? $this->meta('name', 'robots', implode(', ', $head->robots)) : null,
+            ...$this->openGraphTags($head),
+            ...$this->twitterTags($head),
+            ...$this->paginationTags($head),
+            ...$this->alternateTags($head),
+            ...$this->feedTags($head),
+            ...$this->performanceTags($head),
+            ...$this->schemaTags($head),
+        ];
+    }
+
+    protected function titleTag(HeadData $head): ?string
+    {
+        return ($title = $this->title($head)) ? '<title>'.e($title).'</title>' : null;
+    }
+
+    protected function title(HeadData $head): ?string
+    {
+        $title = $head->title ?? $head->titleFallback;
+
+        if (is_null($title)) {
+            return null;
+        }
+
+        if ($head->titleBare) {
+            return $title;
+        }
+
+        return ($head->titlePrefix ?? '').$title.($head->titleSuffix ?? '');
+    }
+
+    protected function canonical(HeadData $head, ?Request $request): ?string
+    {
+        if ($head->canonicalMode === 'none') {
+            return null;
+        }
+
+        $url = $head->canonicalMode === 'url'
+            ? $head->canonicalUrl
+            : $request?->url();
+
+        if (is_null($url)) {
+            return null;
+        }
+
+        return $this->normalizeUrl($url, $request, $head->canonicalForceHttps ?? true, $head->canonicalTrailingSlash ?? false);
+    }
+
+    protected function normalizeUrl(string $url, ?Request $request, bool $forceHttps, bool $trailingSlash): string
+    {
+        if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+            $url = rtrim($request?->getSchemeAndHttpHost() ?? '', '/').'/'.ltrim($url, '/');
+        }
+
+        if ($forceHttps) {
+            $url = preg_replace('/^http:\/\//', 'https://', $url) ?? $url;
+        }
+
+        if ($trailingSlash) {
+            return rtrim($url, '/').'/';
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if ($path === null || $path === false || $path === '' || $path === '/') {
+            return rtrim($url, '/').'/';
+        }
+
+        return rtrim($url, '/');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function openGraph(HeadData $head): array
+    {
+        $values = $head->openGraph;
+
+        if (($title = $this->title($head)) && ! isset($values['title'])) {
+            $values['title'] = $title;
+        }
+
+        if ($head->description && ! isset($values['description'])) {
+            $values['description'] = $head->description;
+        }
+
+        return $values;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function twitter(HeadData $head): array
+    {
+        $values = $head->twitter;
+
+        if (($title = $this->title($head)) && ! isset($values['title'])) {
+            $values['title'] = $title;
+        }
+
+        if ($head->description && ! isset($values['description'])) {
+            $values['description'] = $head->description;
+        }
+
+        return $values;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function openGraphTags(HeadData $head): array
+    {
+        return array_map(
+            fn (string $property, string $content): string => $this->meta('property', 'og:'.$property, $content),
+            array_keys($this->openGraph($head)),
+            $this->openGraph($head),
+        );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function twitterTags(HeadData $head): array
+    {
+        return array_map(
+            fn (string $name, string $content): string => $this->meta('name', 'twitter:'.$name, $content),
+            array_keys($this->twitter($head)),
+            $this->twitter($head),
+        );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function paginationTags(HeadData $head): array
+    {
+        return array_map(
+            fn (string $rel, string $href): string => '<link rel="'.e($rel).'" href="'.e($href).'">',
+            array_keys($head->links),
+            $head->links,
+        );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function alternateTags(HeadData $head): array
+    {
+        return array_map(
+            fn (string $hreflang, string $href): string => '<link rel="alternate" hreflang="'.e($hreflang).'" href="'.e($href).'">',
+            array_keys($head->alternates),
+            $head->alternates,
+        );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function feedTags(HeadData $head): array
+    {
+        return array_map(function (array $feed): string {
+            $type = $feed['type'] === 'atom' ? 'application/atom+xml' : 'application/rss+xml';
+
+            return '<link rel="alternate" type="'.e($type).'" title="'.e($feed['title']).'" href="'.e($feed['href']).'">';
+        }, array_values($head->feeds));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function performanceTags(HeadData $head): array
+    {
+        return [
+            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('preload', $attributes), array_values($head->preloads)),
+            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('prefetch', $attributes), array_values($head->prefetches)),
+            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('preconnect', $attributes), array_values($head->preconnects)),
+            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('dns-prefetch', $attributes), array_values($head->dnsPrefetches)),
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function schemaTags(HeadData $head): array
+    {
+        return array_map(function (SchemaObject|array $schema): string {
+            return '<script type="application/ld+json">'.json_encode($this->schema($schema), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR).'</script>';
+        }, array_values($head->schemas));
+    }
+
+    /**
+     * @param  SchemaObject|array<string, mixed>  $schema
+     * @return array<string, mixed>
+     */
+    protected function schema(SchemaObject|array $schema): array
+    {
+        $payload = $schema instanceof SchemaObject ? $schema->toJsonLd() : $schema;
+
+        $this->schemas->validate($payload);
+
+        return $payload;
+    }
+
+    protected function meta(string $attribute, string $key, string|int|float|bool $content): string
+    {
+        return '<meta '.$attribute.'="'.e($key).'" content="'.e((string) $content).'">';
+    }
+
+    protected function link(string $rel, string $href): string
+    {
+        return '<link rel="'.e($rel).'" href="'.e($href).'">';
+    }
+
+    /**
+     * @param  array<string, string|bool|null>  $attributes
+     */
+    protected function linkWithAttributes(string $rel, array $attributes): string
+    {
+        return '<link rel="'.e($rel).'" '.$this->attributes($attributes).'>';
+    }
+
+    /**
+     * @param  array<string, string|bool|null>  $attributes
+     */
+    protected function attributes(array $attributes): string
+    {
+        return collect($attributes)
+            ->map(function (mixed $value, string $name): string {
+                if ($value === true) {
+                    return e($name);
+                }
+
+                if ($value === false) {
+                    return '';
+                }
+
+                return e($name).'="'.e((string) $value).'"';
+            })
+            ->filter()
+            ->implode(' ');
+    }
+}

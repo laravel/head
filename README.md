@@ -27,9 +27,50 @@ use Laravel\Head\Head as HeadManager;
 
 Head::defaults(function (HeadManager $head) {
     $head
-        ->title('Acme')
-        ->description('Build something great.');
+        ->title()->suffix(' - Acme')->fallback('Acme')
+        ->description('Build something great.')
+        ->canonical()->auto()
+        ->og()->siteName('Acme')->type('website')
+        ->twitter()->card('summary_large_image')
+        ->robots()->index()->follow();
 });
+```
+
+Define page metadata next to the route:
+
+```php
+Route::view('/contact', 'contact')
+    ->name('contact')
+    ->head(
+        title: 'Contact Us',
+        description: 'Get in touch.',
+    );
+
+Route::withHead(robots: ['noindex', 'nofollow'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/dashboard', DashboardController::class)
+            ->head(title: 'Dashboard');
+    });
+```
+
+Override route metadata from a controller:
+
+```php
+use Laravel\Head\Facades\Head;
+use Laravel\Head\Facades\Schema;
+
+Head::title($post->title)
+    ->description($post->excerpt)
+    ->canonical($post->url())
+    ->og()->title($post->title)->image($post->og_image_url)->type('article')
+    ->schema(
+        Schema::article()
+            ->headline($post->title)
+            ->author(Schema::person()->name($post->author->name))
+            ->datePublished($post->published_at)
+            ->image($post->og_image_url)
+    );
 ```
 
 Render the accumulated tags from your Blade layout:
@@ -41,4 +82,56 @@ Render the accumulated tags from your Blade layout:
 </head>
 ```
 
-The full API will be implemented against the project requirements in `PRD.md`.
+Register error metadata for SEO-safe error pages:
+
+```php
+use Laravel\Head\Errors;
+
+Head::errors(function (Errors $errors) {
+    $errors->defaults(robots: ['noindex', 'follow']);
+
+    $errors->status(404,
+        title: 'Page Not Found',
+        description: 'The page you are looking for could not be found.',
+    );
+});
+```
+
+Laravel Head also renders performance hints, pagination links, locale alternates, feed discovery, and JSON-LD schema objects:
+
+```php
+Head::preload(asset('fonts/inter.woff2'), as: 'font', crossorigin: true)
+    ->prefetch(asset('images/next.webp'))
+    ->preconnect('https://cdn.example.com')
+    ->dnsPrefetch('https://analytics.example.com')
+    ->paginate($posts)
+    ->alternates([
+        'en' => 'https://example.com/en/about',
+        'fr' => 'https://example.com/fr/about',
+    ])
+    ->feed('/feed', title: 'Acme RSS');
+```
+
+Custom schema types can be registered explicitly:
+
+```php
+use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\SchemaType;
+
+#[SchemaType('JobPosting')]
+class JobPosting extends SchemaObject
+{
+    public function title(string $title): static
+    {
+        return $this->set('title', $title);
+    }
+}
+
+Schema::register(JobPosting::class);
+
+Head::schema(Schema::jobPosting()->title('Senior Laravel Developer'));
+```
+
+Invalid JSON-LD payloads throw outside production and are logged as warnings in production.
+
+When Inertia is installed, Laravel Head shares the resolved head payload as a lazy `head` prop on every page object.

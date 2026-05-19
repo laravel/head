@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
-use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Laravel\Head\Routing\HeadDefinition;
+use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaObject;
 
 class Head
@@ -23,6 +23,7 @@ class Head
     public function __construct(
         protected Container $app,
         protected HeadRenderer $renderer,
+        protected RouteHeadRepository $routes,
     ) {
         $this->defaults = new HeadData;
         $this->errors = new Errors;
@@ -241,14 +242,14 @@ class Head
         $data = HeadData::base()->merge($this->defaults);
 
         if ($route = $this->route()) {
-            foreach (HeadDefinition::groups($route) as $definition) {
-                HeadDefinition::apply($data, $definition, $route);
+            foreach ($this->routes->groups($route) as $definition) {
+                $data = HeadDefinition::apply($data, $definition, $route);
             }
 
-            $definition = $route->getAction(HeadDefinition::HEAD);
+            $definition = $this->routes->get($route);
 
-            if (is_array($definition) || $definition instanceof Closure) {
-                HeadDefinition::apply($data, $definition, $route);
+            if (! is_null($definition)) {
+                $data = HeadDefinition::apply($data, $definition, $route);
             }
         }
 
@@ -293,10 +294,12 @@ class Head
 
         $this->recording = new HeadData;
 
-        $callback($this);
+        try {
+            $callback($this);
 
-        $then($this->recording);
-
-        $this->recording = $previous;
+            $then($this->recording);
+        } finally {
+            $this->recording = $previous;
+        }
     }
 }

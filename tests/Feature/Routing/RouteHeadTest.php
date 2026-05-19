@@ -39,10 +39,10 @@ it('stores head definitions on view and controller routes', function (): void {
         title: 'About',
     );
 
-    expect($view->getAction('laravel_head'))->toBe([
+    expect($view->getAction('metadata.head'))->toBe([
         'title' => 'Contact',
         'description' => 'Get in touch.',
-    ])->and($controller->getAction('laravel_head'))->toBe([
+    ])->and($controller->getAction('metadata.head'))->toBe([
         'title' => 'About',
     ]);
 });

@@ -8,6 +8,11 @@ use Illuminate\Routing\ResourceRegistrar as BaseResourceRegistrar;
 
 class ResourceRegistrar extends BaseResourceRegistrar
 {
+    public function __construct($router, protected RouteHeadRepository $head)
+    {
+        parent::__construct($router);
+    }
+
     /**
      * @param  array<string, mixed>  $options
      * @return array<string, mixed>
@@ -16,12 +21,6 @@ class ResourceRegistrar extends BaseResourceRegistrar
     {
         $action = parent::getResourceAction($resource, $controller, $method, $options);
 
-        foreach ([HeadDefinition::HEAD, HeadDefinition::GROUPS] as $key) {
-            if (isset($options[$key])) {
-                $action[$key] = $options[$key];
-            }
-        }
-
-        return $action;
+        return $this->head->addResourceAction($action, $options);
     }
 }

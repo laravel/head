@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Head\Routing\RegistersHeadRoutes;
 use Laravel\Head\Routing\ResourceRegistrar;
+use Laravel\Head\Routing\RouteHeadRepository;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -28,11 +29,12 @@ class HeadServiceProvider extends ServiceProvider
 
         $this->app->singleton(HeadRenderer::class);
         $this->app->singleton(SchemaValidator::class);
+        $this->app->singleton(RouteHeadRepository::class);
 
-        $this->app->singleton(Head::class, fn ($app): Head => new Head($app, $app->make(HeadRenderer::class)));
+        $this->app->singleton(Head::class, fn ($app): Head => new Head($app, $app->make(HeadRenderer::class), $app->make(RouteHeadRepository::class)));
         $this->app->alias(Head::class, 'head');
 
-        $this->app->bind(BaseResourceRegistrar::class, fn ($app): ResourceRegistrar => new ResourceRegistrar($app['router']));
+        $this->app->bind(BaseResourceRegistrar::class, fn ($app): ResourceRegistrar => new ResourceRegistrar($app['router'], $app->make(RouteHeadRepository::class)));
     }
 
     /**
@@ -42,7 +44,7 @@ class HeadServiceProvider extends ServiceProvider
     {
         Blade::directive('head', fn (): string => "<?php echo app('head')->render(); ?>");
 
-        (new RegistersHeadRoutes)->register();
+        $this->app->make(RegistersHeadRoutes::class)->register();
 
         $this->registerExceptionStatusResolver();
         $this->shareWithInertia();

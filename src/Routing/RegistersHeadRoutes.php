@@ -10,14 +10,15 @@ use Illuminate\Routing\PendingSingletonResourceRegistration;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
-use ReflectionProperty;
 
 class RegistersHeadRoutes
 {
+    public function __construct(protected RouteHeadRepository $repository) {}
+
     public function register(): void
     {
         Route::macro('head', function (...$head): Route {
-            $this->action[HeadDefinition::HEAD] = HeadDefinition::arguments($head);
+            app(RouteHeadRepository::class)->put($this, HeadDefinition::arguments($head));
 
             return $this;
         });
@@ -46,13 +47,7 @@ class RegistersHeadRoutes
      */
     public function withGroupHead(RouteRegistrar $registrar, array|Closure $definition): RouteRegistrar
     {
-        $attributes = $this->arrayProperty($registrar, 'attributes');
-        $groups = $attributes[HeadDefinition::GROUPS] ?? [];
-        $groups = is_array($groups) ? $groups : [];
-        $groups[] = $definition;
-        $attributes[HeadDefinition::GROUPS] = $groups;
-
-        $this->setProperty($registrar, 'attributes', $attributes);
+        $this->repository->pushGroup($registrar, $definition);
 
         return $registrar;
     }
@@ -66,29 +61,8 @@ class RegistersHeadRoutes
      */
     public function withPendingHead(PendingResourceRegistration|PendingSingletonResourceRegistration $registration, array|Closure $definition): PendingResourceRegistration|PendingSingletonResourceRegistration
     {
-        $options = $this->arrayProperty($registration, 'options');
-        $options[HeadDefinition::HEAD] = $definition;
-
-        $this->setProperty($registration, 'options', $options);
+        $this->repository->putPending($registration, $definition);
 
         return $registration;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected function arrayProperty(object $target, string $property): array
-    {
-        $value = (new ReflectionProperty($target, $property))->getValue($target);
-
-        return is_array($value) ? $value : [];
-    }
-
-    /**
-     * @param  array<string, mixed>  $value
-     */
-    protected function setProperty(object $target, string $property, array $value): void
-    {
-        (new ReflectionProperty($target, $property))->setValue($target, $value);
     }
 }

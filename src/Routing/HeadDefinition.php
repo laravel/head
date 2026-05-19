@@ -55,20 +55,6 @@ class HeadDefinition
     }
 
     /**
-     * @return array<int, array<mixed, mixed>|Closure>
-     */
-    public static function groups(Route $route): array
-    {
-        $groups = $route->getAction(static::GROUPS) ?? [];
-
-        if (! is_array($groups)) {
-            return [];
-        }
-
-        return array_is_list($groups) ? $groups : [$groups];
-    }
-
-    /**
      * @param  array<mixed, mixed>  $definition
      * @return array<string, mixed>
      */

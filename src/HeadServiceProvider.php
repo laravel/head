@@ -67,12 +67,16 @@ class HeadServiceProvider extends ServiceProvider
 
     protected function shareWithInertia(): void
     {
-        $inertia = 'Inertia\\Inertia';
+        $inertia = 'Inertia\\'.'Inertia';
 
-        if (! class_exists($inertia) || ! is_callable([$inertia, 'share'])) {
+        if (! class_exists($inertia)) {
             return;
         }
 
-        $inertia::share('head', fn (): array => $this->app->make(Head::class)->toArray());
+        $head = fn (): array => $this->app->make(Head::class)->toArray();
+        $always = 'always';
+        $share = 'share';
+
+        $inertia::$share('head', $inertia::$always($head));
     }
 }

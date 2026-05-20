@@ -37,20 +37,25 @@ Register global defaults in a service provider:
 ```php
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Head as HeadManager;
+use Laravel\Head\CanonicalMode;
+use Laravel\Head\OgType;
+use Laravel\Head\TwitterCard;
 
 Head::defaults(function (HeadManager $head) {
     $head
-        ->title()->suffix(' - Acme')->fallback('Acme')
+        ->title('Acme', suffix: ' - Acme')
         ->description('Build something great.')
-        ->canonical()->auto()
-        ->og()->siteName('Acme')->type('website')
-        ->twitter()->card('summary_large_image')
-        ->robots()->index()->follow()
+        ->canonical(CanonicalMode::Auto)
+        ->og(siteName: 'Acme', type: OgType::Website)
+        ->twitter(card: TwitterCard::SummaryLargeImage)
+        ->robots('index, follow')
         ->preconnect('https://fonts.example.com');
 });
 ```
 
-Title suffixes are appended unless a later layer calls `->title()->bare()`. Canonical URLs are rendered automatically unless a later layer calls `->canonical()->none()`. Robots defaults to `index, follow`.
+The defaults layer is the fallback for the cascade. If no route, controller, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `bare: true` for titles that should ignore the inherited prefix or suffix.
+
+Canonical URLs are rendered automatically unless a later layer calls `Head::canonical(CanonicalMode::None)`. Robots defaults to `index, follow`.
 
 ## Route Metadata
 
@@ -73,7 +78,7 @@ Route::get('/posts/{post}', ShowPostController::class)
 Shared route metadata can be applied to a group:
 
 ```php
-Route::withHead(robots: ['noindex', 'nofollow'])
+Route::withHead(robots: 'noindex, nofollow')
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -83,7 +88,19 @@ Route::withHead(robots: ['noindex', 'nofollow'])
     });
 ```
 
-Route metadata supports the same common keys as the fluent builder, including `title`, `description`, `canonical`, `robots`, `og`, `twitter`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feeds`, and `schemas`.
+Resource and singleton routes can define metadata too:
+
+```php
+Route::resource('posts', PostController::class)->head(
+    robots: 'index, follow',
+);
+
+Route::singleton('profile', ProfileController::class)->head(
+    title: 'Your Profile',
+);
+```
+
+Route metadata supports the same common keys as the fluent builder, including `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogImages`, `ogVideo`, `ogVideos`, `ogAudio`, `ogAudios`, `twitter`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feeds`, `schemas`, `meta`, and `link`.
 
 ## Controller Metadata
 
@@ -92,11 +109,18 @@ Controllers and actions can override route metadata for dynamic request data:
 ```php
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
+use Laravel\Head\OgType;
 
 Head::title($post->title)
     ->description($post->excerpt)
     ->canonical($post->url())
-    ->og()->title($post->title)->image($post->og_image_url)->type('article')
+    ->og(title: $post->title, type: OgType::Article)
+    ->ogImage(
+        $post->og_image_url,
+        alt: $post->title,
+        width: 1200,
+        height: 630,
+    )
     ->schema(
         Schema::article()
             ->headline($post->title)
@@ -105,6 +129,19 @@ Head::title($post->title)
             ->image($post->og_image_url)
     );
 ```
+
+For the simplest case — a single OG image with no other knobs — use the `image:` shorthand on `og()`:
+
+```php
+Head::og(
+    type: OgType::Website,
+    title: $page->title,
+    description: $page->description,
+    image: $page->og_image_url,
+);
+```
+
+`og(image: ...)` and `ogImage(...)` write to the same underlying image list, so pick whichever reads better at the call site.
 
 ## Errors
 
@@ -115,7 +152,7 @@ use Laravel\Head\Errors;
 use Laravel\Head\Facades\Head;
 
 Head::errors(function (Errors $errors) {
-    $errors->defaults(robots: ['noindex', 'follow']);
+    $errors->defaults(robots: 'noindex, follow');
 
     $errors->status(404,
         title: 'Page Not Found',
@@ -136,7 +173,7 @@ Head data resolves in this order, from lowest to highest priority:
 4. Controller or action metadata
 5. Error metadata
 
-Higher layers replace lower layers field by field. For example, a controller title replaces the route title without replacing the route description. Collection-like values such as performance hints, alternates, feeds, and schemas are merged and deduplicated by their natural keys, with higher layers winning conflicts.
+Higher layers replace lower layers field by field. For example, a controller title replaces the route title without replacing the route description. Collection-like values such as performance hints, alternates, feeds, schemas, and Open Graph media are merged and deduplicated by their natural keys, with higher layers winning conflicts. Open Graph and Twitter property bags are merged property by property.
 
 ## Performance And Discovery
 
@@ -156,6 +193,40 @@ Head::preload(asset('fonts/inter.woff2'), as: 'font', crossorigin: true)
     ->feed('/feed', title: 'Acme RSS')
     ->feed('/feed.atom', type: 'atom', title: 'Acme Atom');
 ```
+
+For arbitrary tags without a first-class method, use the generic escape hatches:
+
+```php
+Head::meta('theme-color', '#000000')
+    ->meta('article:author', $post->author->name)
+    ->link('manifest', '/manifest.json')
+    ->link('apple-touch-icon', '/apple-touch-icon.png', ['sizes' => '180x180']);
+```
+
+`meta()` emits `name=` by default and automatically uses `property=` for known RDFa namespaces such as `og:`, `article:`, `book:`, `profile:`, `music:`, `video:`, `fb:`, and `product:`. You may override detection with `property: true` or `property: false`.
+
+### Open Graph And Twitter Media
+
+Repeatable Open Graph media is modeled with explicit top-level methods that take named args directly — no value objects:
+
+```php
+use Laravel\Head\OgType;
+use Laravel\Head\TwitterCard;
+
+Head::og(type: OgType::Article, title: $post->title)
+    ->ogImage($post->hero_image_url)
+    ->ogImage(
+        $post->gallery_image_url,
+        alt: $post->gallery_image_alt,
+        width: 1200,
+        height: 630,
+        type: 'image/jpeg',
+    )
+    ->twitter(card: TwitterCard::SummaryLargeImage)
+    ->twitterImage($post->twitter_image_url, alt: $post->title);
+```
+
+`ogImage()`, `ogVideo()`, `ogAudio()`, and `twitterImage()` all accept the same shape: a URL as the first argument plus optional named args for `alt`, `width`, `height`, `type`, and `secureUrl` where the spec defines them. For a single trivial image you can skip the dedicated method entirely and pass `image: 'https://...'` to `og()` or `twitter()`. Use `Head::meta()` for custom Open Graph extensions such as product or article properties.
 
 ## Schemas
 

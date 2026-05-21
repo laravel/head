@@ -8,7 +8,7 @@ use Inertia\Support\Header;
 use Laravel\Head\Facades\Head;
 
 it('injects resolved head data into inertia page objects', function (): void {
-    Head::defaults(fn (Laravel\Head\Head $head) => $head->title()->suffix(' - Acme'));
+    Head::defaults(fn (Laravel\Head\Head $head) => $head->title('Acme', suffix: ' - Acme'));
 
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
         'user' => 'Taylor',

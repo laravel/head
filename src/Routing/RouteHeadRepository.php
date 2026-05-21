@@ -23,6 +23,8 @@ class RouteHeadRepository
 
     public const HEAD = 'head';
 
+    public const GROUPS = 'headGroups';
+
     /**
      * @param  array<mixed, mixed>|Closure  $definition
      */
@@ -50,10 +52,11 @@ class RouteHeadRepository
     public function pushGroup(RouteRegistrar $registrar, array|Closure $definition): void
     {
         $attributes = $this->arrayProperty($registrar, 'attributes');
-        $attributes[static::METADATA] = $this->mergeMetadata(
-            $this->metadataArray($attributes[static::METADATA] ?? []),
-            [static::HEAD => $definition],
-        );
+        $metadata = $this->metadataArray($attributes[static::METADATA] ?? []);
+        $groups = $this->groupsArray($metadata[static::GROUPS] ?? []);
+        $groups[] = $definition;
+        $metadata[static::GROUPS] = $groups;
+        $attributes[static::METADATA] = $metadata;
 
         $this->setProperty($registrar, 'attributes', $attributes);
     }
@@ -63,7 +66,7 @@ class RouteHeadRepository
      */
     public function groups(Route $route): array
     {
-        return [];
+        return $this->groupsArray($this->getMetadata($route, static::GROUPS, []));
     }
 
     /**
@@ -118,6 +121,21 @@ class RouteHeadRepository
     protected function metadataArray(mixed $metadata): array
     {
         return is_array($metadata) ? $metadata : [];
+    }
+
+    /**
+     * @return array<int, array<mixed, mixed>|Closure>
+     */
+    protected function groupsArray(mixed $groups): array
+    {
+        if (! is_array($groups)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $groups,
+            fn (mixed $group): bool => is_array($group) || $group instanceof Closure
+        ));
     }
 
     /**

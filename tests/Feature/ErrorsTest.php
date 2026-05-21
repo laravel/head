@@ -7,10 +7,10 @@ use Laravel\Head\Errors;
 use Laravel\Head\Facades\Head;
 
 it('lets error head beat the resolved page head', function (): void {
-    Head::defaults(fn (Laravel\Head\Head $head) => $head->title()->suffix(' - Acme'));
+    Head::defaults(fn (Laravel\Head\Head $head) => $head->title('Acme', suffix: ' - Acme'));
 
     Head::errors(function (Errors $errors): void {
-        $errors->defaults(robots: ['noindex', 'follow']);
+        $errors->defaults(robots: 'noindex, follow');
 
         $errors->status(404,
             title: 'Page Not Found',

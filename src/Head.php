@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Laravel\Head\Routing\HeadDefinition;
 use Laravel\Head\Routing\RouteHeadRepository;
+use Laravel\Head\Schema as SchemaFactory;
 use Laravel\Head\Schema\SchemaObject;
 
 class Head
@@ -35,7 +36,7 @@ class Head
     public function defaults(callable $callback): static
     {
         $this->record($callback, function (HeadData $data): void {
-            $this->defaults = $this->defaults->merge($data);
+            $this->defaults = $this->defaults->merge($data->asDefaults());
         });
 
         return $this;
@@ -61,16 +62,9 @@ class Head
         return $this;
     }
 
-    /**
-     * Set the page title or configure title rendering.
-     */
-    public function title(?string $title = null): static|Title
+    public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): static
     {
-        if (is_null($title)) {
-            return new Title($this->data());
-        }
-
-        $this->data()->title($title);
+        $this->data()->title($title, prefix: $prefix, suffix: $suffix, bare: $bare);
 
         return $this;
     }
@@ -85,42 +79,106 @@ class Head
         return $this;
     }
 
-    /**
-     * Set or configure the canonical URL.
-     */
-    public function canonical(?string $url = null): static|Canonical
+    public function canonical(string|CanonicalMode $value, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
-        if (is_null($url)) {
-            return new Canonical($this->data());
-        }
-
-        $this->data()->canonical($url);
+        $this->data()->canonical($value, forceHttps: $forceHttps, trailingSlash: $trailingSlash);
 
         return $this;
     }
 
-    /**
-     * Configure Open Graph metadata.
-     */
-    public function og(): OpenGraph
+    public function robots(string $directives): static
     {
-        return $this->data()->og();
+        $this->data()->robots($directives);
+
+        return $this;
     }
 
-    /**
-     * Configure Twitter card metadata.
-     */
-    public function twitter(): Twitter
-    {
-        return $this->data()->twitter();
+    public function og(
+        OgType|string|null $type = null,
+        ?string $title = null,
+        ?string $description = null,
+        ?string $url = null,
+        ?string $image = null,
+        ?string $video = null,
+        ?string $audio = null,
+        ?string $siteName = null,
+        ?string $locale = null,
+        ?string $determiner = null,
+    ): static {
+        $this->data()->og(
+            type: $type,
+            title: $title,
+            description: $description,
+            url: $url,
+            image: $image,
+            video: $video,
+            audio: $audio,
+            siteName: $siteName,
+            locale: $locale,
+            determiner: $determiner,
+        );
+
+        return $this;
     }
 
-    /**
-     * Configure robots metadata.
-     */
-    public function robots(): Robots
+    public function ogImage(
+        string $url,
+        ?string $alt = null,
+        ?int $width = null,
+        ?int $height = null,
+        ?string $type = null,
+        ?string $secureUrl = null,
+    ): static {
+        $this->data()->ogImage($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
+
+        return $this;
+    }
+
+    public function ogVideo(
+        string $url,
+        ?string $alt = null,
+        ?int $width = null,
+        ?int $height = null,
+        ?string $type = null,
+        ?string $secureUrl = null,
+    ): static {
+        $this->data()->ogVideo($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
+
+        return $this;
+    }
+
+    public function ogAudio(string $url, ?string $type = null, ?string $secureUrl = null): static
     {
-        return $this->data()->robots();
+        $this->data()->ogAudio($url, type: $type, secureUrl: $secureUrl);
+
+        return $this;
+    }
+
+    public function twitter(
+        TwitterCard|string|null $card = null,
+        ?string $site = null,
+        ?string $creator = null,
+        ?string $title = null,
+        ?string $description = null,
+        ?string $image = null,
+    ): static {
+        $this->data()->twitter(
+            card: $card,
+            site: $site,
+            creator: $creator,
+            title: $title,
+            description: $description,
+            image: $image,
+        );
+
+        return $this;
+    }
+
+    public function twitterImage(string $url, ?string $alt = null): static
+    {
+        $this->data()->twitterImage($url, alt: $alt);
+
+        return $this;
     }
 
     /**
@@ -200,11 +258,32 @@ class Head
     /**
      * Add a JSON-LD schema object to the page.
      *
-     * @param  SchemaObject|array<string, mixed>  $schema
+     * @param  SchemaObject|array<string, mixed>|callable(SchemaFactory): SchemaObject|array<string, mixed>  $schema
      */
-    public function schema(SchemaObject|array $schema): static
+    public function schema(SchemaObject|array|callable $schema): static
     {
+        if (is_callable($schema)) {
+            $schema = $schema($this->app->make(SchemaFactory::class));
+        }
+
         $this->data()->schema($schema);
+
+        return $this;
+    }
+
+    public function meta(string $key, string $content, ?bool $property = null): static
+    {
+        $this->data()->meta($key, $content, $property);
+
+        return $this;
+    }
+
+    /**
+     * @param  array<string, bool|float|int|string|null>  $attributes
+     */
+    public function link(string $rel, string $href, array $attributes = []): static
+    {
+        $this->data()->link($rel, $href, $attributes);
 
         return $this;
     }

@@ -27,9 +27,9 @@ class HeadRenderer
             'title' => $this->title($head),
             'description' => $head->description,
             'canonical' => $this->canonical($head, $request),
-            'robots' => $head->robots ? implode(', ', $head->robots) : null,
-            'openGraph' => $this->openGraph($head),
-            'twitter' => $this->twitter($head),
+            'robots' => $head->robots,
+            'openGraph' => $this->openGraphPayload($head),
+            'twitter' => $this->twitterPayload($head),
             'links' => [
                 'performance' => [
                     'preload' => array_values($head->preloads),
@@ -37,10 +37,12 @@ class HeadRenderer
                     'preconnect' => array_values($head->preconnects),
                     'dnsPrefetch' => array_values($head->dnsPrefetches),
                 ],
-                'pagination' => $head->links,
+                'pagination' => $head->paginationLinks,
                 'alternates' => $head->alternates,
                 'feeds' => array_values($head->feeds),
+                'generic' => array_values($head->genericLinks),
             ],
+            'meta' => array_values($head->meta),
             'schemas' => array_map(
                 fn (SchemaObject|array $schema): array => $this->schema($schema),
                 array_values($head->schemas),
@@ -57,13 +59,15 @@ class HeadRenderer
             $this->titleTag($head),
             $head->description ? $this->meta('name', 'description', $head->description) : null,
             ($canonical = $this->canonical($head, $request)) ? $this->link('canonical', $canonical) : null,
-            $head->robots ? $this->meta('name', 'robots', implode(', ', $head->robots)) : null,
+            $head->robots ? $this->meta('name', 'robots', $head->robots) : null,
             ...$this->openGraphTags($head),
             ...$this->twitterTags($head),
             ...$this->paginationTags($head),
             ...$this->alternateTags($head),
             ...$this->feedTags($head),
             ...$this->performanceTags($head),
+            ...$this->genericMetaTags($head),
+            ...$this->genericLinkTags($head),
             ...$this->schemaTags($head),
         ];
     }
@@ -75,17 +79,15 @@ class HeadRenderer
 
     protected function title(HeadData $head): ?string
     {
-        $title = $head->title ?? $head->titleFallback;
-
-        if (is_null($title)) {
+        if (is_null($head->title)) {
             return null;
         }
 
-        if ($head->titleBare) {
-            return $title;
+        if ($head->titleDecorated === false) {
+            return $head->title;
         }
 
-        return ($head->titlePrefix ?? '').$title.($head->titleSuffix ?? '');
+        return ($head->titlePrefix ?? '').$head->title.($head->titleSuffix ?? '');
     }
 
     protected function canonical(HeadData $head, ?Request $request): ?string
@@ -147,6 +149,19 @@ class HeadRenderer
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    protected function openGraphPayload(HeadData $head): array
+    {
+        return array_filter([
+            ...$this->openGraph($head),
+            'images' => array_values($head->openGraphImages),
+            'videos' => array_values($head->openGraphVideos),
+            'audios' => array_values($head->openGraphAudios),
+        ]);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function twitter(HeadData $head): array
@@ -165,15 +180,33 @@ class HeadRenderer
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    protected function twitterPayload(HeadData $head): array
+    {
+        return array_filter([
+            ...$this->twitter($head),
+            'image' => $head->twitterImage,
+        ]);
+    }
+
+    /**
      * @return array<int, string>
      */
     protected function openGraphTags(HeadData $head): array
     {
-        return array_map(
+        $tags = array_map(
             fn (string $property, string $content): string => $this->meta('property', 'og:'.$property, $content),
             array_keys($this->openGraph($head)),
             $this->openGraph($head),
         );
+
+        return [
+            ...$tags,
+            ...$this->openGraphMediaTags('image', $head->openGraphImages),
+            ...$this->openGraphMediaTags('video', $head->openGraphVideos),
+            ...$this->openGraphMediaTags('audio', $head->openGraphAudios),
+        ];
     }
 
     /**
@@ -181,11 +214,23 @@ class HeadRenderer
      */
     protected function twitterTags(HeadData $head): array
     {
-        return array_map(
+        $tags = array_map(
             fn (string $name, string $content): string => $this->meta('name', 'twitter:'.$name, $content),
             array_keys($this->twitter($head)),
             $this->twitter($head),
         );
+
+        if (is_null($head->twitterImage)) {
+            return $tags;
+        }
+
+        $tags[] = $this->meta('name', 'twitter:image', $head->twitterImage['url']);
+
+        if (isset($head->twitterImage['alt'])) {
+            $tags[] = $this->meta('name', 'twitter:image:alt', $head->twitterImage['alt']);
+        }
+
+        return $tags;
     }
 
     /**
@@ -195,8 +240,8 @@ class HeadRenderer
     {
         return array_map(
             fn (string $rel, string $href): string => '<link rel="'.e($rel).'" href="'.e($href).'">',
-            array_keys($head->links),
-            $head->links,
+            array_keys($head->paginationLinks),
+            $head->paginationLinks,
         );
     }
 
@@ -238,6 +283,49 @@ class HeadRenderer
     }
 
     /**
+     * @param  array<string, array{url: string, alt?: string|null, width?: int|null, height?: int|null, type?: string|null, secure_url?: string|null}>  $media
+     * @return array<int, string>
+     */
+    protected function openGraphMediaTags(string $property, array $media): array
+    {
+        $tags = [];
+
+        foreach ($media as $attributes) {
+            $tags[] = $this->meta('property', 'og:'.$property, $attributes['url']);
+
+            foreach (['secure_url', 'type', 'width', 'height', 'alt'] as $attribute) {
+                if (isset($attributes[$attribute])) {
+                    $tags[] = $this->meta('property', 'og:'.$property.':'.$attribute, $attributes[$attribute]);
+                }
+            }
+        }
+
+        return $tags;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function genericMetaTags(HeadData $head): array
+    {
+        return array_map(function (array $meta): string {
+            $attribute = ($meta['property'] ?? $this->isRdfaProperty($meta['key'])) ? 'property' : 'name';
+
+            return $this->meta($attribute, $meta['key'], $meta['content']);
+        }, array_values($head->meta));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function genericLinkTags(HeadData $head): array
+    {
+        return array_map(function (array $link): string {
+            return $this->linkWithAttributes($link['rel'], ['href' => $link['href'], ...$link['attributes']]);
+        }, array_values($head->genericLinks));
+    }
+
+    /**
      * @return array<int, string>
      */
     protected function schemaTags(HeadData $head): array
@@ -271,7 +359,7 @@ class HeadRenderer
     }
 
     /**
-     * @param  array<string, string|bool|null>  $attributes
+     * @param  array<string, bool|float|int|string|null>  $attributes
      */
     protected function linkWithAttributes(string $rel, array $attributes): string
     {
@@ -279,7 +367,7 @@ class HeadRenderer
     }
 
     /**
-     * @param  array<string, string|bool|null>  $attributes
+     * @param  array<string, bool|float|int|string|null>  $attributes
      */
     protected function attributes(array $attributes): string
     {
@@ -289,7 +377,7 @@ class HeadRenderer
                     return e($name);
                 }
 
-                if ($value === false) {
+                if ($value === false || is_null($value)) {
                     return '';
                 }
 
@@ -297,5 +385,16 @@ class HeadRenderer
             })
             ->filter()
             ->implode(' ');
+    }
+
+    protected function isRdfaProperty(string $key): bool
+    {
+        foreach (['og:', 'article:', 'book:', 'profile:', 'music:', 'video:', 'fb:', 'product:'] as $prefix) {
+            if (str_starts_with($key, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -7,7 +7,7 @@
 
 ## Introduction
 
-Laravel Head manages your application's document `<head>`, with a fluent API for title and meta tags, Open Graph and Twitter cards, canonical URLs, robots directives, performance hints, and structured data. It works across Blade, Livewire, and Inertia.
+Laravel Head provides a fluent API for managing your application's document `<head>`, with support for title and meta tags, Open Graph and Twitter cards, canonical URLs, robots directives, performance hints, and structured data. It works across Blade, Livewire, and Inertia.
 
 ## Installation
 
@@ -175,6 +175,9 @@ Head::og(type: OgType::Article, title: $post->title)
 ```
 
 `ogImage()`, `ogVideo()`, `ogAudio()`, and `twitterImage()` all accept the same shape: a URL as the first argument plus optional named args for `alt`, `width`, `height`, `type`, and `secureUrl` where the spec defines them.
+
+> [!NOTE]
+> Document `title` and `description` automatically fill missing `og:title`, `og:description`, `twitter:title`, and `twitter:description` values. If no Twitter image is set, the first Open Graph image is also used for `twitter:image`.
 
 For a single OG image with no other attributes, pass the `image:` shorthand to `og()` or `twitter()`:
 

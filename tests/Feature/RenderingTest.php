@@ -93,6 +93,40 @@ it('renders open graph and twitter media from top level methods', function (): v
         ->toContain('<meta name="twitter:image:alt" content="Twitter alt">');
 });
 
+it('falls back from document metadata to social metadata', function (): void {
+    Head::title('Gallery')
+        ->description('Gallery description.')
+        ->ogImage('https://example.com/gallery.jpg', alt: 'Gallery image');
+
+    expect(Head::render())
+        ->toContain('<meta property="og:title" content="Gallery">')
+        ->toContain('<meta property="og:description" content="Gallery description.">')
+        ->toContain('<meta name="twitter:title" content="Gallery">')
+        ->toContain('<meta name="twitter:description" content="Gallery description.">')
+        ->toContain('<meta name="twitter:image" content="https://example.com/gallery.jpg">')
+        ->toContain('<meta name="twitter:image:alt" content="Gallery image">');
+
+    expect(Head::toArray()['twitter']['image'])->toBe([
+        'url' => 'https://example.com/gallery.jpg',
+        'alt' => 'Gallery image',
+    ]);
+});
+
+it('prefers explicit twitter image metadata over open graph image metadata', function (): void {
+    Head::ogImage('https://example.com/gallery.jpg', alt: 'Gallery image')
+        ->twitterImage('https://example.com/twitter.jpg', alt: 'Twitter image');
+
+    expect(Head::render())
+        ->toContain('<meta name="twitter:image" content="https://example.com/twitter.jpg">')
+        ->toContain('<meta name="twitter:image:alt" content="Twitter image">')
+        ->not->toContain('<meta name="twitter:image" content="https://example.com/gallery.jpg">');
+
+    expect(Head::toArray()['twitter']['image'])->toBe([
+        'url' => 'https://example.com/twitter.jpg',
+        'alt' => 'Twitter image',
+    ]);
+});
+
 it('renders generic meta and link tags', function (): void {
     Head::meta('theme-color', '#000000')
         ->meta('article:author', 'Taylor Otwell')

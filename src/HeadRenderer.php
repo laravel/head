@@ -186,7 +186,7 @@ class HeadRenderer
     {
         return array_filter([
             ...$this->twitter($head),
-            'image' => $head->twitterImage,
+            'image' => $this->twitterImage($head),
         ]);
     }
 
@@ -220,17 +220,39 @@ class HeadRenderer
             $this->twitter($head),
         );
 
-        if (is_null($head->twitterImage)) {
+        if (is_null($image = $this->twitterImage($head))) {
             return $tags;
         }
 
-        $tags[] = $this->meta('name', 'twitter:image', $head->twitterImage['url']);
+        $tags[] = $this->meta('name', 'twitter:image', $image['url']);
 
-        if (isset($head->twitterImage['alt'])) {
-            $tags[] = $this->meta('name', 'twitter:image:alt', $head->twitterImage['alt']);
+        if (isset($image['alt'])) {
+            $tags[] = $this->meta('name', 'twitter:image:alt', $image['alt']);
         }
 
         return $tags;
+    }
+
+    /**
+     * @return array{url: string, alt?: string}|null
+     */
+    protected function twitterImage(HeadData $head): ?array
+    {
+        if (! is_null($head->twitterImage)) {
+            $image = $head->twitterImage;
+        } elseif ($head->openGraphImages !== []) {
+            $image = reset($head->openGraphImages);
+        } else {
+            return null;
+        }
+
+        $twitterImage = ['url' => $image['url']];
+
+        if (isset($image['alt'])) {
+            $twitterImage['alt'] = $image['alt'];
+        }
+
+        return $twitterImage;
     }
 
     /**

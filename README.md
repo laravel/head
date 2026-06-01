@@ -100,7 +100,7 @@ Route::singleton('profile', ProfileController::class)->head(
 );
 ```
 
-Route metadata supports the same common keys as the fluent builder, including `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogImages`, `ogVideo`, `ogVideos`, `ogAudio`, `ogAudios`, `twitter`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feeds`, `schemas`, `meta`, and `link`.
+Route metadata keys mirror the fluent builder methods one-to-one: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Keys that represent repeatable tags (`ogImage`, `preload`, `feed`, `schema`, …) accept either a single value or a list.
 
 ## Controller Metadata
 
@@ -301,7 +301,7 @@ The `head` prop is shared as an always-included Inertia prop, so it is still pre
 
 ## Livewire
 
-Livewire applications can use the same `@head` directive in their document layout. During `wire:navigate` visits, Livewire requests the next document and Laravel Head resolves metadata for that route before the response is returned:
+Livewire applications use the same `@head` directive in their document layout:
 
 ```blade
 <head>
@@ -315,4 +315,4 @@ Livewire applications can use the same `@head` directive in their document layou
 </body>
 ```
 
-Links using `wire:navigate` receive the next page's route, controller, and error metadata without component-level head code.
+No Livewire-specific configuration is required. Head data is resolved per request and the resolver is request-scoped, so each `wire:navigate` visit fetches a fresh document whose `@head` reflects the destination route's metadata. Links using `wire:navigate` therefore pick up the next page's route, controller, and error metadata without any component-level head code.

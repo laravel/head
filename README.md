@@ -7,7 +7,7 @@
 
 ## Introduction
 
-Laravel Head provides first-party head management for Laravel applications, covering metadata, structured data, and performance hints across Blade, Livewire, and Inertia.
+Laravel Head is a head tag manager for Laravel applications. You fluently describe metadata in layers (global defaults, routes, controllers, and error pages), and Laravel Head resolves them into a single set of tags that render in your Blade, Livewire, or Inertia views.
 
 ## Installation
 
@@ -15,20 +15,17 @@ Laravel Head provides first-party head management for Laravel applications, cove
 composer require laravel/head
 ```
 
-Laravel Head requires PHP 8.3 or later and supports Laravel 12 and Laravel 13.
+## Resolution Precedence
 
-## Rendering
+Head data resolves from five layers, listed here from lowest to highest priority:
 
-Render the accumulated tags from your Blade layout with the `@head` directive:
+1. Global defaults
+2. Route group metadata
+3. Route metadata
+4. Controller or action metadata
+5. Error metadata
 
-```blade
-<head>
-    <meta charset="utf-8">
-    @head
-</head>
-```
-
-`@head` renders synchronously. Define page metadata before the layout is rendered.
+Higher layers replace lower layers field by field. For example, a controller title replaces the route title without replacing the route description. The sections that follow describe how to set metadata at each layer. See [Rendering](#rendering) for how the resolved result is emitted in Blade, Livewire, and Inertia.
 
 ## Defaults
 
@@ -53,13 +50,12 @@ Head::defaults(function (HeadManager $head) {
 });
 ```
 
-The defaults layer is the fallback for the cascade. If no route, controller, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `bare: true` for titles that should ignore the inherited prefix or suffix.
+The defaults layer is the lowest-priority layer. If no route, controller, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `bare: true` for titles that should ignore the inherited prefix or suffix.
 
 Canonical URLs are rendered automatically unless a later layer calls `Head::canonical(CanonicalMode::None)`. Robots defaults to `index, follow`.
 
 ## Route Metadata
-
-Most pages can define their metadata directly on the route:
+Many pages can define their metadata directly on the route, especially semi static pages whose metadata is known ahead of time.
 
 ```php
 Route::view('/contact', 'contact')
@@ -68,11 +64,6 @@ Route::view('/contact', 'contact')
         title: 'Contact Us',
         description: 'Get in touch.',
     );
-
-Route::get('/posts/{post}', ShowPostController::class)
-    ->head(fn (Route $route) => [
-        'title' => $route->parameter('post')->title,
-    ]);
 ```
 
 Shared route metadata can be applied to a group:
@@ -100,7 +91,19 @@ Route::singleton('profile', ProfileController::class)->head(
 );
 ```
 
-Route metadata keys mirror the fluent builder methods one-to-one: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Keys that represent repeatable tags (`ogImage`, `preload`, `feed`, `schema`, …) accept either a single value or a list.
+The keys you pass to `->head()` match the fluent builder methods: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, …) accept either a single value or a list. The one builder method without a route key is `paginate()`, whose prev/next links come from a live paginator you resolve in the controller.
+
+When a value isn't known until a request arrives, such as the title of the post being viewed, you may pass a closure instead of named arguments. The closure receives the matched route so you can read its parameters, and returns an array using those same keys:
+
+```php
+Route::get('/posts/{post}', ShowPostController::class)
+    ->head(fn (Route $route) => [
+        'title' => $route->parameter('post')->title,
+    ]);
+```
+
+> [!NOTE]
+> A closure can't be serialized, so a route that uses this form makes `php artisan route:cache` fail. If you cache your routes, set request-dependent metadata from the [controller](#controller-metadata) instead.
 
 ## Controller Metadata
 
@@ -130,19 +133,6 @@ Head::title($post->title)
     );
 ```
 
-For the simplest case — a single OG image with no other knobs — use the `image:` shorthand on `og()`:
-
-```php
-Head::og(
-    type: OgType::Website,
-    title: $page->title,
-    description: $page->description,
-    image: $page->og_image_url,
-);
-```
-
-`og(image: ...)` and `ogImage(...)` write to the same underlying image list, so pick whichever reads better at the call site.
-
 ## Errors
 
 Error metadata can be registered for status-code-specific pages:
@@ -163,51 +153,9 @@ Head::errors(function (Errors $errors) {
 
 When a response is rendered for a registered error status, that metadata beats every other layer.
 
-## Cascade
+## Open Graph & Twitter
 
-Head data resolves in this order, from lowest to highest priority:
-
-1. Global defaults
-2. Route group metadata
-3. Route metadata
-4. Controller or action metadata
-5. Error metadata
-
-Higher layers replace lower layers field by field. For example, a controller title replaces the route title without replacing the route description. Collection-like values such as performance hints, alternates, feeds, schemas, and Open Graph media are merged and deduplicated by their natural keys, with higher layers winning conflicts. Open Graph and Twitter property bags are merged property by property.
-
-## Performance And Discovery
-
-Laravel Head renders performance hints, pagination links, locale alternates, and feed discovery:
-
-```php
-Head::preload(asset('fonts/inter.woff2'), as: 'font', crossorigin: true)
-    ->prefetch(asset('images/next.webp'))
-    ->preconnect('https://cdn.example.com')
-    ->dnsPrefetch('https://analytics.example.com')
-    ->paginate($posts)
-    ->alternates([
-        'en' => 'https://example.com/en/about',
-        'fr' => 'https://example.com/fr/about',
-        'x-default' => 'https://example.com/about',
-    ])
-    ->feed('/feed', title: 'Acme RSS')
-    ->feed('/feed.atom', type: 'atom', title: 'Acme Atom');
-```
-
-For arbitrary tags without a first-class method, use the generic escape hatches:
-
-```php
-Head::meta('theme-color', '#000000')
-    ->meta('article:author', $post->author->name)
-    ->link('manifest', '/manifest.json')
-    ->link('apple-touch-icon', '/apple-touch-icon.png', ['sizes' => '180x180']);
-```
-
-`meta()` emits `name=` by default and automatically uses `property=` for known RDFa namespaces such as `og:`, `article:`, `book:`, `profile:`, `music:`, `video:`, `fb:`, and `product:`. You may override detection with `property: true` or `property: false`.
-
-### Open Graph And Twitter Media
-
-Repeatable Open Graph media is modeled with explicit top-level methods that take named args directly — no value objects:
+Open Graph and Twitter card properties are set with `og()` and `twitter()`. Repeatable media is added through top-level methods that take named arguments directly:
 
 ```php
 use Laravel\Head\OgType;
@@ -226,11 +174,56 @@ Head::og(type: OgType::Article, title: $post->title)
     ->twitterImage($post->twitter_image_url, alt: $post->title);
 ```
 
-`ogImage()`, `ogVideo()`, `ogAudio()`, and `twitterImage()` all accept the same shape: a URL as the first argument plus optional named args for `alt`, `width`, `height`, `type`, and `secureUrl` where the spec defines them. For a single trivial image you can skip the dedicated method entirely and pass `image: 'https://...'` to `og()` or `twitter()`. Use `Head::meta()` for custom Open Graph extensions such as product or article properties.
+`ogImage()`, `ogVideo()`, `ogAudio()`, and `twitterImage()` all accept the same shape: a URL as the first argument plus optional named args for `alt`, `width`, `height`, `type`, and `secureUrl` where the spec defines them.
+
+For a single OG image with no other attributes, pass the `image:` shorthand to `og()` or `twitter()`:
+
+```php
+Head::og(
+    type: OgType::Website,
+    title: $page->title,
+    description: $page->description,
+    image: $page->og_image_url,
+);
+```
+
+`og(image: ...)` and `ogImage(...)` write to the same underlying image list, so pick whichever reads better at the call site. Use [`meta()`](#custom-tags) for custom Open Graph extensions such as product or article properties.
+
+## Performance & Discovery
+
+Laravel Head renders performance hints, pagination links, locale alternates, and feed discovery:
+
+```php
+Head::preload(asset('fonts/inter.woff2'), as: 'font', crossorigin: true)
+    ->prefetch(asset('images/next.webp'))
+    ->preconnect('https://cdn.example.com')
+    ->dnsPrefetch('https://analytics.example.com')
+    ->paginate($posts)
+    ->alternates([
+        'en' => 'https://example.com/en/about',
+        'fr' => 'https://example.com/fr/about',
+        'x-default' => 'https://example.com/about',
+    ])
+    ->feed('/feed', title: 'Acme RSS')
+    ->feed('/feed.atom', type: 'atom', title: 'Acme Atom');
+```
+
+## Custom Tags
+
+For tags without a dedicated method, use `meta()` and `link()`:
+
+```php
+Head::meta('theme-color', '#000000')
+    ->meta('article:author', $post->author->name)
+    ->link('manifest', '/manifest.json')
+    ->link('apple-touch-icon', '/apple-touch-icon.png', ['sizes' => '180x180']);
+```
+
+`meta()` emits `name=` by default and automatically uses `property=` for known RDFa namespaces such as `og:`, `article:`, `book:`, `profile:`, `music:`, `video:`, `fb:`, and `product:`. You may override detection with `property: true` or `property: false`.
 
 ## Schemas
 
-Built-in schema builders cover the common high-value JSON-LD types:
+Built-in schema builders cover the common JSON-LD types:
 
 ```php
 Head::schema(
@@ -282,24 +275,24 @@ Head::schema(
 );
 ```
 
-## Inertia
+## Rendering
 
-When Inertia is installed, Laravel Head automatically shares the resolved head payload as a `head` prop on every page object:
+Laravel Head resolves these layers into a single set of tags. Where that result is emitted depends on your stack.
 
-```json
-{
-    "props": {
-        "head": {
-            "title": "Dashboard - Acme",
-            "description": "Your application overview."
-        }
-    }
-}
+### Blade
+
+Render the accumulated tags in your layout's `<head>` with the `@head` directive:
+
+```blade
+<head>
+    <meta charset="utf-8">
+    @head
+</head>
 ```
 
-The `head` prop is shared as an always-included Inertia prop, so it is still present during partial reloads.
+`@head` renders synchronously, so define page metadata before the layout is rendered.
 
-## Livewire
+### Livewire
 
 Livewire applications use the same `@head` directive in their document layout:
 
@@ -316,3 +309,31 @@ Livewire applications use the same `@head` directive in their document layout:
 ```
 
 No Livewire-specific configuration is required. Head data is resolved per request and the resolver is request-scoped, so each `wire:navigate` visit fetches a fresh document whose `@head` reflects the destination route's metadata. Links using `wire:navigate` therefore pick up the next page's route, controller, and error metadata without any component-level head code.
+
+### Inertia
+
+When Inertia is installed, Laravel Head automatically shares the resolved head payload as a `head` prop on every page object:
+
+```json
+{
+    "props": {
+        "head": {
+            "title": "Dashboard - Acme",
+            "description": "Your application overview."
+        }
+    }
+}
+```
+
+The `head` prop is shared as an always-included Inertia prop, so it is still present during partial reloads.
+
+> [!IMPORTANT]
+> TODO: Document rendering the shared payload into the document `<head>` on the client.
+
+## Security Vulnerabilities
+
+Please review [our security policy](https://github.com/laravel/head/security/policy) on how to report security vulnerabilities.
+
+## License
+
+Laravel Head is open-sourced software licensed under the [MIT license](LICENSE.md).

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
-use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Foundation\Application;
 use Laravel\Head\Exceptions\InvalidSchema;
 use Psr\Log\LoggerInterface;
 
 class SchemaValidator
 {
-    public function __construct(protected Container $app) {}
+    public function __construct(protected Application $app) {}
 
     /**
      * @param  array<string, mixed>  $schema
@@ -28,7 +28,7 @@ class SchemaValidator
             return;
         }
 
-        if (method_exists($this->app, 'environment') && $this->app->environment('production')) {
+        if ($this->app->environment('production')) {
             if ($this->app->bound(LoggerInterface::class)) {
                 $this->app->make(LoggerInterface::class)->warning($message, ['schema' => $schema]);
             }

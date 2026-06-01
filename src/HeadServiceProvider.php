@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\ResourceRegistrar as BaseResourceRegistrar;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 use Laravel\Head\Routing\RegistersHeadRoutes;
 use Laravel\Head\Routing\ResourceRegistrar;
 use Laravel\Head\Routing\RouteHeadRepository;
@@ -69,16 +70,12 @@ class HeadServiceProvider extends ServiceProvider
 
     protected function shareWithInertia(): void
     {
-        $inertia = 'Inertia\\'.'Inertia';
-
-        if (! class_exists($inertia)) {
+        if (! class_exists(Inertia::class)) {
             return;
         }
 
-        $head = fn (): array => $this->app->make(Head::class)->toArray();
-        $always = 'always';
-        $share = 'share';
-
-        $inertia::$share('head', $inertia::$always($head));
+        Inertia::share('head', Inertia::always(
+            fn (): array => $this->app->make(Head::class)->toArray(),
+        ));
     }
 }

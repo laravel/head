@@ -13,10 +13,6 @@ use Laravel\Head\HeadData;
  */
 class HeadDefinition
 {
-    public const HEAD = 'laravel_head';
-
-    public const GROUPS = 'laravel_head_groups';
-
     /**
      * @param  array<int|string, mixed>  $arguments
      * @return array<mixed, mixed>|Closure

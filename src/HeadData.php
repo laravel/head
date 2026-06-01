@@ -474,24 +474,12 @@ class HeadData
             $this->fillOpenGraphImages($values['ogImage']);
         }
 
-        if (array_key_exists('ogImages', $values)) {
-            $this->fillOpenGraphImages($values['ogImages']);
-        }
-
         if (array_key_exists('ogVideo', $values)) {
             $this->fillOpenGraphVideos($values['ogVideo']);
         }
 
-        if (array_key_exists('ogVideos', $values)) {
-            $this->fillOpenGraphVideos($values['ogVideos']);
-        }
-
         if (array_key_exists('ogAudio', $values)) {
             $this->fillOpenGraphAudios($values['ogAudio']);
-        }
-
-        if (array_key_exists('ogAudios', $values)) {
-            $this->fillOpenGraphAudios($values['ogAudios']);
         }
 
         if (array_key_exists('twitter', $values) && is_array($values['twitter'])) {
@@ -506,32 +494,16 @@ class HeadData
             $this->fillPreloads($values['preload']);
         }
 
-        if (array_key_exists('preloads', $values) && is_array($values['preloads'])) {
-            $this->fillPreloads($values['preloads']);
-        }
-
         if (array_key_exists('prefetch', $values) && is_array($values['prefetch'])) {
             $this->fillPrefetches($values['prefetch']);
-        }
-
-        if (array_key_exists('prefetches', $values) && is_array($values['prefetches'])) {
-            $this->fillPrefetches($values['prefetches']);
         }
 
         if (array_key_exists('preconnect', $values) && is_array($values['preconnect'])) {
             $this->fillPreconnects($values['preconnect']);
         }
 
-        if (array_key_exists('preconnects', $values) && is_array($values['preconnects'])) {
-            $this->fillPreconnects($values['preconnects']);
-        }
-
         if (array_key_exists('dnsPrefetch', $values) && is_array($values['dnsPrefetch'])) {
             $this->fillDnsPrefetches($values['dnsPrefetch']);
-        }
-
-        if (array_key_exists('dnsPrefetches', $values) && is_array($values['dnsPrefetches'])) {
-            $this->fillDnsPrefetches($values['dnsPrefetches']);
         }
 
         if (array_key_exists('alternates', $values) && is_array($values['alternates'])) {
@@ -540,10 +512,6 @@ class HeadData
 
         if (array_key_exists('feed', $values) && is_array($values['feed'])) {
             $this->fillFeeds($values['feed']);
-        }
-
-        if (array_key_exists('feeds', $values) && is_array($values['feeds'])) {
-            $this->fillFeeds($values['feeds']);
         }
 
         if (array_key_exists('meta', $values) && is_array($values['meta'])) {
@@ -556,10 +524,6 @@ class HeadData
 
         if (array_key_exists('schema', $values) && ($values['schema'] instanceof SchemaObject || is_array($values['schema']))) {
             $this->fillSchemas($values['schema']);
-        }
-
-        if (array_key_exists('schemas', $values) && ($values['schemas'] instanceof SchemaObject || is_array($values['schemas']))) {
-            $this->fillSchemas($values['schemas']);
         }
 
         return $this;

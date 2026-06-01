@@ -7,16 +7,16 @@ namespace Laravel\Head\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Laravel\Head\Schema\SchemaObject article()
- * @method static \Laravel\Head\Schema\SchemaObject blogPosting()
- * @method static \Laravel\Head\Schema\SchemaObject product()
- * @method static \Laravel\Head\Schema\SchemaObject offer()
- * @method static \Laravel\Head\Schema\SchemaObject breadcrumbs()
- * @method static \Laravel\Head\Schema\SchemaObject faq()
- * @method static \Laravel\Head\Schema\SchemaObject organization()
- * @method static \Laravel\Head\Schema\SchemaObject person()
- * @method static \Laravel\Head\Schema\SchemaObject webPage()
- * @method static \Laravel\Head\Schema\SchemaObject webSite()
+ * @method static \Laravel\Head\Schema\Article article()
+ * @method static \Laravel\Head\Schema\BlogPosting blogPosting()
+ * @method static \Laravel\Head\Schema\Product product()
+ * @method static \Laravel\Head\Schema\Offer offer()
+ * @method static \Laravel\Head\Schema\Breadcrumbs breadcrumbs()
+ * @method static \Laravel\Head\Schema\Faq faq()
+ * @method static \Laravel\Head\Schema\Organization organization()
+ * @method static \Laravel\Head\Schema\Person person()
+ * @method static \Laravel\Head\Schema\WebPage webPage()
+ * @method static \Laravel\Head\Schema\WebSite webSite()
  * @method static \Laravel\Head\Schema\SchemaObject make(string $type)
  * @method static \Laravel\Head\Schema register(string $class)
  *

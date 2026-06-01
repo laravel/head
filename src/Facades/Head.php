@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Head\Head prefetch(string $href, ?string $as = null)
  * @method static \Laravel\Head\Head preconnect(string $href, bool|string|null $crossorigin = null)
  * @method static \Laravel\Head\Head dnsPrefetch(string $href)
+ * @method static \Laravel\Head\Head paginate(\Illuminate\Contracts\Pagination\Paginator<int, mixed> $paginator)
  * @method static \Laravel\Head\Head alternates(array<string, string> $alternates)
  * @method static \Laravel\Head\Head feed(string $href, string $title, string $type = 'rss')
  * @method static \Laravel\Head\Head meta(string $key, string $content, ?bool $property = null)

@@ -104,7 +104,7 @@ it('parses route metadata using the fluent field shapes', function (): void {
         title: ['value' => 'Product', 'suffix' => ' - Store'],
         canonical: ['value' => CanonicalMode::Auto, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
-        ogImages: [
+        ogImage: [
             ['url' => 'https://example.com/structured.jpg', 'alt' => 'Structured image', 'width' => 1200],
         ],
         twitter: ['card' => TwitterCard::SummaryLargeImage],

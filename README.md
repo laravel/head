@@ -7,7 +7,7 @@
 
 ## Introduction
 
-Laravel Head is a head tag manager for Laravel applications. You fluently describe metadata in layers (global defaults, routes, controllers, and error pages), and Laravel Head resolves them into a single set of tags that render in your Blade, Livewire, or Inertia views.
+Laravel Head manages your application's document `<head>`, with a fluent API for title and meta tags, Open Graph and Twitter cards, canonical URLs, robots directives, performance hints, and structured data. It works across Blade, Livewire, and Inertia.
 
 ## Installation
 

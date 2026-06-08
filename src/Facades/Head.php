@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Head\Head status(int $status)
  * @method static \Laravel\Head\Head title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null)
  * @method static \Laravel\Head\Head description(string $description)
- * @method static \Laravel\Head\Head canonical(string|\Laravel\Head\CanonicalMode $value, ?bool $forceHttps = null, ?bool $trailingSlash = null)
+ * @method static \Laravel\Head\Head canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null)
  * @method static \Laravel\Head\Head robots(string $directives)
  * @method static \Laravel\Head\Head og(\Laravel\Head\OgType|string|null $type = null, ?string $title = null, ?string $description = null, ?string $url = null, ?string $image = null, ?string $video = null, ?string $audio = null, ?string $siteName = null, ?string $locale = null, ?string $determiner = null)
  * @method static \Laravel\Head\Head ogImage(string $url, ?string $alt = null, ?int $width = null, ?int $height = null, ?string $type = null, ?string $secureUrl = null)

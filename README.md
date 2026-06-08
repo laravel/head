@@ -34,7 +34,6 @@ Register global defaults in a service provider:
 ```php
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Head as HeadManager;
-use Laravel\Head\CanonicalMode;
 use Laravel\Head\OgType;
 use Laravel\Head\TwitterCard;
 
@@ -42,7 +41,7 @@ Head::defaults(function (HeadManager $head) {
     $head
         ->title('Acme', suffix: ' - Acme')
         ->description('Build something great.')
-        ->canonical(CanonicalMode::Auto)
+        ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
         ->twitter(card: TwitterCard::SummaryLargeImage)
         ->robots('index, follow')
@@ -52,7 +51,7 @@ Head::defaults(function (HeadManager $head) {
 
 The defaults layer is the lowest-priority layer. If no route, controller, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `bare: true` for titles that should ignore the inherited prefix or suffix.
 
-Canonical URLs are rendered automatically unless a later layer calls `Head::canonical(CanonicalMode::None)`. Robots defaults to `index, follow`.
+Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL, or `Head::canonical('/about')`, which uses an explicit URL. A later layer can remove an inherited canonical URL with `Head::canonical(false)`.
 
 ## Route Metadata
 Many pages can define their metadata directly on the route, especially semi static pages whose metadata is known ahead of time.

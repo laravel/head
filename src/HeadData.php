@@ -87,14 +87,7 @@ class HeadData
 
     public static function base(): self
     {
-        $head = new self;
-
-        $head->canonicalMode = 'auto';
-        $head->canonicalForceHttps = true;
-        $head->canonicalTrailingSlash = false;
-        $head->robots = 'index, follow';
-
-        return $head;
+        return new self;
     }
 
     public function merge(HeadData $data): self
@@ -194,19 +187,17 @@ class HeadData
         return $this;
     }
 
-    public function canonical(string|CanonicalMode $value, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
+    public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
-        if ($value instanceof CanonicalMode) {
-            $this->canonicalMode = match ($value) {
-                CanonicalMode::Auto => 'auto',
-                CanonicalMode::None => 'none',
-            };
-
+        if ($url === false) {
+            $this->canonicalMode = 'none';
             $this->canonicalUrl = null;
-        } else {
-            $this->canonicalMode = 'url';
-            $this->canonicalUrl = $value;
+
+            return $this;
         }
+
+        $this->canonicalMode = is_null($url) ? 'auto' : 'url';
+        $this->canonicalUrl = $url;
 
         if (! is_null($forceHttps)) {
             $this->canonicalForceHttps = $forceHttps;
@@ -552,17 +543,25 @@ class HeadData
     protected function fillCanonical(mixed $canonical): void
     {
         if (is_array($canonical)) {
-            $value = $canonical['value'] ?? CanonicalMode::Auto;
+            if ($this->bool($canonical['none'] ?? null) === true) {
+                $this->canonical(false);
 
-            if ($value === true) {
-                $value = CanonicalMode::Auto;
+                return;
             }
+
+            $value = $canonical['value'] ?? null;
 
             if ($value === false) {
-                $value = CanonicalMode::None;
+                $this->canonical(false);
+
+                return;
             }
 
-            if ($value instanceof CanonicalMode || is_string($value)) {
+            if ($value === true || $this->bool($canonical['auto'] ?? null) === true) {
+                $value = null;
+            }
+
+            if (is_string($value) || is_null($value)) {
                 $this->canonical(
                     $value,
                     forceHttps: $this->bool($canonical['forceHttps'] ?? null),
@@ -573,18 +572,18 @@ class HeadData
             return;
         }
 
-        if ($canonical instanceof CanonicalMode || is_string($canonical)) {
+        if (is_string($canonical)) {
             $this->canonical($canonical);
 
             return;
         }
 
         if ($canonical === true || is_null($canonical)) {
-            $this->canonical(CanonicalMode::Auto);
+            $this->canonical();
         }
 
         if ($canonical === false) {
-            $this->canonical(CanonicalMode::None);
+            $this->canonical(false);
         }
     }
 

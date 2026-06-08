@@ -3,18 +3,25 @@
 declare(strict_types=1);
 
 use Illuminate\Pagination\LengthAwarePaginator;
-use Laravel\Head\CanonicalMode;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
 use Laravel\Head\OgType;
 use Laravel\Head\TwitterCard;
+
+it('does not render a canonical URL by default', function (): void {
+    expect(Head::render())->not->toContain('rel="canonical"');
+});
+
+it('does not render robots metadata by default', function (): void {
+    expect(Head::render())->not->toContain('name="robots"');
+});
 
 it('renders metadata and performance links', function (): void {
     Head::defaults(function (Laravel\Head\Head $head): void {
         $head
             ->title('Acme', suffix: ' - Acme')
             ->description('Build something great.')
-            ->canonical(CanonicalMode::Auto)
+            ->canonical()
             ->og(siteName: 'Acme', type: OgType::Website)
             ->twitter(card: TwitterCard::SummaryLargeImage)
             ->preconnect('https://fonts.example.com');
@@ -48,6 +55,14 @@ it('renders metadata and performance links', function (): void {
         ->toContain('<link rel="alternate" hreflang="fr" href="https://example.com/fr/about">')
         ->toContain('<link rel="alternate" type="application/rss+xml" title="Acme RSS" href="/feed">')
         ->toContain('"@type":"WebPage"');
+});
+
+it('can suppress an inherited canonical URL', function (): void {
+    Head::defaults(fn (Laravel\Head\Head $head): Laravel\Head\Head => $head->canonical());
+
+    Head::canonical(false);
+
+    expect(Head::render())->not->toContain('rel="canonical"');
 });
 
 it('renders the default title without applying its inherited suffix', function (): void {

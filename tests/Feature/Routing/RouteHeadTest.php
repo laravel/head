@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Laravel\Head\CanonicalMode;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\OgType;
 use Laravel\Head\TwitterCard;
@@ -102,7 +101,7 @@ it('stores head definitions on resource and singleton routes', function (): void
 it('parses route metadata using the fluent field shapes', function (): void {
     Route::get('/product', fn (): string => Head::render())->head(
         title: ['value' => 'Product', 'suffix' => ' - Store'],
-        canonical: ['value' => CanonicalMode::Auto, 'forceHttps' => false],
+        canonical: ['auto' => true, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
         ogImage: [
             ['url' => 'https://example.com/structured.jpg', 'alt' => 'Structured image', 'width' => 1200],
@@ -131,7 +130,7 @@ it('parses route metadata using the fluent field shapes', function (): void {
 
 it('does not accept snake case route metadata aliases', function (): void {
     Route::get('/legacy-inputs', fn (): string => Head::render())->head(
-        canonical: ['value' => CanonicalMode::Auto, 'force_https' => false],
+        canonical: ['auto' => true, 'force_https' => false],
         og: ['site_name' => 'Legacy'],
         ogImage: [
             ['url' => 'https://example.com/image.jpg', 'secure_url' => 'https://secure.example.com/image.jpg'],

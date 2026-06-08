@@ -96,9 +96,11 @@ class HeadRenderer
             return null;
         }
 
-        $url = $head->canonicalMode === 'url'
-            ? $head->canonicalUrl
-            : $request?->url();
+        $url = match ($head->canonicalMode) {
+            'auto' => $request?->url(),
+            'url' => $head->canonicalUrl,
+            default => null,
+        };
 
         if (is_null($url)) {
             return null;

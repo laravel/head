@@ -79,9 +79,9 @@ class Head
         return $this;
     }
 
-    public function canonical(string|CanonicalMode $value, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
+    public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
-        $this->data()->canonical($value, forceHttps: $forceHttps, trailingSlash: $trailingSlash);
+        $this->data()->canonical($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash);
 
         return $this;
     }

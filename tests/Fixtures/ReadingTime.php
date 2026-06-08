@@ -30,7 +30,7 @@ class ReadingTime extends Metadata
         return $key === 'readingTime' && is_int($value) ? self::make($value) : null;
     }
 
-    public function toPayload(ResolvedHead $head): ?int
+    public function toHeadArray(ResolvedHead $head): ?int
     {
         return $this->minutes;
     }

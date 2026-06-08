@@ -31,11 +31,17 @@ class HeadServiceProvider extends ServiceProvider
         $this->app->singleton(SchemaFactory::class);
         $this->app->alias(SchemaFactory::class, 'head.schema');
 
+        $this->app->singleton(MetadataRegistry::class);
         $this->app->singleton(HeadRenderer::class);
         $this->app->singleton(SchemaValidator::class);
         $this->app->singleton(RouteHeadRepository::class);
 
-        $this->app->singleton(HeadManager::class, fn ($app): HeadManager => new HeadManager($app, $app->make(HeadRenderer::class), $app->make(RouteHeadRepository::class)));
+        $this->app->singleton(HeadManager::class, fn ($app): HeadManager => new HeadManager(
+            $app,
+            $app->make(HeadRenderer::class),
+            $app->make(RouteHeadRepository::class),
+            $app->make(MetadataRegistry::class),
+        ));
         $this->app->alias(HeadManager::class, 'head');
 
         $this->app->bind(BaseResourceRegistrar::class, fn ($app): ResourceRegistrar => new ResourceRegistrar($app['router'], $app->make(RouteHeadRepository::class)));

@@ -22,16 +22,22 @@ abstract class Metadata
     abstract protected function withParts(array $parts): static;
 
     /**
-     * The dot-notated key this section occupies in the rendered array payload.
+     * The dot-notated key this section occupies in the Head::toArray() result.
+     *
+     * This head array is also shared automatically with Inertia as the page's
+     * "head" prop when Inertia is installed.
      */
-    public static function payloadKey(): string
+    public static function headArrayKey(): string
     {
         return static::key();
     }
 
-    public static function payloadDefault(): mixed
+    /**
+     * The value used in Head::toArray() when this section has no metadata.
+     */
+    public static function headArrayDefault(): mixed
     {
-        return [];
+        return null;
     }
 
     /**
@@ -83,12 +89,17 @@ abstract class Metadata
         return $this;
     }
 
-    public function toPayload(ResolvedHead $head): mixed
+    /**
+     * Convert this section into its Head::toArray() / Inertia head array value.
+     */
+    public function toHeadArray(ResolvedHead $head): mixed
     {
         return null;
     }
 
     /**
+     * Convert this section into the HTML tags rendered by @head.
+     *
      * @return array<int, string>
      */
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -104,5 +115,10 @@ abstract class Metadata
     protected static function bool(mixed $value): ?bool
     {
         return is_bool($value) ? $value : null;
+    }
+
+    protected static function integer(mixed $value): ?int
+    {
+        return is_int($value) ? $value : null;
     }
 }

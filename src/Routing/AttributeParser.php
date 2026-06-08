@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Routing\Route;
 use InvalidArgumentException;
 use Laravel\Head\HeadData;
+use Laravel\Head\MetadataRegistry;
 
 /**
  * @phpstan-type HeadAttributeArray array<mixed, mixed>
@@ -34,7 +35,7 @@ class AttributeParser
     /**
      * @param  array<mixed, mixed>|Closure|null  $attributes
      */
-    public static function apply(HeadData $head, array|Closure|null $attributes, ?Route $route = null): HeadData
+    public static function apply(HeadData $head, array|Closure|null $attributes, MetadataRegistry $metadata, ?Route $route = null): HeadData
     {
         if (is_null($attributes)) {
             return $head;
@@ -48,15 +49,17 @@ class AttributeParser
             return $head->merge($attributes);
         }
 
-        return is_array($attributes) ? static::fill($head, static::named($attributes)) : $head;
+        return is_array($attributes) ? static::fill($head, static::named($attributes), $metadata) : $head;
     }
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    protected static function fill(HeadData $head, array $attributes): HeadData
+    protected static function fill(HeadData $head, array $attributes, MetadataRegistry $metadata): HeadData
     {
-        $attributeKeys = HeadData::attributeKeys();
+        $head = clone $head;
+
+        $attributeKeys = $metadata->attributeKeys();
 
         foreach ($attributes as $key => $value) {
             if (! isset($attributeKeys[$key])) {

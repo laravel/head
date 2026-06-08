@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
+use Laravel\Head\MetadataRegistry;
 
 it('registers the head manager', function (): void {
     expect(app('head'))->toBeInstanceOf(HeadManager::class);
+});
+
+it('registers the metadata registry', function (): void {
+    expect(app(MetadataRegistry::class))->toBeInstanceOf(MetadataRegistry::class);
 });
 
 it('registers the head facade', function (): void {

@@ -25,11 +25,6 @@ class Canonical extends Metadata
         return 'canonical';
     }
 
-    public static function payloadDefault(): mixed
-    {
-        return null;
-    }
-
     public static function fromAttributeValue(string $key, mixed $value): ?self
     {
         return $key === 'canonical' ? self::fromAttributes($value) : null;
@@ -98,7 +93,7 @@ class Canonical extends Metadata
         return $this->normalizeUrl($url, $request, $this->forceHttps ?? true, $this->trailingSlash ?? false);
     }
 
-    public function toPayload(ResolvedHead $head): ?string
+    public function toHeadArray(ResolvedHead $head): ?string
     {
         return $this->render($head->request());
     }

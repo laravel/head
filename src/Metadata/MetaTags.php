@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type MetaAttributes array{key: string, content: string, property?: bool|null}
  */
-class MetaTags extends Metadata
+class MetaTags extends GroupedMetadata
 {
     /**
      * @param  array<string, MetaAttributes>  $tags
@@ -72,7 +72,7 @@ class MetaTags extends Metadata
     /**
      * @return array<int, MetaAttributes>
      */
-    public function payload(): array
+    public function headArray(): array
     {
         return array_values($this->tags);
     }
@@ -80,9 +80,9 @@ class MetaTags extends Metadata
     /**
      * @return array<int, MetaAttributes>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload();
+        return $this->headArray();
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -91,7 +91,7 @@ class MetaTags extends Metadata
             $attribute = ($meta['property'] ?? $this->isRdfaProperty($meta['key'])) ? 'property' : 'name';
 
             return $tags->meta($attribute, $meta['key'], $meta['content']);
-        }, $this->payload());
+        }, $this->headArray());
     }
 
     protected function isRdfaProperty(string $key): bool

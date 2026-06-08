@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type LinkAttributes array{href: string, as?: string|null, crossorigin?: bool|string|null, type?: string|null, media?: string|null}
  */
-class PerformanceLinks extends Metadata
+class PerformanceLinks extends GroupedMetadata
 {
     /**
      * @param  array<string, LinkAttributes>  $preloads
@@ -32,12 +32,12 @@ class PerformanceLinks extends Metadata
         return 'performance';
     }
 
-    public static function payloadKey(): string
+    public static function headArrayKey(): string
     {
         return 'links.performance';
     }
 
-    public static function payloadDefault(): mixed
+    public static function headArrayDefault(): mixed
     {
         return [
             'preload' => [],
@@ -208,7 +208,7 @@ class PerformanceLinks extends Metadata
     /**
      * @return array{preload: array<int, LinkAttributes>, prefetch: array<int, LinkAttributes>, preconnect: array<int, LinkAttributes>, dnsPrefetch: array<int, array{href: string}>}
      */
-    public function payload(): array
+    public function headArray(): array
     {
         return [
             'preload' => array_values($this->preloads),
@@ -221,9 +221,9 @@ class PerformanceLinks extends Metadata
     /**
      * @return array{preload: array<int, LinkAttributes>, prefetch: array<int, LinkAttributes>, preconnect: array<int, LinkAttributes>, dnsPrefetch: array<int, array{href: string}>}
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload();
+        return $this->headArray();
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -234,38 +234,6 @@ class PerformanceLinks extends Metadata
             ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('preconnect', $attributes), array_values($this->preconnects)),
             ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('dns-prefetch', $attributes), array_values($this->dnsPrefetches)),
         ];
-    }
-
-    /**
-     * @return array<string, LinkAttributes>
-     */
-    public function preloads(): array
-    {
-        return $this->preloads;
-    }
-
-    /**
-     * @return array<string, LinkAttributes>
-     */
-    public function prefetches(): array
-    {
-        return $this->prefetches;
-    }
-
-    /**
-     * @return array<string, LinkAttributes>
-     */
-    public function preconnects(): array
-    {
-        return $this->preconnects;
-    }
-
-    /**
-     * @return array<string, array{href: string}>
-     */
-    public function dnsPrefetches(): array
-    {
-        return $this->dnsPrefetches;
     }
 
     public function isEmpty(): bool

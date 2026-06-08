@@ -10,7 +10,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class AlternateLinks extends Metadata
+class AlternateLinks extends GroupedMetadata
 {
     /**
      * @param  array<string, string>  $links
@@ -22,7 +22,7 @@ class AlternateLinks extends Metadata
         return 'alternates';
     }
 
-    public static function payloadKey(): string
+    public static function headArrayKey(): string
     {
         return 'links.alternates';
     }
@@ -67,7 +67,7 @@ class AlternateLinks extends Metadata
     /**
      * @return array<string, string>
      */
-    public function payload(): array
+    public function headArray(): array
     {
         return $this->links;
     }
@@ -75,9 +75,9 @@ class AlternateLinks extends Metadata
     /**
      * @return array<string, string>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload();
+        return $this->headArray();
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -108,13 +108,5 @@ class AlternateLinks extends Metadata
     protected function withParts(array $parts): static
     {
         return new static(self::stringArray($parts['links'] ?? null));
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected static function stringArray(mixed $value): array
-    {
-        return is_array($value) ? array_filter($value, fn (mixed $item): bool => is_string($item)) : [];
     }
 }

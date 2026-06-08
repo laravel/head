@@ -11,7 +11,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class PaginationLinks extends Metadata
+class PaginationLinks extends GroupedMetadata
 {
     /**
      * @param  array<string, string>  $links
@@ -23,7 +23,7 @@ class PaginationLinks extends Metadata
         return 'pagination';
     }
 
-    public static function payloadKey(): string
+    public static function headArrayKey(): string
     {
         return 'links.pagination';
     }
@@ -65,7 +65,7 @@ class PaginationLinks extends Metadata
     /**
      * @return array<string, string>
      */
-    public function payload(): array
+    public function headArray(): array
     {
         return $this->links;
     }
@@ -73,9 +73,9 @@ class PaginationLinks extends Metadata
     /**
      * @return array<string, string>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload();
+        return $this->headArray();
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -106,13 +106,5 @@ class PaginationLinks extends Metadata
     protected function withParts(array $parts): static
     {
         return new static(self::stringArray($parts['links'] ?? null));
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected static function stringArray(mixed $value): array
-    {
-        return is_array($value) ? array_filter($value, fn (mixed $item): bool => is_string($item)) : [];
     }
 }

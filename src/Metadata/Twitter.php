@@ -13,7 +13,7 @@ use Laravel\Head\TwitterCard;
  *
  * @phpstan-type ImageAttributes array{url: string, alt?: string|null}
  */
-class Twitter extends Metadata
+class Twitter extends GroupedMetadata
 {
     /**
      * @param  array<string, string>  $properties
@@ -149,7 +149,7 @@ class Twitter extends Metadata
      * @param  ImageAttributes|null  $fallback
      * @return ImageAttributes|null
      */
-    public function imagePayload(?array $fallback = null): ?array
+    public function headArrayImage(?array $fallback = null): ?array
     {
         return $this->image ?? $fallback;
     }
@@ -158,20 +158,20 @@ class Twitter extends Metadata
      * @param  ImageAttributes|null  $fallbackImage
      * @return array<string, mixed>
      */
-    public function payload(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
+    public function headArray(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
     {
         return array_filter([
             ...$this->render($title, $description),
-            'image' => $this->imagePayload($fallbackImage),
+            'image' => $this->headArrayImage($fallbackImage),
         ]);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload($head->title(), $head->description(), $head->openGraphImage());
+        return $this->headArray($head->title(), $head->description(), $head->openGraphImage());
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -183,7 +183,7 @@ class Twitter extends Metadata
             $properties,
         );
 
-        if (is_null($image = $this->imagePayload($head->openGraphImage()))) {
+        if (is_null($image = $this->headArrayImage($head->openGraphImage()))) {
             return $rendered;
         }
 
@@ -238,18 +238,6 @@ class Twitter extends Metadata
     protected static function twitterCard(mixed $value): TwitterCard|string|null
     {
         return $value instanceof TwitterCard || is_string($value) ? $value : null;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected static function stringArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_filter($value, fn (mixed $item): bool => is_string($item));
     }
 
     /**

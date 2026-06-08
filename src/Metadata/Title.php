@@ -24,11 +24,6 @@ class Title extends Metadata
         return 'title';
     }
 
-    public static function payloadDefault(): mixed
-    {
-        return null;
-    }
-
     public static function fromAttributeValue(string $key, mixed $value): ?self
     {
         return $key === 'title' ? self::fromAttributes($value) : null;
@@ -77,7 +72,7 @@ class Title extends Metadata
         return ($this->prefix ?? '').$this->value.($this->suffix ?? '');
     }
 
-    public function toPayload(ResolvedHead $head): ?string
+    public function toHeadArray(ResolvedHead $head): ?string
     {
         return $this->render();
     }

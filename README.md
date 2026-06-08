@@ -238,7 +238,7 @@ Head::schema(
 
 The built-in factory methods are `article`, `blogPosting`, `product`, `offer`, `breadcrumbs`, `faq`, `organization`, `person`, `webPage`, and `webSite`. Unknown factory methods fall back to a generic schema object so custom schema.org types can still be expressed.
 
-Invalid JSON-LD payloads throw outside production and are logged as warnings in production.
+Invalid JSON-LD schema data throws outside production and is logged as a warning in production.
 
 ### Custom Schemas
 
@@ -277,6 +277,8 @@ Head::schema(
 
 Laravel Head resolves these layers into a single set of tags. Where that result is emitted depends on your stack.
 
+The HTML renderer powers the `@head` directive. The head array renderer powers `Head::toArray()` and is also the data Laravel Head shares with Inertia as the `head` prop.
+
 ### Blade
 
 Render the accumulated tags in your layout's `<head>` with the `@head` directive:
@@ -310,7 +312,7 @@ No Livewire-specific configuration is required. Head data is resolved per reques
 
 ### Inertia
 
-When Inertia is installed, Laravel Head automatically shares the resolved head payload as a `head` prop on every page object:
+When Inertia is installed, Laravel Head automatically shares the resolved `Head::toArray()` head array as a `head` prop on every page object:
 
 ```json
 {
@@ -325,7 +327,7 @@ When Inertia is installed, Laravel Head automatically shares the resolved head p
 
 The `head` prop is shared as an always-included Inertia prop, so it is still present during partial reloads.
 
-Render that payload with your Inertia application's client-side head component. For example, a Vue application can map the shared values into Inertia's `<Head>` component:
+Render that head array with your Inertia application's client-side head component. For example, a Vue application can map the shared values into Inertia's `<Head>` component:
 
 ```vue
 <script setup>
@@ -346,7 +348,7 @@ const page = usePage()
 </template>
 ```
 
-The shared payload contains structured values for Open Graph, Twitter cards, links, generic meta tags, and JSON-LD schemas too, so applications can decide how much of the resolved head they want to render on the client.
+The shared head array contains structured values for Open Graph, Twitter cards, links, generic meta tags, and JSON-LD schemas too, so applications can decide how much of the resolved head they want to render on the client.
 
 ## Security Vulnerabilities
 

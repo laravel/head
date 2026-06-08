@@ -13,7 +13,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type MediaAttributes array{url: string, alt?: string|null, width?: int|null, height?: int|null, type?: string|null, secureUrl?: string|null}
  */
-class OpenGraph extends Metadata
+class OpenGraph extends GroupedMetadata
 {
     /**
      * @param  array<string, string>  $properties
@@ -244,7 +244,7 @@ class OpenGraph extends Metadata
     /**
      * @return array<string, mixed>
      */
-    public function payload(?string $title = null, ?string $description = null): array
+    public function headArray(?string $title = null, ?string $description = null): array
     {
         return array_filter([
             ...$this->render($title, $description),
@@ -257,9 +257,9 @@ class OpenGraph extends Metadata
     /**
      * @return array<string, mixed>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload($head->title(), $head->description());
+        return $this->headArray($head->title(), $head->description());
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -285,22 +285,6 @@ class OpenGraph extends Metadata
     public function images(): array
     {
         return $this->images;
-    }
-
-    /**
-     * @return array<string, MediaAttributes>
-     */
-    public function videos(): array
-    {
-        return $this->videos;
-    }
-
-    /**
-     * @return array<string, MediaAttributes>
-     */
-    public function audios(): array
-    {
-        return $this->audios;
     }
 
     public function isEmpty(): bool
@@ -370,11 +354,6 @@ class OpenGraph extends Metadata
         ], fn (mixed $value): bool => ! is_null($value));
     }
 
-    protected static function integer(mixed $value): ?int
-    {
-        return is_int($value) ? $value : null;
-    }
-
     protected static function ogType(mixed $value): OgType|string|null
     {
         return $value instanceof OgType || is_string($value) ? $value : null;
@@ -415,18 +394,6 @@ class OpenGraph extends Metadata
     protected static function items(mixed $value): array
     {
         return is_array($value) && array_is_list($value) ? $value : [$value];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected static function stringArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_filter($value, fn (mixed $item): bool => is_string($item));
     }
 
     /**

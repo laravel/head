@@ -13,25 +13,21 @@ class Errors
     /** @var array<int, HeadData> */
     protected array $statuses = [];
 
-    public function __construct()
+    public function __construct(protected MetadataRegistry $metadata)
     {
         $this->defaults = new HeadData;
     }
 
     public function defaults(mixed ...$head): static
     {
-        AttributeParser::apply($this->defaults, AttributeParser::arguments($head));
+        $this->defaults = AttributeParser::apply($this->defaults, AttributeParser::arguments($head), $this->metadata);
 
         return $this;
     }
 
     public function status(int $status, mixed ...$head): static
     {
-        $data = new HeadData;
-
-        AttributeParser::apply($data, AttributeParser::arguments($head));
-
-        $this->statuses[$status] = $data;
+        $this->statuses[$status] = AttributeParser::apply(new HeadData, AttributeParser::arguments($head), $this->metadata);
 
         return $this;
     }

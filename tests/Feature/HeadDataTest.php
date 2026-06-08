@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Laravel\Head\Facades\Head;
-use Laravel\Head\HeadData;
 use Laravel\Head\HeadManager;
 use Laravel\Head\Metadata\Title;
 use Laravel\Head\Tests\Fixtures\ReadingTime;
 
 afterEach(function (): void {
-    HeadData::flushExtensions();
     HeadManager::flushMacros();
 });
 

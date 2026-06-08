@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Laravel\Head\HeadData;
 use Laravel\Head\Metadata\Metadata;
+use Laravel\Head\MetadataRegistry;
 use Laravel\Head\Schema\SchemaValidator;
 
 class HeadRenderer
@@ -16,6 +17,7 @@ class HeadRenderer
 
     public function __construct(
         protected SchemaValidator $schemas,
+        protected MetadataRegistry $metadata,
         ?TagRenderer $tags = null,
     ) {
         $this->tags = $tags ?? new TagRenderer;
@@ -32,23 +34,28 @@ class HeadRenderer
     }
 
     /**
+     * Render the resolved head as the array returned by Head::toArray().
+     *
+     * This same head array is shared as the Inertia "head" prop by the service
+     * provider when Inertia is installed.
+     *
      * @return array<string, mixed>
      */
     public function toArray(HeadData $head, ?Request $request = null): array
     {
         $resolved = $this->resolve($head, $request);
 
-        $payload = [];
+        $headArray = [];
 
-        foreach (HeadData::metadata() as $section) {
-            Arr::set($payload, $section::payloadKey(), $resolved->payload($section));
+        foreach ($this->metadata->metadata() as $section) {
+            Arr::set($headArray, $section::headArrayKey(), $resolved->headArray($section));
         }
 
-        return $payload;
+        return $headArray;
     }
 
     protected function resolve(HeadData $head, ?Request $request): ResolvedHead
     {
-        return new ResolvedHead($head, $request, $this->schemas);
+        return new ResolvedHead($head, $this->metadata, $request, $this->schemas);
     }
 }

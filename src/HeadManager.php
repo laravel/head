@@ -36,9 +36,10 @@ class HeadManager implements Arrayable, Htmlable
         protected Container $app,
         protected HeadRenderer $renderer,
         protected RouteHeadRepository $routes,
+        protected MetadataRegistry $metadata,
     ) {
         $this->defaults = new HeadData;
-        $this->errors = new Errors;
+        $this->errors = new Errors($this->metadata);
     }
 
     public function defaults(callable $callback): static
@@ -64,7 +65,7 @@ class HeadManager implements Arrayable, Htmlable
      */
     public function extend(string $section): static
     {
-        HeadData::extend($section);
+        $this->metadata->extend($section);
 
         return $this;
     }
@@ -321,13 +322,13 @@ class HeadManager implements Arrayable, Htmlable
 
         if ($route = $this->route()) {
             foreach ($this->routes->groups($route) as $attributes) {
-                $data = AttributeParser::apply($data, $attributes, $route);
+                $data = AttributeParser::apply($data, $attributes, $this->metadata, $route);
             }
 
             $attributes = $this->routes->get($route);
 
             if (! is_null($attributes)) {
-                $data = AttributeParser::apply($data, $attributes, $route);
+                $data = AttributeParser::apply($data, $attributes, $this->metadata, $route);
             }
         }
 

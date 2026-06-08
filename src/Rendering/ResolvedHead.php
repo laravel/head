@@ -12,15 +12,14 @@ use Laravel\Head\Metadata\Metadata;
 use Laravel\Head\Metadata\OpenGraph;
 use Laravel\Head\Metadata\Robots;
 use Laravel\Head\Metadata\Title;
+use Laravel\Head\MetadataRegistry;
 use Laravel\Head\Schema\SchemaValidator;
 
-/**
- * @phpstan-import-type MediaAttributes from \Laravel\Head\Metadata\OpenGraph
- */
 class ResolvedHead
 {
     public function __construct(
         protected HeadData $data,
+        protected MetadataRegistry $metadata,
         protected ?Request $request = null,
         protected ?SchemaValidator $schemas = null,
     ) {}
@@ -100,7 +99,7 @@ class ResolvedHead
     {
         $sections = [];
 
-        foreach (HeadData::metadata() as $section) {
+        foreach ($this->metadata->metadata() as $section) {
             $value = $this->section($section);
 
             if ($value instanceof Metadata) {
@@ -114,9 +113,12 @@ class ResolvedHead
     }
 
     /**
+     * Resolve one metadata section into its Head::toArray() / Inertia head array
+     * value, including section defaults for metadata that was never set.
+     *
      * @param  class-string<Metadata>  $section
      */
-    public function payload(string $section): mixed
+    public function headArray(string $section): mixed
     {
         $value = $this->section($section);
 
@@ -124,7 +126,7 @@ class ResolvedHead
             $value = new $section;
         }
 
-        return $value?->toPayload($this) ?? $section::payloadDefault();
+        return $value?->toHeadArray($this) ?? $section::headArrayDefault();
     }
 
     /**

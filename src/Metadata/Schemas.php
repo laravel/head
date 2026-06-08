@@ -11,12 +11,12 @@ use Laravel\Head\Schema\SchemaObject;
 /**
  * @phpstan-consistent-constructor
  *
- * @phpstan-type SchemaPayload array<string, mixed>
+ * @phpstan-type SchemaData array<string, mixed>
  */
-class Schemas extends Metadata
+class Schemas extends GroupedMetadata
 {
     /**
-     * @param  array<string, SchemaObject|SchemaPayload>  $schemas
+     * @param  array<string, SchemaObject|SchemaData>  $schemas
      */
     public function __construct(protected array $schemas = []) {}
 
@@ -38,7 +38,7 @@ class Schemas extends Metadata
     }
 
     /**
-     * @param  SchemaObject|SchemaPayload|array<int, SchemaObject|SchemaPayload>  $schemas
+     * @param  SchemaObject|SchemaData|array<int, SchemaObject|SchemaData>  $schemas
      */
     public static function fromAttributes(SchemaObject|array $schemas): self
     {
@@ -58,7 +58,7 @@ class Schemas extends Metadata
     }
 
     /**
-     * @param  SchemaObject|SchemaPayload  $schema
+     * @param  SchemaObject|SchemaData  $schema
      */
     public function schema(SchemaObject|array $schema): static
     {
@@ -77,32 +77,32 @@ class Schemas extends Metadata
     }
 
     /**
-     * @return array<int, SchemaObject|SchemaPayload>
+     * @return array<int, SchemaObject|SchemaData>
      */
-    public function payload(): array
+    public function headArray(): array
     {
         return array_values($this->schemas);
     }
 
     /**
-     * @return array<int, SchemaPayload>
+     * @return array<int, SchemaData>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
         return array_map(function (SchemaObject|array $schema) use ($head): array {
-            $payload = $schema instanceof SchemaObject ? $schema->toJsonLd() : $schema;
+            $schemaData = $schema instanceof SchemaObject ? $schema->toJsonLd() : $schema;
 
-            $head->validateSchema($payload);
+            $head->validateSchema($schemaData);
 
-            return $payload;
-        }, $this->payload());
+            return $schemaData;
+        }, $this->headArray());
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(
             fn (array $schema): string => $tags->jsonLd($schema),
-            $this->toPayload($head),
+            $this->toHeadArray($head),
         );
     }
 
@@ -112,7 +112,7 @@ class Schemas extends Metadata
     }
 
     /**
-     * @return array{schemas: array<string, SchemaObject|SchemaPayload>}
+     * @return array{schemas: array<string, SchemaObject|SchemaData>}
      */
     protected function parts(): array
     {
@@ -145,7 +145,7 @@ class Schemas extends Metadata
     }
 
     /**
-     * @return array<string, SchemaObject|SchemaPayload>
+     * @return array<string, SchemaObject|SchemaData>
      */
     protected static function schemasArray(mixed $value): array
     {

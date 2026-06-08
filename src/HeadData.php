@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Laravel\Head;
 
 use Illuminate\Contracts\Pagination\Paginator;
-use InvalidArgumentException;
 use Laravel\Head\Metadata\AlternateLinks;
 use Laravel\Head\Metadata\Canonical;
 use Laravel\Head\Metadata\Description;
@@ -23,95 +22,16 @@ use Laravel\Head\Metadata\Twitter;
 use Laravel\Head\Schema\SchemaObject;
 
 /**
- * @phpstan-type SchemaPayload array<string, mixed>
+ * @phpstan-type SchemaData array<string, mixed>
  */
 class HeadData
 {
     /** @var array<class-string<Metadata>, Metadata> */
     protected array $sections = [];
 
-    /** @var array<int, class-string<Metadata>> */
-    protected static array $extensions = [];
-
     public static function base(): self
     {
         return new self;
-    }
-
-    /**
-     * The metadata sections rendered for every head, in render order.
-     *
-     * @return array<int, class-string<Metadata>>
-     */
-    public static function metadata(): array
-    {
-        return [...static::defaultMetadata(), ...static::$extensions];
-    }
-
-    /**
-     * Register a custom metadata section.
-     *
-     * @param  class-string<Metadata>  $section
-     */
-    public static function extend(string $section): void
-    {
-        if (! is_subclass_of($section, Metadata::class)) {
-            throw new InvalidArgumentException('Head metadata extensions must extend '.Metadata::class.'.');
-        }
-
-        if (in_array($section, static::defaultMetadata(), true)) {
-            throw new InvalidArgumentException('Built-in head metadata sections are already registered.');
-        }
-
-        if (! in_array($section, static::$extensions, true)) {
-            static::$extensions[] = $section;
-        }
-    }
-
-    /**
-     * Forget every registered custom metadata section.
-     */
-    public static function flushExtensions(): void
-    {
-        static::$extensions = [];
-    }
-
-    /**
-     * @return array<int, class-string<Metadata>>
-     */
-    protected static function defaultMetadata(): array
-    {
-        return [
-            Title::class,
-            Description::class,
-            Canonical::class,
-            Robots::class,
-            OpenGraph::class,
-            Twitter::class,
-            PaginationLinks::class,
-            AlternateLinks::class,
-            FeedLinks::class,
-            PerformanceLinks::class,
-            MetaTags::class,
-            GenericLinks::class,
-            Schemas::class,
-        ];
-    }
-
-    /**
-     * @return array<string, class-string<Metadata>>
-     */
-    public static function attributeKeys(): array
-    {
-        $keys = [];
-
-        foreach (static::metadata() as $metadata) {
-            foreach ($metadata::attributeKeys() as $key) {
-                $keys[$key] = $metadata;
-            }
-        }
-
-        return $keys;
     }
 
     /**
@@ -342,7 +262,7 @@ class HeadData
     }
 
     /**
-     * @param  SchemaObject|SchemaPayload  $schema
+     * @param  SchemaObject|SchemaData  $schema
      */
     public function schema(SchemaObject|array $schema): static
     {

@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type LinkAttributes array{rel: string, href: string, attributes: array<string, bool|float|int|string|null>}
  */
-class GenericLinks extends Metadata
+class GenericLinks extends GroupedMetadata
 {
     /**
      * @param  array<string, LinkAttributes>  $links
@@ -24,7 +24,7 @@ class GenericLinks extends Metadata
         return 'links';
     }
 
-    public static function payloadKey(): string
+    public static function headArrayKey(): string
     {
         return 'links.generic';
     }
@@ -88,7 +88,7 @@ class GenericLinks extends Metadata
     /**
      * @return array<int, LinkAttributes>
      */
-    public function payload(): array
+    public function headArray(): array
     {
         return array_values($this->links);
     }
@@ -96,16 +96,16 @@ class GenericLinks extends Metadata
     /**
      * @return array<int, LinkAttributes>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload();
+        return $this->headArray();
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(function (array $link) use ($tags): string {
             return $tags->linkWithAttributes($link['rel'], ['href' => $link['href'], ...$link['attributes']]);
-        }, $this->payload());
+        }, $this->headArray());
     }
 
     public function isEmpty(): bool

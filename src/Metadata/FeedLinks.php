@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type FeedAttributes array{href: string, title: string, type: string}
  */
-class FeedLinks extends Metadata
+class FeedLinks extends GroupedMetadata
 {
     /**
      * @param  array<string, FeedAttributes>  $feeds
@@ -24,7 +24,7 @@ class FeedLinks extends Metadata
         return 'feeds';
     }
 
-    public static function payloadKey(): string
+    public static function headArrayKey(): string
     {
         return 'links.feeds';
     }
@@ -86,7 +86,7 @@ class FeedLinks extends Metadata
     /**
      * @return array<int, FeedAttributes>
      */
-    public function payload(): array
+    public function headArray(): array
     {
         return array_values($this->feeds);
     }
@@ -94,9 +94,9 @@ class FeedLinks extends Metadata
     /**
      * @return array<int, FeedAttributes>
      */
-    public function toPayload(ResolvedHead $head): array
+    public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->payload();
+        return $this->headArray();
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -105,7 +105,7 @@ class FeedLinks extends Metadata
             $type = $feed['type'] === 'atom' ? 'application/atom+xml' : 'application/rss+xml';
 
             return '<link rel="alternate" type="'.e($type).'" title="'.e($feed['title']).'" href="'.e($feed['href']).'">';
-        }, $this->payload());
+        }, $this->headArray());
     }
 
     public function isEmpty(): bool

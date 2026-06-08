@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Support;
+namespace Laravel\Head\Metadata;
 
 use Illuminate\Http\Request;
 
-class Canonical extends PartialHeadValue
+/**
+ * @phpstan-consistent-constructor
+ */
+class Canonical extends Metadata
 {
     public function __construct(
         protected string $mode,
@@ -15,6 +18,16 @@ class Canonical extends PartialHeadValue
         protected ?bool $trailingSlash = null,
     ) {}
 
+    public static function key(): string
+    {
+        return 'canonical';
+    }
+
+    public static function fromAttributeValue(string $key, mixed $value): ?self
+    {
+        return $key === 'canonical' ? self::fromAttributes($value) : null;
+    }
+
     public static function make(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): self
     {
         return $url === false
@@ -22,7 +35,7 @@ class Canonical extends PartialHeadValue
             : new self(is_null($url) ? 'auto' : 'url', $url, $forceHttps, $trailingSlash);
     }
 
-    public static function fromDefinition(mixed $canonical): ?self
+    public static function fromAttributes(mixed $canonical): ?self
     {
         if (is_array($canonical)) {
             if (self::bool($canonical['none'] ?? null) === true) {
@@ -78,6 +91,16 @@ class Canonical extends PartialHeadValue
         return $this->normalizeUrl($url, $request, $this->forceHttps ?? true, $this->trailingSlash ?? false);
     }
 
+    public function toPayload(ResolvedHead $head): ?string
+    {
+        return $this->render($head->request());
+    }
+
+    public function toTags(ResolvedHead $head, TagRenderer $tags): array
+    {
+        return ($canonical = $this->render($head->request())) ? [$tags->link('canonical', $canonical)] : [];
+    }
+
     /**
      * @return array{mode: string, url: string|null, forceHttps: bool|null, trailingSlash: bool|null}
      */
@@ -96,7 +119,7 @@ class Canonical extends PartialHeadValue
      */
     protected function withParts(array $parts): static
     {
-        return new self(
+        return new static(
             self::string($parts['mode'] ?? null) ?? 'auto',
             self::string($parts['url'] ?? null),
             self::bool($parts['forceHttps'] ?? null),

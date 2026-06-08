@@ -8,11 +8,11 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
-use Laravel\Head\Routing\HeadDefinition;
 use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaObject;
 use Laravel\Head\Support\CurrentHead;
+use Laravel\Head\Support\HeadAttributes;
 use Laravel\Head\Support\HeadData;
 use Laravel\Head\Support\HeadRenderer;
 
@@ -295,14 +295,14 @@ class Head
         $data = HeadData::base()->merge($this->defaults);
 
         if ($route = $this->route()) {
-            foreach ($this->routes->groups($route) as $definition) {
-                $data = HeadDefinition::apply($data, $definition, $route);
+            foreach ($this->routes->groups($route) as $attributes) {
+                $data = HeadAttributes::apply($data, $attributes, $route);
             }
 
-            $definition = $this->routes->get($route);
+            $attributes = $this->routes->get($route);
 
-            if (! is_null($definition)) {
-                $data = HeadDefinition::apply($data, $definition, $route);
+            if (! is_null($attributes)) {
+                $data = HeadAttributes::apply($data, $attributes, $route);
             }
         }
 

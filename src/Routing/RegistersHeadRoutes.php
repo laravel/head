@@ -10,6 +10,7 @@ use Illuminate\Routing\PendingSingletonResourceRegistration;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
+use Laravel\Head\Support\HeadAttributes;
 
 class RegistersHeadRoutes
 {
@@ -18,7 +19,7 @@ class RegistersHeadRoutes
     public function register(): void
     {
         Route::macro('withHead', function (...$head): Route {
-            app(RouteHeadRepository::class)->put($this, HeadDefinition::arguments($head));
+            app(RouteHeadRepository::class)->put($this, HeadAttributes::arguments($head));
 
             return $this;
         });
@@ -26,28 +27,28 @@ class RegistersHeadRoutes
         $routes = $this;
 
         RouteRegistrar::macro('withHead', function (...$head) use ($routes): RouteRegistrar {
-            return $routes->withGroupHead($this, HeadDefinition::arguments($head));
+            return $routes->withGroupHead($this, HeadAttributes::arguments($head));
         });
 
         Router::macro('withHead', function (...$head) use ($routes): RouteRegistrar {
-            return $routes->withGroupHead(new RouteRegistrar($this), HeadDefinition::arguments($head));
+            return $routes->withGroupHead(new RouteRegistrar($this), HeadAttributes::arguments($head));
         });
 
         PendingResourceRegistration::macro('withHead', function (...$head) use ($routes): PendingResourceRegistration {
-            return $routes->withPendingHead($this, HeadDefinition::arguments($head));
+            return $routes->withPendingHead($this, HeadAttributes::arguments($head));
         });
 
         PendingSingletonResourceRegistration::macro('withHead', function (...$head) use ($routes): PendingSingletonResourceRegistration {
-            return $routes->withPendingHead($this, HeadDefinition::arguments($head));
+            return $routes->withPendingHead($this, HeadAttributes::arguments($head));
         });
     }
 
     /**
-     * @param  array<mixed, mixed>|Closure  $definition
+     * @param  array<mixed, mixed>|Closure  $attributes
      */
-    public function withGroupHead(RouteRegistrar $registrar, array|Closure $definition): RouteRegistrar
+    public function withGroupHead(RouteRegistrar $registrar, array|Closure $attributes): RouteRegistrar
     {
-        $this->repository->pushGroup($registrar, $definition);
+        $this->repository->pushGroup($registrar, $attributes);
 
         return $registrar;
     }
@@ -56,12 +57,12 @@ class RegistersHeadRoutes
      * @template TRegistration of \Illuminate\Routing\PendingResourceRegistration|\Illuminate\Routing\PendingSingletonResourceRegistration
      *
      * @param  TRegistration  $registration
-     * @param  array<mixed, mixed>|Closure  $definition
+     * @param  array<mixed, mixed>|Closure  $attributes
      * @return TRegistration
      */
-    public function withPendingHead(PendingResourceRegistration|PendingSingletonResourceRegistration $registration, array|Closure $definition): PendingResourceRegistration|PendingSingletonResourceRegistration
+    public function withPendingHead(PendingResourceRegistration|PendingSingletonResourceRegistration $registration, array|Closure $attributes): PendingResourceRegistration|PendingSingletonResourceRegistration
     {
-        $this->repository->putPending($registration, $definition);
+        $this->repository->putPending($registration, $attributes);
 
         return $registration;
     }

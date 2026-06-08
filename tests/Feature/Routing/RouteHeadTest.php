@@ -50,7 +50,7 @@ it('keeps route group head closures as a separate cascade layer', function (): v
         ->assertSee('<meta property="og:title" content="Dashboard">', false);
 });
 
-it('stores head definitions on view and controller routes', function (): void {
+it('stores head attributes on view and controller routes', function (): void {
     $view = Route::view('/contact', 'contact')->withHead(
         title: 'Contact',
         description: 'Get in touch.',
@@ -79,7 +79,7 @@ it('resolves route head closures at request time', function (): void {
         ->assertSee('<title>Post laravel-head</title>', false);
 });
 
-it('stores head definitions on resource and singleton routes', function (): void {
+it('stores head attributes on resource and singleton routes', function (): void {
     Route::resource('posts', 'PostController')->withHead(
         robots: 'index, follow',
     );

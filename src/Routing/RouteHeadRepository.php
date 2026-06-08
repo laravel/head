@@ -12,7 +12,7 @@ use Illuminate\Routing\RouteRegistrar;
 use ReflectionProperty;
 
 /**
- * Stores route-scoped head definitions.
+ * Stores route-scoped head attributes.
  *
  * This is the only class that should know whether head data is stored in
  * Laravel route action keys or the framework route metadata bag.
@@ -26,13 +26,13 @@ class RouteHeadRepository
     public const GROUPS = 'headGroups';
 
     /**
-     * @param  array<mixed, mixed>|Closure  $definition
+     * @param  array<mixed, mixed>|Closure  $attributes
      */
-    public function put(Route $route, array|Closure $definition): void
+    public function put(Route $route, array|Closure $attributes): void
     {
         $route->action[static::METADATA] = $this->mergeMetadata(
             $route->action[static::METADATA] ?? [],
-            [static::HEAD => $definition],
+            [static::HEAD => $attributes],
         );
     }
 
@@ -41,20 +41,20 @@ class RouteHeadRepository
      */
     public function get(Route $route): array|Closure|null
     {
-        $definition = $this->getMetadata($route, static::HEAD);
+        $attributes = $this->getMetadata($route, static::HEAD);
 
-        return is_array($definition) || $definition instanceof Closure ? $definition : null;
+        return is_array($attributes) || $attributes instanceof Closure ? $attributes : null;
     }
 
     /**
-     * @param  array<mixed, mixed>|Closure  $definition
+     * @param  array<mixed, mixed>|Closure  $head
      */
-    public function pushGroup(RouteRegistrar $registrar, array|Closure $definition): void
+    public function pushGroup(RouteRegistrar $registrar, array|Closure $head): void
     {
         $attributes = $this->arrayProperty($registrar, 'attributes');
         $metadata = $this->metadataArray($attributes[static::METADATA] ?? []);
         $groups = $this->groupsArray($metadata[static::GROUPS] ?? []);
-        $groups[] = $definition;
+        $groups[] = $head;
         $metadata[static::GROUPS] = $groups;
         $attributes[static::METADATA] = $metadata;
 
@@ -70,14 +70,14 @@ class RouteHeadRepository
     }
 
     /**
-     * @param  array<mixed, mixed>|Closure  $definition
+     * @param  array<mixed, mixed>|Closure  $attributes
      */
-    public function putPending(PendingResourceRegistration|PendingSingletonResourceRegistration $registration, array|Closure $definition): void
+    public function putPending(PendingResourceRegistration|PendingSingletonResourceRegistration $registration, array|Closure $attributes): void
     {
         $options = $this->arrayProperty($registration, 'options');
         $options[static::METADATA] = $this->mergeMetadata(
             $this->metadataArray($options[static::METADATA] ?? []),
-            [static::HEAD => $definition],
+            [static::HEAD => $attributes],
         );
 
         $this->setProperty($registration, 'options', $options);

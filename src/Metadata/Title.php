@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Support;
+namespace Laravel\Head\Metadata;
 
-class Title extends PartialHeadValue
+/**
+ * @phpstan-consistent-constructor
+ */
+class Title extends Metadata
 {
     public function __construct(
         protected ?string $value = null,
@@ -13,12 +16,22 @@ class Title extends PartialHeadValue
         protected ?string $suffix = null,
     ) {}
 
+    public static function key(): string
+    {
+        return 'title';
+    }
+
+    public static function fromAttributeValue(string $key, mixed $value): ?self
+    {
+        return $key === 'title' ? self::fromAttributes($value) : null;
+    }
+
     public static function make(string $value, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): self
     {
         return new self($value, ! ($bare ?? false), $prefix, $suffix);
     }
 
-    public static function fromDefinition(mixed $title): ?self
+    public static function fromAttributes(mixed $title): ?self
     {
         if (is_string($title)) {
             return self::make($title);
@@ -36,11 +49,11 @@ class Title extends PartialHeadValue
         );
     }
 
-    public function asDefaults(): self
+    public function asDefaults(): static
     {
         return is_null($this->value)
             ? $this
-            : new self($this->value, false, $this->prefix, $this->suffix);
+            : new static($this->value, false, $this->prefix, $this->suffix);
     }
 
     public function render(): ?string
@@ -54,6 +67,16 @@ class Title extends PartialHeadValue
         }
 
         return ($this->prefix ?? '').$this->value.($this->suffix ?? '');
+    }
+
+    public function toPayload(ResolvedHead $head): ?string
+    {
+        return $this->render();
+    }
+
+    public function toTags(ResolvedHead $head, TagRenderer $tags): array
+    {
+        return ($title = $this->render()) ? [$tags->title($title)] : [];
     }
 
     /**
@@ -74,7 +97,7 @@ class Title extends PartialHeadValue
      */
     protected function withParts(array $parts): static
     {
-        return new self(
+        return new static(
             self::string($parts['value'] ?? null),
             self::bool($parts['decorated'] ?? null),
             self::string($parts['prefix'] ?? null),

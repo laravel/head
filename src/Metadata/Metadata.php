@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Support;
+namespace Laravel\Head\Metadata;
 
-abstract class PartialHeadValue
+abstract class Metadata
 {
+    abstract public static function key(): string;
+
     /**
      * @return array<string, mixed>
      */
@@ -16,9 +18,22 @@ abstract class PartialHeadValue
      */
     abstract protected function withParts(array $parts): static;
 
+    /**
+     * @return array<int, string>
+     */
+    public static function attributeKeys(): array
+    {
+        return [static::key()];
+    }
+
+    public static function fromAttributeValue(string $key, mixed $value): ?self
+    {
+        return null;
+    }
+
     public function overlay(?self $base): static
     {
-        if (is_null($base) || $base::class !== static::class) {
+        if (! $base instanceof static) {
             return $this;
         }
 
@@ -40,6 +55,24 @@ abstract class PartialHeadValue
         }
 
         return true;
+    }
+
+    public function asDefaults(): static
+    {
+        return $this;
+    }
+
+    public function toPayload(ResolvedHead $head): mixed
+    {
+        return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function toTags(ResolvedHead $head, TagRenderer $tags): array
+    {
+        return [];
     }
 
     protected static function string(mixed $value): ?string

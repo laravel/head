@@ -5,16 +5,41 @@ declare(strict_types=1);
 namespace Laravel\Head\Support;
 
 use Illuminate\Http\Request;
-use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\Metadata\AlternateLinks;
+use Laravel\Head\Metadata\Canonical;
+use Laravel\Head\Metadata\Description;
+use Laravel\Head\Metadata\FeedLinks;
+use Laravel\Head\Metadata\GenericLinks;
+use Laravel\Head\Metadata\Metadata;
+use Laravel\Head\Metadata\MetaTags;
+use Laravel\Head\Metadata\OpenGraph;
+use Laravel\Head\Metadata\PaginationLinks;
+use Laravel\Head\Metadata\PerformanceLinks;
+use Laravel\Head\Metadata\ResolvedHead;
+use Laravel\Head\Metadata\Robots;
+use Laravel\Head\Metadata\Schemas;
+use Laravel\Head\Metadata\TagRenderer;
+use Laravel\Head\Metadata\Title;
+use Laravel\Head\Metadata\Twitter;
 use Laravel\Head\Schema\SchemaValidator;
 
 class HeadRenderer
 {
-    public function __construct(protected SchemaValidator $schemas) {}
+    protected TagRenderer $tags;
+
+    public function __construct(
+        protected SchemaValidator $schemas,
+        ?TagRenderer $tags = null,
+    ) {
+        $this->tags = $tags ?? new TagRenderer;
+    }
 
     public function render(HeadData $head, ?Request $request = null): string
     {
-        return collect($this->tags($head, $request))
+        $resolved = new ResolvedHead($head, $request);
+
+        return collect($this->orderedSections($head))
+            ->flatMap(fn (Metadata $section): array => $this->tagsFor($section, $resolved))
             ->filter()
             ->implode(PHP_EOL);
     }
@@ -24,357 +49,100 @@ class HeadRenderer
      */
     public function toArray(HeadData $head, ?Request $request = null): array
     {
+        $resolved = new ResolvedHead($head, $request);
+
         return [
-            'title' => $this->title($head),
-            'description' => $head->description,
-            'canonical' => $this->canonical($head, $request),
-            'robots' => $head->robots,
-            'openGraph' => $this->openGraphPayload($head),
-            'twitter' => $this->twitterPayload($head),
+            'title' => $this->payload($resolved, Title::class),
+            'description' => $this->payload($resolved, Description::class),
+            'canonical' => $this->payload($resolved, Canonical::class),
+            'robots' => $this->payload($resolved, Robots::class),
+            'openGraph' => $this->payload($resolved, OpenGraph::class, []),
+            'twitter' => $this->payload($resolved, Twitter::class, []),
             'links' => [
-                'performance' => [
-                    'preload' => array_values($head->preloads),
-                    'prefetch' => array_values($head->prefetches),
-                    'preconnect' => array_values($head->preconnects),
-                    'dnsPrefetch' => array_values($head->dnsPrefetches),
-                ],
-                'pagination' => $head->paginationLinks,
-                'alternates' => $head->alternates,
-                'feeds' => array_values($head->feeds),
-                'generic' => array_values($head->genericLinks),
+                'performance' => $this->payload($resolved, PerformanceLinks::class, [
+                    'preload' => [],
+                    'prefetch' => [],
+                    'preconnect' => [],
+                    'dnsPrefetch' => [],
+                ]),
+                'pagination' => $this->payload($resolved, PaginationLinks::class, []),
+                'alternates' => $this->payload($resolved, AlternateLinks::class, []),
+                'feeds' => $this->payload($resolved, FeedLinks::class, []),
+                'generic' => $this->payload($resolved, GenericLinks::class, []),
             ],
-            'meta' => array_values($head->meta),
-            'schemas' => array_map(
-                fn (SchemaObject|array $schema): array => $this->schema($schema),
-                array_values($head->schemas),
-            ),
+            'meta' => $this->payload($resolved, MetaTags::class, []),
+            'schemas' => $this->schemasPayload($resolved),
         ];
     }
 
     /**
-     * @return array<int, string|null>
+     * @return array<int, Metadata>
      */
-    protected function tags(HeadData $head, ?Request $request): array
+    protected function orderedSections(HeadData $head): array
     {
-        return [
-            $this->titleTag($head),
-            $head->description ? $this->meta('name', 'description', $head->description) : null,
-            ($canonical = $this->canonical($head, $request)) ? $this->link('canonical', $canonical) : null,
-            $head->robots ? $this->meta('name', 'robots', $head->robots) : null,
-            ...$this->openGraphTags($head),
-            ...$this->twitterTags($head),
-            ...$this->paginationTags($head),
-            ...$this->alternateTags($head),
-            ...$this->feedTags($head),
-            ...$this->performanceTags($head),
-            ...$this->genericMetaTags($head),
-            ...$this->genericLinkTags($head),
-            ...$this->schemaTags($head),
-        ];
-    }
+        $ordered = [];
 
-    protected function titleTag(HeadData $head): ?string
-    {
-        return ($title = $this->title($head)) ? '<title>'.e($title).'</title>' : null;
-    }
+        $resolved = new ResolvedHead($head);
 
-    protected function title(HeadData $head): ?string
-    {
-        return $head->title?->render();
-    }
+        foreach (HeadData::metadata() as $section) {
+            if ($value = $head->get($section)) {
+                $ordered[] = $value;
 
-    protected function canonical(HeadData $head, ?Request $request): ?string
-    {
-        return $head->canonical?->render($request);
-    }
+                continue;
+            }
 
-    /**
-     * @return array<string, string>
-     */
-    protected function openGraph(HeadData $head): array
-    {
-        $values = $head->openGraph;
-
-        if (($title = $this->title($head)) && ! isset($values['title'])) {
-            $values['title'] = $title;
-        }
-
-        if ($head->description && ! isset($values['description'])) {
-            $values['description'] = $head->description;
-        }
-
-        return $values;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected function openGraphPayload(HeadData $head): array
-    {
-        return array_filter([
-            ...$this->openGraph($head),
-            'images' => array_values($head->openGraphImages),
-            'videos' => array_values($head->openGraphVideos),
-            'audios' => array_values($head->openGraphAudios),
-        ]);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function twitter(HeadData $head): array
-    {
-        $values = $head->twitter;
-
-        if (($title = $this->title($head)) && ! isset($values['title'])) {
-            $values['title'] = $title;
-        }
-
-        if ($head->description && ! isset($values['description'])) {
-            $values['description'] = $head->description;
-        }
-
-        return $values;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected function twitterPayload(HeadData $head): array
-    {
-        return array_filter([
-            ...$this->twitter($head),
-            'image' => $this->twitterImage($head),
-        ]);
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected function openGraphTags(HeadData $head): array
-    {
-        $tags = array_map(
-            fn (string $property, string $content): string => $this->meta('property', 'og:'.$property, $content),
-            array_keys($this->openGraph($head)),
-            $this->openGraph($head),
-        );
-
-        return [
-            ...$tags,
-            ...$this->openGraphMediaTags('image', $head->openGraphImages),
-            ...$this->openGraphMediaTags('video', $head->openGraphVideos),
-            ...$this->openGraphMediaTags('audio', $head->openGraphAudios),
-        ];
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected function twitterTags(HeadData $head): array
-    {
-        $tags = array_map(
-            fn (string $name, string $content): string => $this->meta('name', 'twitter:'.$name, $content),
-            array_keys($this->twitter($head)),
-            $this->twitter($head),
-        );
-
-        if (is_null($image = $this->twitterImage($head))) {
-            return $tags;
-        }
-
-        $tags[] = $this->meta('name', 'twitter:image', $image['url']);
-
-        if (isset($image['alt'])) {
-            $tags[] = $this->meta('name', 'twitter:image:alt', $image['alt']);
-        }
-
-        return $tags;
-    }
-
-    /**
-     * @return array{url: string, alt?: string}|null
-     */
-    protected function twitterImage(HeadData $head): ?array
-    {
-        if (! is_null($head->twitterImage)) {
-            $image = $head->twitterImage;
-        } elseif ($head->openGraphImages !== []) {
-            $image = reset($head->openGraphImages);
-        } else {
-            return null;
-        }
-
-        $twitterImage = ['url' => $image['url']];
-
-        if (isset($image['alt'])) {
-            $twitterImage['alt'] = $image['alt'];
-        }
-
-        return $twitterImage;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected function paginationTags(HeadData $head): array
-    {
-        return array_map(
-            fn (string $rel, string $href): string => '<link rel="'.e($rel).'" href="'.e($href).'">',
-            array_keys($head->paginationLinks),
-            $head->paginationLinks,
-        );
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected function alternateTags(HeadData $head): array
-    {
-        return array_map(
-            fn (string $hreflang, string $href): string => '<link rel="alternate" hreflang="'.e($hreflang).'" href="'.e($href).'">',
-            array_keys($head->alternates),
-            $head->alternates,
-        );
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected function feedTags(HeadData $head): array
-    {
-        return array_map(function (array $feed): string {
-            $type = $feed['type'] === 'atom' ? 'application/atom+xml' : 'application/rss+xml';
-
-            return '<link rel="alternate" type="'.e($type).'" title="'.e($feed['title']).'" href="'.e($feed['href']).'">';
-        }, array_values($head->feeds));
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    protected function performanceTags(HeadData $head): array
-    {
-        return [
-            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('preload', $attributes), array_values($head->preloads)),
-            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('prefetch', $attributes), array_values($head->prefetches)),
-            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('preconnect', $attributes), array_values($head->preconnects)),
-            ...array_map(fn (array $attributes): string => $this->linkWithAttributes('dns-prefetch', $attributes), array_values($head->dnsPrefetches)),
-        ];
-    }
-
-    /**
-     * @param  array<string, array{url: string, alt?: string|null, width?: int|null, height?: int|null, type?: string|null, secure_url?: string|null}>  $media
-     * @return array<int, string>
-     */
-    protected function openGraphMediaTags(string $property, array $media): array
-    {
-        $tags = [];
-
-        foreach ($media as $attributes) {
-            $tags[] = $this->meta('property', 'og:'.$property, $attributes['url']);
-
-            foreach (['secure_url', 'type', 'width', 'height', 'alt'] as $attribute) {
-                if (isset($attributes[$attribute])) {
-                    $tags[] = $this->meta('property', 'og:'.$property.':'.$attribute, $attributes[$attribute]);
-                }
+            if ($section === Twitter::class && ($resolved->title() || $resolved->description() || $resolved->openGraphImage())) {
+                $ordered[] = new Twitter;
             }
         }
 
-        return $tags;
+        return $ordered;
     }
 
     /**
-     * @return array<int, string>
+     * @param  class-string<Metadata>  $section
      */
-    protected function genericMetaTags(HeadData $head): array
+    protected function payload(ResolvedHead $resolved, string $section, mixed $default = null): mixed
     {
-        return array_map(function (array $meta): string {
-            $attribute = ($meta['property'] ?? $this->isRdfaProperty($meta['key'])) ? 'property' : 'name';
+        if ($section === Twitter::class) {
+            return ($resolved->section(Twitter::class) ?? new Twitter)->toPayload($resolved);
+        }
 
-            return $this->meta($attribute, $meta['key'], $meta['content']);
-        }, array_values($head->meta));
+        return $resolved->section($section)?->toPayload($resolved) ?? $default;
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, array<string, mixed>>
      */
-    protected function genericLinkTags(HeadData $head): array
+    protected function schemasPayload(ResolvedHead $resolved): array
     {
-        return array_map(function (array $link): string {
-            return $this->linkWithAttributes($link['rel'], ['href' => $link['href'], ...$link['attributes']]);
-        }, array_values($head->genericLinks));
-    }
+        $section = $resolved->section(Schemas::class);
 
-    /**
-     * @return array<int, string>
-     */
-    protected function schemaTags(HeadData $head): array
-    {
-        return array_map(function (SchemaObject|array $schema): string {
-            return '<script type="application/ld+json">'.json_encode($this->schema($schema), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR).'</script>';
-        }, array_values($head->schemas));
-    }
+        if (! $section instanceof Schemas) {
+            return [];
+        }
 
-    /**
-     * @param  SchemaObject|array<string, mixed>  $schema
-     * @return array<string, mixed>
-     */
-    protected function schema(SchemaObject|array $schema): array
-    {
-        $payload = $schema instanceof SchemaObject ? $schema->toJsonLd() : $schema;
+        $payload = $section->toPayload($resolved);
 
-        $this->schemas->validate($payload);
+        foreach ($payload as $schema) {
+            $this->schemas->validate($schema);
+        }
 
         return $payload;
     }
 
-    protected function meta(string $attribute, string $key, string|int|float|bool $content): string
-    {
-        return '<meta '.$attribute.'="'.e($key).'" content="'.e((string) $content).'">';
-    }
-
-    protected function link(string $rel, string $href): string
-    {
-        return '<link rel="'.e($rel).'" href="'.e($href).'">';
-    }
-
     /**
-     * @param  array<string, bool|float|int|string|null>  $attributes
+     * @return array<int, string>
      */
-    protected function linkWithAttributes(string $rel, array $attributes): string
+    protected function tagsFor(Metadata $section, ResolvedHead $resolved): array
     {
-        return '<link rel="'.e($rel).'" '.$this->attributes($attributes).'>';
-    }
-
-    /**
-     * @param  array<string, bool|float|int|string|null>  $attributes
-     */
-    protected function attributes(array $attributes): string
-    {
-        return collect($attributes)
-            ->map(function (mixed $value, string $name): string {
-                if ($value === true) {
-                    return e($name);
-                }
-
-                if ($value === false || is_null($value)) {
-                    return '';
-                }
-
-                return e($name).'="'.e((string) $value).'"';
-            })
-            ->filter()
-            ->implode(' ');
-    }
-
-    protected function isRdfaProperty(string $key): bool
-    {
-        foreach (['og:', 'article:', 'book:', 'profile:', 'music:', 'video:', 'fb:', 'product:'] as $prefix) {
-            if (str_starts_with($key, $prefix)) {
-                return true;
-            }
+        if ($section instanceof Schemas) {
+            return array_map(
+                fn (array $schema): string => $this->tags->jsonLd($schema),
+                $this->schemasPayload($resolved),
+            );
         }
 
-        return false;
+        return $section->toTags($resolved, $this->tags);
     }
 }

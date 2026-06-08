@@ -17,7 +17,7 @@ class RegistersHeadRoutes
 
     public function register(): void
     {
-        Route::macro('head', function (...$head): Route {
+        Route::macro('withHead', function (...$head): Route {
             app(RouteHeadRepository::class)->put($this, HeadDefinition::arguments($head));
 
             return $this;
@@ -33,11 +33,11 @@ class RegistersHeadRoutes
             return $routes->withGroupHead(new RouteRegistrar($this), HeadDefinition::arguments($head));
         });
 
-        PendingResourceRegistration::macro('head', function (...$head) use ($routes): PendingResourceRegistration {
+        PendingResourceRegistration::macro('withHead', function (...$head) use ($routes): PendingResourceRegistration {
             return $routes->withPendingHead($this, HeadDefinition::arguments($head));
         });
 
-        PendingSingletonResourceRegistration::macro('head', function (...$head) use ($routes): PendingSingletonResourceRegistration {
+        PendingSingletonResourceRegistration::macro('withHead', function (...$head) use ($routes): PendingSingletonResourceRegistration {
             return $routes->withPendingHead($this, HeadDefinition::arguments($head));
         });
     }

@@ -22,10 +22,10 @@ Head data resolves from five layers, listed here from lowest to highest priority
 1. Global defaults
 2. Route group metadata
 3. Route metadata
-4. Controller or action metadata
+4. Runtime metadata
 5. Error metadata
 
-Higher layers replace lower layers field by field. For example, a controller title replaces the route title without replacing the route description. The sections that follow describe how to set metadata at each layer. See [Rendering](#rendering) for how the resolved result is emitted in Blade, Livewire, and Inertia.
+Higher layers replace lower layers field by field. For example, a runtime title replaces the route title without replacing the route description. The sections that follow describe how to set metadata at each layer. See [Rendering](#rendering) for how the resolved result is emitted in Blade, Livewire, and Inertia.
 
 ## Defaults
 
@@ -49,9 +49,9 @@ Head::defaults(function (HeadManager $head) {
 });
 ```
 
-The defaults layer is the lowest-priority layer. If no route, controller, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `bare: true` for titles that should ignore the inherited prefix or suffix.
+The defaults layer is the lowest-priority layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `bare: true` for titles that should ignore the inherited prefix or suffix.
 
-Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL, or `Head::canonical('/about')`, which uses an explicit URL. A later layer can remove an inherited canonical URL with `Head::canonical(false)`.
+Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string `Head::canonical('/about')`. A later layer can remove an inherited canonical URL with `Head::canonical(false)`.
 
 ## Route Metadata
 Many pages can define their metadata directly on the route, especially semi static pages whose metadata is known ahead of time.
@@ -59,7 +59,7 @@ Many pages can define their metadata directly on the route, especially semi stat
 ```php
 Route::view('/contact', 'contact')
     ->name('contact')
-    ->head(
+    ->withHead(
         title: 'Contact Us',
         description: 'Get in touch.',
     );
@@ -74,39 +74,39 @@ Route::withHead(robots: 'noindex, nofollow')
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)
             ->name('dashboard')
-            ->head(title: 'Dashboard');
+            ->withHead(title: 'Dashboard');
     });
 ```
 
 Resource and singleton routes can define metadata too:
 
 ```php
-Route::resource('posts', PostController::class)->head(
+Route::resource('posts', PostController::class)->withHead(
     robots: 'index, follow',
 );
 
-Route::singleton('profile', ProfileController::class)->head(
+Route::singleton('profile', ProfileController::class)->withHead(
     title: 'Your Profile',
 );
 ```
 
-The keys you pass to `->head()` match the fluent builder methods: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, …) accept either a single value or a list. The one builder method without a route key is `paginate()`, whose prev/next links come from a live paginator you resolve in the controller.
+The keys you pass to `->withHead()` match the fluent builder methods: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, …) accept either a single value or a list.
 
-When a value isn't known until a request arrives, such as the title of the post being viewed, you may pass a closure instead of named arguments. The closure receives the matched route so you can read its parameters, and returns an array using those same keys:
+When a value isn't known until a request arrives, such as the title of the post being viewed, you may pass a closure instead of named arguments:
 
 ```php
 Route::get('/posts/{post}', ShowPostController::class)
-    ->head(fn (Route $route) => [
+    ->withHead(fn (Route $route) => [
         'title' => $route->parameter('post')->title,
     ]);
 ```
 
 > [!NOTE]
-> A closure can't be serialized, so a route that uses this form makes `php artisan route:cache` fail. If you cache your routes, set request-dependent metadata from the [controller](#controller-metadata) instead.
+> Route metadata closures are not compatible with cached routes. If you cache your routes, set request-dependent metadata at runtime instead.
 
-## Controller Metadata
+## Runtime Metadata
 
-Controllers and actions can override route metadata for dynamic request data:
+Runtime calls to the `Head` facade override route metadata for request dependent data. Controllers and actions are the most common place to set this data:
 
 ```php
 use App\Models\Post;
@@ -120,6 +120,8 @@ public function show(Post $post)
     return view('posts.show', ['post' => $post]);
 }
 ```
+
+Multiple runtime calls are merged in the order they run. For single-value fields like title, description, canonical URL, and robots directives, the later call wins. Repeatable fields like images, performance links, feeds, schemas, generic meta tags, and generic links accumulate or replace existing entries by their internal key.
 
 ## Errors
 
@@ -299,7 +301,7 @@ Livewire applications use the same `@head` directive in their document layout:
 </body>
 ```
 
-No Livewire-specific configuration is required. Head data is resolved per request and the resolver is request-scoped, so each `wire:navigate` visit fetches a fresh document whose `@head` reflects the destination route's metadata. Links using `wire:navigate` therefore pick up the next page's route, controller, and error metadata without any component-level head code.
+No Livewire-specific configuration is required. Head data is resolved per request and the resolver is request-scoped, so each `wire:navigate` visit fetches a fresh document whose `@head` reflects the destination route's metadata. Links using `wire:navigate` therefore pick up the next page's route, runtime, and error metadata without any component-level head code.
 
 ### Inertia
 

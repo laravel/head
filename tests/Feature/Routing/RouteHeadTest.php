@@ -21,7 +21,7 @@ it('cascades defaults route groups routes and controller mutations', function ()
                 Head::title('Runtime dashboard');
 
                 return Head::render();
-            })->head(title: 'Dashboard');
+            })->withHead(title: 'Dashboard');
         });
 
     $this->get('/admin/dashboard')
@@ -39,7 +39,7 @@ it('keeps route group head closures as a separate cascade layer', function (): v
         ->prefix('admin/{section}')
         ->group(function (): void {
             Route::get('/dashboard', fn (): string => Head::render())
-                ->head(title: 'Dashboard', og: ['title' => 'Dashboard']);
+                ->withHead(title: 'Dashboard', og: ['title' => 'Dashboard']);
         });
 
     $this->get('/admin/reports/dashboard')
@@ -51,12 +51,12 @@ it('keeps route group head closures as a separate cascade layer', function (): v
 });
 
 it('stores head definitions on view and controller routes', function (): void {
-    $view = Route::view('/contact', 'contact')->head(
+    $view = Route::view('/contact', 'contact')->withHead(
         title: 'Contact',
         description: 'Get in touch.',
     );
 
-    $controller = Route::get('/about', fn (): string => 'About')->head(
+    $controller = Route::get('/about', fn (): string => 'About')->withHead(
         title: 'About',
     );
 
@@ -70,7 +70,7 @@ it('stores head definitions on view and controller routes', function (): void {
 
 it('resolves route head closures at request time', function (): void {
     Route::get('/posts/{post}', fn (): string => Head::render())
-        ->head(fn (Illuminate\Routing\Route $route): array => [
+        ->withHead(fn (Illuminate\Routing\Route $route): array => [
             'title' => 'Post '.$route->parameter('post'),
         ]);
 
@@ -80,11 +80,11 @@ it('resolves route head closures at request time', function (): void {
 });
 
 it('stores head definitions on resource and singleton routes', function (): void {
-    Route::resource('posts', 'PostController')->head(
+    Route::resource('posts', 'PostController')->withHead(
         robots: 'index, follow',
     );
 
-    Route::singleton('profile', 'ProfileController')->head(
+    Route::singleton('profile', 'ProfileController')->withHead(
         title: 'Your Profile',
     );
 
@@ -99,7 +99,7 @@ it('stores head definitions on resource and singleton routes', function (): void
 });
 
 it('parses route metadata using the fluent field shapes', function (): void {
-    Route::get('/product', fn (): string => Head::render())->head(
+    Route::get('/product', fn (): string => Head::render())->withHead(
         title: ['value' => 'Product', 'suffix' => ' - Store'],
         canonical: ['auto' => true, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
@@ -129,7 +129,7 @@ it('parses route metadata using the fluent field shapes', function (): void {
 });
 
 it('does not accept snake case route metadata aliases', function (): void {
-    Route::get('/legacy-inputs', fn (): string => Head::render())->head(
+    Route::get('/legacy-inputs', fn (): string => Head::render())->withHead(
         canonical: ['auto' => true, 'force_https' => false],
         og: ['site_name' => 'Legacy'],
         ogImage: [

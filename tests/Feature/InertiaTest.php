@@ -12,7 +12,7 @@ it('injects resolved head data into inertia page objects', function (): void {
 
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
         'user' => 'Taylor',
-    ]))->head(
+    ]))->withHead(
         title: 'Dashboard',
         description: 'Your application overview.',
     );
@@ -28,7 +28,7 @@ it('injects resolved head data into inertia page objects', function (): void {
 it('keeps head data in inertia partial reloads', function (): void {
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
         'user' => 'Taylor',
-    ]))->head(title: 'Dashboard');
+    ]))->withHead(title: 'Dashboard');
 
     $this->get('/dashboard', [
         Header::INERTIA => 'true',

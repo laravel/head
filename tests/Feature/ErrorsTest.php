@@ -18,7 +18,7 @@ it('lets error head beat the resolved page head', function (): void {
         );
     });
 
-    Route::get('/missing', fn (): string => Head::render(404))->head(
+    Route::get('/missing', fn (): string => Head::render(404))->withHead(
         title: 'Original Page',
         description: 'Original description.',
     );

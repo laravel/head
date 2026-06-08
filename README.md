@@ -110,27 +110,16 @@ Route::get('/posts/{post}', ShowPostController::class)
 Controllers and actions can override route metadata for dynamic request data:
 
 ```php
+use App\Models\Post;
 use Laravel\Head\Facades\Head;
-use Laravel\Head\Facades\Schema;
-use Laravel\Head\OgType;
 
-Head::title($post->title)
-    ->description($post->excerpt)
-    ->canonical($post->url())
-    ->og(title: $post->title, type: OgType::Article)
-    ->ogImage(
-        $post->og_image_url,
-        alt: $post->title,
-        width: 1200,
-        height: 630,
-    )
-    ->schema(
-        Schema::article()
-            ->headline($post->title)
-            ->author(Schema::person()->name($post->author->name))
-            ->datePublished($post->published_at)
-            ->image($post->og_image_url)
-    );
+public function show(Post $post)
+{
+    Head::title($post->title)
+        ->description($post->description);
+
+    return view('posts.show', ['post' => $post]);
+}
 ```
 
 ## Errors

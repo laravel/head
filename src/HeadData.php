@@ -565,8 +565,8 @@ class HeadData
             if ($value instanceof CanonicalMode || is_string($value)) {
                 $this->canonical(
                     $value,
-                    forceHttps: $this->bool($canonical['forceHttps'] ?? $canonical['force_https'] ?? null),
-                    trailingSlash: $this->bool($canonical['trailingSlash'] ?? $canonical['trailing_slash'] ?? null),
+                    forceHttps: $this->bool($canonical['forceHttps'] ?? null),
+                    trailingSlash: $this->bool($canonical['trailingSlash'] ?? null),
                 );
             }
 
@@ -601,7 +601,7 @@ class HeadData
             image: $this->string($values['image'] ?? null),
             video: $this->string($values['video'] ?? null),
             audio: $this->string($values['audio'] ?? null),
-            siteName: $this->string($values['siteName'] ?? $values['site_name'] ?? null),
+            siteName: $this->string($values['siteName'] ?? null),
             locale: $this->string($values['locale'] ?? null),
             determiner: $this->string($values['determiner'] ?? null),
         );
@@ -621,7 +621,7 @@ class HeadData
                     width: $this->integer($image['width'] ?? null),
                     height: $this->integer($image['height'] ?? null),
                     type: $this->string($image['type'] ?? null),
-                    secureUrl: $this->string($image['secureUrl'] ?? $image['secure_url'] ?? null),
+                    secureUrl: $this->string($image['secureUrl'] ?? null),
                 );
             }
         }
@@ -641,7 +641,7 @@ class HeadData
                     width: $this->integer($video['width'] ?? null),
                     height: $this->integer($video['height'] ?? null),
                     type: $this->string($video['type'] ?? null),
-                    secureUrl: $this->string($video['secureUrl'] ?? $video['secure_url'] ?? null),
+                    secureUrl: $this->string($video['secureUrl'] ?? null),
                 );
             }
         }
@@ -658,7 +658,7 @@ class HeadData
                 $this->ogAudio(
                     $audio['url'],
                     type: $this->string($audio['type'] ?? null),
-                    secureUrl: $this->string($audio['secureUrl'] ?? $audio['secure_url'] ?? null),
+                    secureUrl: $this->string($audio['secureUrl'] ?? null),
                 );
             }
         }

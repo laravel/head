@@ -128,3 +128,20 @@ it('parses route metadata using the fluent field shapes', function (): void {
         ->assertSee('<meta property="product:price:amount" content="99.00">', false)
         ->assertSee('<link rel="manifest" href="/manifest.json">', false);
 });
+
+it('does not accept snake case route metadata aliases', function (): void {
+    Route::get('/legacy-inputs', fn (): string => Head::render())->head(
+        canonical: ['value' => CanonicalMode::Auto, 'force_https' => false],
+        og: ['site_name' => 'Legacy'],
+        ogImage: [
+            ['url' => 'https://example.com/image.jpg', 'secure_url' => 'https://secure.example.com/image.jpg'],
+        ],
+    );
+
+    $this->get('/legacy-inputs')
+        ->assertOk()
+        ->assertSee('<link rel="canonical" href="https://localhost/legacy-inputs">', false)
+        ->assertSee('<meta property="og:image" content="https://example.com/image.jpg">', false)
+        ->assertDontSee('<meta property="og:site_name" content="Legacy">', false)
+        ->assertDontSee('<meta property="og:image:secure_url" content="https://secure.example.com/image.jpg">', false);
+});

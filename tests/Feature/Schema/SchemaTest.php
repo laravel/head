@@ -21,6 +21,16 @@ it('renders built in schema objects as JSON LD', function (): void {
         ->toContain('"@type":"Person"');
 });
 
+it('escapes html sensitive characters in JSON LD to prevent script breakout', function (): void {
+    Head::schema(
+        Schema::article()->headline('</script><script>alert(1)</script>')
+    );
+
+    expect(Head::render())
+        ->not->toContain('</script><script>alert(1)</script>')
+        ->toContain('\\u003C/script\\u003E\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E');
+});
+
 it('registers custom schema types as first class factory methods', function (): void {
     Schema::register(JobPosting::class);
 

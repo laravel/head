@@ -353,7 +353,7 @@ class HeadRenderer
     protected function schemaTags(HeadData $head): array
     {
         return array_map(function (SchemaObject|array $schema): string {
-            return '<script type="application/ld+json">'.json_encode($this->schema($schema), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR).'</script>';
+            return '<script type="application/ld+json">'.json_encode($this->schema($schema), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR).'</script>';
         }, array_values($head->schemas));
     }
 

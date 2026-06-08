@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head;
+namespace Laravel\Head\Schema;
 
 use Illuminate\Contracts\Foundation\Application;
 use Laravel\Head\Exceptions\InvalidSchema;

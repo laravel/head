@@ -10,8 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Laravel\Head\Routing\HeadDefinition;
 use Laravel\Head\Routing\RouteHeadRepository;
-use Laravel\Head\Schema as SchemaFactory;
+use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\Support\CurrentHead;
+use Laravel\Head\Support\HeadData;
+use Laravel\Head\Support\HeadRenderer;
 
 class Head
 {
@@ -30,9 +33,6 @@ class Head
         $this->errors = new Errors;
     }
 
-    /**
-     * Register global head defaults.
-     */
     public function defaults(callable $callback): static
     {
         $this->record($callback, function (HeadData $data): void {
@@ -42,9 +42,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Register status-code specific error head definitions.
-     */
     public function errors(callable $callback): static
     {
         $callback($this->errors);
@@ -52,9 +49,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Mark the current request as rendering an error response.
-     */
     public function status(int $status): static
     {
         $this->current()->status($status);
@@ -69,9 +63,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Set the page description.
-     */
     public function description(string $description): static
     {
         $this->data()->description($description);
@@ -181,9 +172,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Add a preload performance hint.
-     */
     public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ?string $type = null, ?string $media = null): static
     {
         $this->data()->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
@@ -191,9 +179,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Add a prefetch performance hint.
-     */
     public function prefetch(string $href, ?string $as = null): static
     {
         $this->data()->prefetch($href, as: $as);
@@ -201,9 +186,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Add a preconnect performance hint.
-     */
     public function preconnect(string $href, bool|string|null $crossorigin = null): static
     {
         $this->data()->preconnect($href, crossorigin: $crossorigin);
@@ -211,9 +193,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Add a DNS prefetch performance hint.
-     */
     public function dnsPrefetch(string $href): static
     {
         $this->data()->dnsPrefetch($href);
@@ -245,9 +224,6 @@ class Head
         return $this;
     }
 
-    /**
-     * Add an RSS or Atom feed discovery link.
-     */
     public function feed(string $href, string $title, string $type = 'rss'): static
     {
         $this->data()->feed($href, title: $title, type: $type);
@@ -289,8 +265,6 @@ class Head
     }
 
     /**
-     * Resolve the current request head data into a serializable payload.
-     *
      * @return array<string, mixed>
      */
     public function toArray(?int $status = null): array
@@ -298,16 +272,13 @@ class Head
         return $this->renderer->toArray($this->resolve($status), $this->request());
     }
 
-    /**
-     * Render the current head tags.
-     */
     public function render(?int $status = null): string
     {
         return $this->renderer->render($this->resolve($status), $this->request());
     }
 
     /**
-     * Flush controller-level data for the current request scope.
+     * Flush runtime data for the current request scope.
      */
     public function flush(): static
     {
@@ -316,6 +287,9 @@ class Head
         return $this;
     }
 
+    /**
+     * Resolve all configured head layers into the final data for rendering.
+     */
     protected function resolve(?int $status = null): HeadData
     {
         $data = HeadData::base()->merge($this->defaults);

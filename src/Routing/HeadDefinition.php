@@ -6,7 +6,7 @@ namespace Laravel\Head\Routing;
 
 use Closure;
 use Illuminate\Routing\Route;
-use Laravel\Head\HeadData;
+use Laravel\Head\Support\HeadData;
 
 /**
  * @phpstan-type HeadArguments array<mixed, mixed>

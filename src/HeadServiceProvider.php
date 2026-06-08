@@ -13,6 +13,10 @@ use Inertia\Inertia;
 use Laravel\Head\Routing\RegistersHeadRoutes;
 use Laravel\Head\Routing\ResourceRegistrar;
 use Laravel\Head\Routing\RouteHeadRepository;
+use Laravel\Head\Schema\SchemaFactory;
+use Laravel\Head\Schema\SchemaValidator;
+use Laravel\Head\Support\CurrentHead;
+use Laravel\Head\Support\HeadRenderer;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -25,8 +29,8 @@ class HeadServiceProvider extends ServiceProvider
     {
         $this->app->scoped(CurrentHead::class);
 
-        $this->app->singleton(Schema::class);
-        $this->app->alias(Schema::class, 'head.schema');
+        $this->app->singleton(SchemaFactory::class);
+        $this->app->alias(SchemaFactory::class, 'head.schema');
 
         $this->app->singleton(HeadRenderer::class);
         $this->app->singleton(SchemaValidator::class);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Laravel\Head\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use Laravel\Head\Schema\SchemaFactory;
 
 /**
  * @method static \Laravel\Head\Schema\Article article()
@@ -18,9 +19,9 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Head\Schema\WebPage webPage()
  * @method static \Laravel\Head\Schema\WebSite webSite()
  * @method static \Laravel\Head\Schema\SchemaObject make(string $type)
- * @method static \Laravel\Head\Schema register(string $class)
+ * @method static \Laravel\Head\Schema\SchemaFactory register(string $class)
  *
- * @see \Laravel\Head\Schema
+ * @see SchemaFactory
  */
 class Schema extends Facade
 {

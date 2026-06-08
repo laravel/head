@@ -2,24 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head;
+namespace Laravel\Head\Schema;
 
 use Illuminate\Support\Str;
-use Laravel\Head\Schema\Article;
-use Laravel\Head\Schema\BlogPosting;
-use Laravel\Head\Schema\Breadcrumbs;
-use Laravel\Head\Schema\Faq;
-use Laravel\Head\Schema\GenericSchemaObject;
-use Laravel\Head\Schema\Offer;
-use Laravel\Head\Schema\Organization;
-use Laravel\Head\Schema\Person;
-use Laravel\Head\Schema\Product;
-use Laravel\Head\Schema\SchemaObject;
-use Laravel\Head\Schema\WebPage;
-use Laravel\Head\Schema\WebSite;
+use Laravel\Head\SchemaType;
 use ReflectionClass;
 
-class Schema
+class SchemaFactory
 {
     /** @var array<string, class-string<SchemaObject>> */
     protected array $types = [];

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Route;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
 use Laravel\Head\OgType;
@@ -63,6 +64,17 @@ it('can suppress an inherited canonical URL', function (): void {
     Head::canonical(false);
 
     expect(Head::render())->not->toContain('rel="canonical"');
+});
+
+it('carries inherited canonical options into later canonical URLs', function (): void {
+    Head::defaults(fn (Laravel\Head\Head $head): Laravel\Head\Head => $head->canonical(forceHttps: false, trailingSlash: true));
+
+    Route::get('/about', fn (): string => Head::render())
+        ->withHead(canonical: '/about');
+
+    $this->get('/about')
+        ->assertOk()
+        ->assertSee('<link rel="canonical" href="http://localhost/about/">', false);
 });
 
 it('renders the default title without applying its inherited suffix', function (): void {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Laravel\Head;
 
 use Laravel\Head\Routing\HeadDefinition;
+use Laravel\Head\Support\HeadData;
 
 class Errors
 {

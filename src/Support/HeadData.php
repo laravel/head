@@ -2,38 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head;
+namespace Laravel\Head\Support;
 
 use Illuminate\Contracts\Pagination\Paginator;
+use Laravel\Head\OgType;
 use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\TwitterCard;
 
 /**
  * @phpstan-type FeedAttributes array{href: string, title: string, type: string}
  * @phpstan-type LinkAttributes array{href: string, as?: string|null, crossorigin?: bool|string|null, type?: string|null, media?: string|null}
- * @phpstan-type MediaAttributes array{url: string, alt?: string|null, width?: int|null, height?: int|null, type?: string|null, secure_url?: string|null}
+ * @phpstan-type MediaAttributes array{url: string, alt?: string|null, width?: int|null, height?: int|null, type?: string|null, secureUrl?: string|null}
  * @phpstan-type MetaAttributes array{key: string, content: string, property?: bool|null}
  * @phpstan-type GenericLinkAttributes array{rel: string, href: string, attributes: array<string, bool|float|int|string|null>}
  * @phpstan-type SchemaPayload array<string, mixed>
  */
 class HeadData
 {
-    public ?string $title = null;
-
-    public ?bool $titleDecorated = null;
-
-    public ?string $titlePrefix = null;
-
-    public ?string $titleSuffix = null;
+    public ?Title $title = null;
 
     public ?string $description = null;
 
-    public ?string $canonicalUrl = null;
-
-    public ?string $canonicalMode = null;
-
-    public ?bool $canonicalForceHttps = null;
-
-    public ?bool $canonicalTrailingSlash = null;
+    public ?Canonical $canonical = null;
 
     public ?string $robots = null;
 
@@ -94,15 +84,15 @@ class HeadData
     {
         $merged = clone $this;
 
-        $merged->title = $data->title ?? $merged->title;
-        $merged->titleDecorated = $data->titleDecorated ?? $merged->titleDecorated;
-        $merged->titlePrefix = $data->titlePrefix ?? $merged->titlePrefix;
-        $merged->titleSuffix = $data->titleSuffix ?? $merged->titleSuffix;
+        if (! is_null($data->title)) {
+            $merged->title = $data->title->overlay($merged->title);
+        }
+
+        if (! is_null($data->canonical)) {
+            $merged->canonical = $data->canonical->overlay($merged->canonical);
+        }
+
         $merged->description = $data->description ?? $merged->description;
-        $merged->canonicalUrl = $data->canonicalUrl ?? $merged->canonicalUrl;
-        $merged->canonicalMode = $data->canonicalMode ?? $merged->canonicalMode;
-        $merged->canonicalForceHttps = $data->canonicalForceHttps ?? $merged->canonicalForceHttps;
-        $merged->canonicalTrailingSlash = $data->canonicalTrailingSlash ?? $merged->canonicalTrailingSlash;
         $merged->robots = $data->robots ?? $merged->robots;
 
         $merged->openGraph = array_replace($merged->openGraph, $data->openGraph);
@@ -127,15 +117,9 @@ class HeadData
 
     public function isEmpty(): bool
     {
-        return is_null($this->title)
-            && is_null($this->titleDecorated)
-            && is_null($this->titlePrefix)
-            && is_null($this->titleSuffix)
+        return ($this->title?->isEmpty() ?? true)
             && is_null($this->description)
-            && is_null($this->canonicalUrl)
-            && is_null($this->canonicalMode)
-            && is_null($this->canonicalForceHttps)
-            && is_null($this->canonicalTrailingSlash)
+            && is_null($this->canonical)
             && is_null($this->robots)
             && $this->openGraph === []
             && $this->openGraphImages === []
@@ -157,25 +141,15 @@ class HeadData
 
     public function asDefaults(): static
     {
-        if (! is_null($this->title)) {
-            $this->titleDecorated = false;
-        }
+        $this->title = $this->title?->asDefaults();
 
         return $this;
     }
 
     public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): static
     {
-        $this->title = $title;
-        $this->titleDecorated = ! ($bare ?? false);
-
-        if (! is_null($prefix)) {
-            $this->titlePrefix = $prefix;
-        }
-
-        if (! is_null($suffix)) {
-            $this->titleSuffix = $suffix;
-        }
+        $this->title = Title::make($title, prefix: $prefix, suffix: $suffix, bare: $bare)
+            ->overlay($this->title);
 
         return $this;
     }
@@ -189,23 +163,8 @@ class HeadData
 
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
-        if ($url === false) {
-            $this->canonicalMode = 'none';
-            $this->canonicalUrl = null;
-
-            return $this;
-        }
-
-        $this->canonicalMode = is_null($url) ? 'auto' : 'url';
-        $this->canonicalUrl = $url;
-
-        if (! is_null($forceHttps)) {
-            $this->canonicalForceHttps = $forceHttps;
-        }
-
-        if (! is_null($trailingSlash)) {
-            $this->canonicalTrailingSlash = $trailingSlash;
-        }
+        $this->canonical = Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash)
+            ->overlay($this->canonical);
 
         return $this;
     }
@@ -450,7 +409,7 @@ class HeadData
         }
 
         if (array_key_exists('canonical', $values)) {
-            $this->fillCanonical($values['canonical']);
+            $this->canonical = Canonical::fromDefinition($values['canonical'])?->overlay($this->canonical) ?? $this->canonical;
         }
 
         if (array_key_exists('robots', $values) && is_string($values['robots'])) {
@@ -522,69 +481,7 @@ class HeadData
 
     protected function fillTitle(mixed $title): void
     {
-        if (is_string($title)) {
-            $this->title($title);
-
-            return;
-        }
-
-        if (! is_array($title) || ! is_string($title['value'] ?? null)) {
-            return;
-        }
-
-        $this->title(
-            $title['value'],
-            prefix: $this->string($title['prefix'] ?? null),
-            suffix: $this->string($title['suffix'] ?? null),
-            bare: $this->bool($title['bare'] ?? null),
-        );
-    }
-
-    protected function fillCanonical(mixed $canonical): void
-    {
-        if (is_array($canonical)) {
-            if ($this->bool($canonical['none'] ?? null) === true) {
-                $this->canonical(false);
-
-                return;
-            }
-
-            $value = $canonical['value'] ?? null;
-
-            if ($value === false) {
-                $this->canonical(false);
-
-                return;
-            }
-
-            if ($value === true || $this->bool($canonical['auto'] ?? null) === true) {
-                $value = null;
-            }
-
-            if (is_string($value) || is_null($value)) {
-                $this->canonical(
-                    $value,
-                    forceHttps: $this->bool($canonical['forceHttps'] ?? null),
-                    trailingSlash: $this->bool($canonical['trailingSlash'] ?? null),
-                );
-            }
-
-            return;
-        }
-
-        if (is_string($canonical)) {
-            $this->canonical($canonical);
-
-            return;
-        }
-
-        if ($canonical === true || is_null($canonical)) {
-            $this->canonical();
-        }
-
-        if ($canonical === false) {
-            $this->canonical(false);
-        }
+        $this->title = Title::fromDefinition($title)?->overlay($this->title) ?? $this->title;
     }
 
     /**
@@ -887,7 +784,7 @@ class HeadData
             'width' => $width,
             'height' => $height,
             'type' => $type,
-            'secure_url' => $secureUrl,
+            'secureUrl' => $secureUrl,
         ], fn (mixed $value): bool => ! is_null($value));
     }
 

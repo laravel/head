@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head;
+namespace Laravel\Head\Support;
 
 use Illuminate\Http\Request;
 use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\Schema\SchemaValidator;
 
 class HeadRenderer
 {
@@ -79,57 +80,12 @@ class HeadRenderer
 
     protected function title(HeadData $head): ?string
     {
-        if (is_null($head->title)) {
-            return null;
-        }
-
-        if ($head->titleDecorated === false) {
-            return $head->title;
-        }
-
-        return ($head->titlePrefix ?? '').$head->title.($head->titleSuffix ?? '');
+        return $head->title?->render();
     }
 
     protected function canonical(HeadData $head, ?Request $request): ?string
     {
-        if ($head->canonicalMode === 'none') {
-            return null;
-        }
-
-        $url = match ($head->canonicalMode) {
-            'auto' => $request?->url(),
-            'url' => $head->canonicalUrl,
-            default => null,
-        };
-
-        if (is_null($url)) {
-            return null;
-        }
-
-        return $this->normalizeUrl($url, $request, $head->canonicalForceHttps ?? true, $head->canonicalTrailingSlash ?? false);
-    }
-
-    protected function normalizeUrl(string $url, ?Request $request, bool $forceHttps, bool $trailingSlash): string
-    {
-        if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
-            $url = rtrim($request?->getSchemeAndHttpHost() ?? '', '/').'/'.ltrim($url, '/');
-        }
-
-        if ($forceHttps) {
-            $url = preg_replace('/^http:\/\//', 'https://', $url) ?? $url;
-        }
-
-        if ($trailingSlash) {
-            return rtrim($url, '/').'/';
-        }
-
-        $path = parse_url($url, PHP_URL_PATH);
-
-        if ($path === null || $path === false || $path === '' || $path === '/') {
-            return rtrim($url, '/').'/';
-        }
-
-        return rtrim($url, '/');
+        return $head->canonical?->render($request);
     }
 
     /**

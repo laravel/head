@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
+
 abstract class Metadata
 {
     abstract public static function key(): string;
@@ -19,6 +22,19 @@ abstract class Metadata
     abstract protected function withParts(array $parts): static;
 
     /**
+     * The dot-notated key this section occupies in the rendered array payload.
+     */
+    public static function payloadKey(): string
+    {
+        return static::key();
+    }
+
+    public static function payloadDefault(): mixed
+    {
+        return [];
+    }
+
+    /**
      * @return array<int, string>
      */
     public static function attributeKeys(): array
@@ -29,6 +45,11 @@ abstract class Metadata
     public static function fromAttributeValue(string $key, mixed $value): ?self
     {
         return null;
+    }
+
+    public static function rendersWhenEmpty(ResolvedHead $head): bool
+    {
+        return false;
     }
 
     public function overlay(?self $base): static

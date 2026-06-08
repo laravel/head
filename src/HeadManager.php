@@ -6,18 +6,26 @@ namespace Laravel\Head;
 
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Traits\Macroable;
+use Laravel\Head\Metadata\Metadata;
+use Laravel\Head\Rendering\HeadRenderer;
+use Laravel\Head\Routing\AttributeParser;
 use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaObject;
-use Laravel\Head\Support\CurrentHead;
-use Laravel\Head\Support\HeadAttributes;
-use Laravel\Head\Support\HeadData;
-use Laravel\Head\Support\HeadRenderer;
 
-class Head
+/**
+ * @implements Arrayable<string, mixed>
+ */
+class HeadManager implements Arrayable, Htmlable
 {
+    use Macroable;
+
     protected HeadData $defaults;
 
     protected Errors $errors;
@@ -49,9 +57,21 @@ class Head
         return $this;
     }
 
+    /**
+     * Register a custom metadata section to render on every head.
+     *
+     * @param  class-string<Metadata>  $section
+     */
+    public function extend(string $section): static
+    {
+        HeadData::extend($section);
+
+        return $this;
+    }
+
     public function status(int $status): static
     {
-        $this->current()->status($status);
+        $this->state()->status($status);
 
         return $this;
     }
@@ -272,9 +292,14 @@ class Head
         return $this->renderer->toArray($this->resolve($status), $this->request());
     }
 
-    public function render(?int $status = null): string
+    public function render(?int $status = null): HtmlString
     {
-        return $this->renderer->render($this->resolve($status), $this->request());
+        return new HtmlString($this->renderer->render($this->resolve($status), $this->request()));
+    }
+
+    public function toHtml(?int $status = null): string
+    {
+        return $this->render($status)->toHtml();
     }
 
     /**
@@ -282,7 +307,7 @@ class Head
      */
     public function flush(): static
     {
-        $this->current()->flush();
+        $this->state()->flush();
 
         return $this;
     }
@@ -296,19 +321,19 @@ class Head
 
         if ($route = $this->route()) {
             foreach ($this->routes->groups($route) as $attributes) {
-                $data = HeadAttributes::apply($data, $attributes, $route);
+                $data = AttributeParser::apply($data, $attributes, $route);
             }
 
             $attributes = $this->routes->get($route);
 
             if (! is_null($attributes)) {
-                $data = HeadAttributes::apply($data, $attributes, $route);
+                $data = AttributeParser::apply($data, $attributes, $route);
             }
         }
 
-        $data = $data->merge($this->current()->data());
+        $data = $data->merge($this->state()->data());
 
-        $errorStatus = $status ?? $this->current()->status();
+        $errorStatus = $status ?? $this->state()->status();
 
         if (! is_null($errorStatus) && $error = $this->errors->forStatus($errorStatus)) {
             $data = $data->merge($error);
@@ -319,10 +344,10 @@ class Head
 
     protected function data(): HeadData
     {
-        return $this->recording ?? $this->current()->data();
+        return $this->recording ?? $this->state()->data();
     }
 
-    protected function current(): CurrentHead
+    protected function state(): CurrentHead
     {
         return $this->app->make(CurrentHead::class);
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Support;
+namespace Laravel\Head;
 
 class CurrentHead
 {

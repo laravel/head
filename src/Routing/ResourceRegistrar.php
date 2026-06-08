@@ -8,7 +8,7 @@ use Illuminate\Routing\ResourceRegistrar as BaseResourceRegistrar;
 
 class ResourceRegistrar extends BaseResourceRegistrar
 {
-    public function __construct($router, protected RouteHeadRepository $head)
+    public function __construct($router, protected RouteHeadRepository $repository)
     {
         parent::__construct($router);
     }
@@ -21,6 +21,6 @@ class ResourceRegistrar extends BaseResourceRegistrar
     {
         $action = parent::getResourceAction($resource, $controller, $method, $options);
 
-        return $this->head->addResourceAction($action, $options);
+        return $this->repository->addResourceAction($action, $options);
     }
 }

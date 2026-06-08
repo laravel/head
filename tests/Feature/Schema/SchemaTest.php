@@ -14,7 +14,7 @@ it('renders built in schema objects as JSON LD', function (): void {
             ->datePublished('2026-05-13')
     );
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('<script type="application/ld+json">')
         ->toContain('"@context":"https://schema.org"')
         ->toContain('"@type":"Article"')
@@ -26,7 +26,7 @@ it('escapes html sensitive characters in JSON LD to prevent script breakout', fu
         Schema::article()->headline('</script><script>alert(1)</script>')
     );
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->not->toContain('</script><script>alert(1)</script>')
         ->toContain('\\u003C/script\\u003E\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E');
 });
@@ -40,7 +40,7 @@ it('registers custom schema types as first class factory methods', function (): 
             ->datePosted('2026-05-13')
     );
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('"@type":"JobPosting"')
         ->toContain('"title":"Senior Laravel Developer"')
         ->toContain('"datePosted":"2026-05-13"');

@@ -9,7 +9,7 @@ it('renders generic meta tags', function (): void {
         ->meta('article:author', 'Taylor Otwell')
         ->meta('weird:namespace', 'Value', property: true);
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('<meta name="theme-color" content="#000000">')
         ->toContain('<meta property="article:author" content="Taylor Otwell">')
         ->toContain('<meta property="weird:namespace" content="Value">');

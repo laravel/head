@@ -10,7 +10,7 @@ it('renders performance links', function (): void {
         ->preconnect('https://fonts.example.com')
         ->dnsPrefetch('https://analytics.example.com');
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('<link rel="preload" href="/fonts/inter.woff2" as="font" crossorigin>')
         ->toContain('<link rel="prefetch" href="/images/next.webp">')
         ->toContain('<link rel="preconnect" href="https://fonts.example.com">')

@@ -16,7 +16,7 @@ it('renders open graph media metadata', function (): void {
             secureUrl: 'https://secure.example.com/gallery.jpg',
         );
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('<meta property="og:type" content="article">')
         ->toContain('<meta property="og:image" content="https://example.com/hero.jpg">')
         ->toContain('<meta property="og:image" content="https://example.com/gallery.jpg">')

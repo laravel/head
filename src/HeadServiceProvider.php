@@ -10,13 +10,12 @@ use Illuminate\Routing\ResourceRegistrar as BaseResourceRegistrar;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\RegistersHeadRoutes;
 use Laravel\Head\Routing\ResourceRegistrar;
 use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaValidator;
-use Laravel\Head\Support\CurrentHead;
-use Laravel\Head\Support\HeadRenderer;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -36,8 +35,8 @@ class HeadServiceProvider extends ServiceProvider
         $this->app->singleton(SchemaValidator::class);
         $this->app->singleton(RouteHeadRepository::class);
 
-        $this->app->singleton(Head::class, fn ($app): Head => new Head($app, $app->make(HeadRenderer::class), $app->make(RouteHeadRepository::class)));
-        $this->app->alias(Head::class, 'head');
+        $this->app->singleton(HeadManager::class, fn ($app): HeadManager => new HeadManager($app, $app->make(HeadRenderer::class), $app->make(RouteHeadRepository::class)));
+        $this->app->alias(HeadManager::class, 'head');
 
         $this->app->bind(BaseResourceRegistrar::class, fn ($app): ResourceRegistrar => new ResourceRegistrar($app['router'], $app->make(RouteHeadRepository::class)));
     }
@@ -65,7 +64,7 @@ class HeadServiceProvider extends ServiceProvider
             $app = $this->app;
 
             $handler->renderable(function (Throwable $exception, Request $request) use ($app): void {
-                $app->make(Head::class)->status(
+                $app->make(HeadManager::class)->status(
                     $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500
                 );
             });
@@ -79,7 +78,7 @@ class HeadServiceProvider extends ServiceProvider
         }
 
         Inertia::share('head', Inertia::always(
-            fn (): array => $this->app->make(Head::class)->toArray(),
+            fn (): array => $this->app->make(HeadManager::class)->toArray(),
         ));
     }
 }

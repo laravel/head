@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
+
 /**
  * @phpstan-consistent-constructor
  *
@@ -19,6 +22,11 @@ class GenericLinks extends Metadata
     public static function key(): string
     {
         return 'links';
+    }
+
+    public static function payloadKey(): string
+    {
+        return 'links.generic';
     }
 
     public static function attributeKeys(): array

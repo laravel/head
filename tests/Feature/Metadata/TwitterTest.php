@@ -9,7 +9,7 @@ it('renders twitter image metadata', function (): void {
     Head::twitter(card: TwitterCard::SummaryLargeImage, image: 'https://example.com/twitter.jpg')
         ->twitterImage('https://example.com/twitter-alt.jpg', alt: 'Twitter alt');
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('<meta name="twitter:card" content="summary_large_image">')
         ->toContain('<meta name="twitter:image" content="https://example.com/twitter-alt.jpg">')
         ->toContain('<meta name="twitter:image:alt" content="Twitter alt">');
@@ -20,7 +20,7 @@ it('falls back from document metadata to social metadata', function (): void {
         ->description('Gallery description.')
         ->ogImage('https://example.com/gallery.jpg', alt: 'Gallery image');
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('<meta name="twitter:title" content="Gallery">')
         ->toContain('<meta name="twitter:description" content="Gallery description.">')
         ->toContain('<meta name="twitter:image" content="https://example.com/gallery.jpg">')
@@ -36,7 +36,7 @@ it('prefers explicit twitter image metadata over open graph image metadata', fun
     Head::ogImage('https://example.com/gallery.jpg', alt: 'Gallery image')
         ->twitterImage('https://example.com/twitter.jpg', alt: 'Twitter image');
 
-    expect(Head::render())
+    expect(Head::toHtml())
         ->toContain('<meta name="twitter:image" content="https://example.com/twitter.jpg">')
         ->toContain('<meta name="twitter:image:alt" content="Twitter image">')
         ->not->toContain('<meta name="twitter:image" content="https://example.com/gallery.jpg">');

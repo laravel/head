@@ -5,9 +5,10 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Laravel\Head\Errors;
 use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
 
 it('lets error head beat the resolved page head', function (): void {
-    Head::defaults(fn (Laravel\Head\Head $head) => $head->title('Acme', suffix: ' - Acme'));
+    Head::defaults(fn (HeadManager $head) => $head->title('Acme', suffix: ' - Acme'));
 
     Head::errors(function (Errors $errors): void {
         $errors->defaults(robots: 'noindex, follow');
@@ -18,7 +19,7 @@ it('lets error head beat the resolved page head', function (): void {
         );
     });
 
-    Route::get('/missing', fn (): string => Head::render(404))->withHead(
+    Route::get('/missing', fn (): string => Head::toHtml(404))->withHead(
         title: 'Original Page',
         description: 'Original description.',
     );

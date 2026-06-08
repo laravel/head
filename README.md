@@ -33,7 +33,7 @@ Register global defaults in a service provider:
 
 ```php
 use Laravel\Head\Facades\Head;
-use Laravel\Head\Head as HeadManager;
+use Laravel\Head\HeadManager;
 use Laravel\Head\OgType;
 use Laravel\Head\TwitterCard;
 
@@ -54,7 +54,8 @@ The defaults layer is the lowest-priority layer. If no route, runtime, or error 
 Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string `Head::canonical('/about')`. A later layer can remove an inherited canonical URL with `Head::canonical(false)`.
 
 ## Route Metadata
-Many pages can define their metadata directly on the route, especially semi static pages whose metadata is known ahead of time.
+
+Many pages can define their metadata directly on the route, especially semi-static pages whose metadata is known ahead of time.
 
 ```php
 Route::view('/contact', 'contact')
@@ -90,11 +91,13 @@ Route::singleton('profile', ProfileController::class)->withHead(
 );
 ```
 
-The keys you pass to `->withHead()` match the fluent builder methods: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, …) accept either a single value or a list.
+The keys you pass to `->withHead()` match the fluent builder methods: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Nested option names use the same camel-case names as the fluent API, such as `forceHttps`, `siteName`, and `secureUrl`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, ...) accept either a single value or a list.
 
 When a value isn't known until a request arrives, such as the title of the post being viewed, you may pass a closure instead of named arguments:
 
 ```php
+use Illuminate\Routing\Route;
+
 Route::get('/posts/{post}', ShowPostController::class)
     ->withHead(fn (Route $route) => [
         'title' => $route->parameter('post')->title,
@@ -219,6 +222,8 @@ Head::meta('theme-color', '#000000')
 Built-in schema builders cover the common JSON-LD types:
 
 ```php
+use Laravel\Head\Facades\Schema;
+
 Head::schema(
     Schema::product()
         ->name($product->name)
@@ -320,8 +325,28 @@ When Inertia is installed, Laravel Head automatically shares the resolved head p
 
 The `head` prop is shared as an always-included Inertia prop, so it is still present during partial reloads.
 
-> [!IMPORTANT]
-> TODO: Document rendering the shared payload into the document `<head>` on the client.
+Render that payload with your Inertia application's client-side head component. For example, a Vue application can map the shared values into Inertia's `<Head>` component:
+
+```vue
+<script setup>
+import { Head, usePage } from '@inertiajs/vue3'
+
+const page = usePage()
+</script>
+
+<template>
+    <Head>
+        <title>{{ page.props.head.title }}</title>
+        <meta
+            v-if="page.props.head.description"
+            name="description"
+            :content="page.props.head.description"
+        >
+    </Head>
+</template>
+```
+
+The shared payload contains structured values for Open Graph, Twitter cards, links, generic meta tags, and JSON-LD schemas too, so applications can decide how much of the resolved head they want to render on the client.
 
 ## Security Vulnerabilities
 

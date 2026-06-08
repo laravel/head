@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Laravel\Head\Metadata;
 
 use Illuminate\Contracts\Pagination\Paginator;
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
 
 /**
  * @phpstan-consistent-constructor
@@ -19,6 +21,11 @@ class PaginationLinks extends Metadata
     public static function key(): string
     {
         return 'pagination';
+    }
+
+    public static function payloadKey(): string
+    {
+        return 'links.pagination';
     }
 
     /**

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
 use Laravel\Head\OgType;
 use Laravel\Head\TwitterCard;
 
 it('cascades defaults route groups routes and controller mutations', function (): void {
-    Head::defaults(function (Laravel\Head\Head $head): void {
+    Head::defaults(function (HeadManager $head): void {
         $head
             ->title('Acme', suffix: ' - Acme')
             ->description('Default description.');
@@ -20,7 +21,7 @@ it('cascades defaults route groups routes and controller mutations', function ()
             Route::get('/dashboard', function (): string {
                 Head::title('Runtime dashboard');
 
-                return Head::render();
+                return Head::toHtml();
             })->withHead(title: 'Dashboard');
         });
 
@@ -38,7 +39,7 @@ it('keeps route group head closures as a separate cascade layer', function (): v
     ])
         ->prefix('admin/{section}')
         ->group(function (): void {
-            Route::get('/dashboard', fn (): string => Head::render())
+            Route::get('/dashboard', fn (): string => Head::toHtml())
                 ->withHead(title: 'Dashboard', og: ['title' => 'Dashboard']);
         });
 
@@ -69,7 +70,7 @@ it('stores head attributes on view and controller routes', function (): void {
 });
 
 it('resolves route head closures at request time', function (): void {
-    Route::get('/posts/{post}', fn (): string => Head::render())
+    Route::get('/posts/{post}', fn (): string => Head::toHtml())
         ->withHead(fn (Illuminate\Routing\Route $route): array => [
             'title' => 'Post '.$route->parameter('post'),
         ]);
@@ -99,7 +100,7 @@ it('stores head attributes on resource and singleton routes', function (): void 
 });
 
 it('parses route metadata using the fluent field shapes', function (): void {
-    Route::get('/product', fn (): string => Head::render())->withHead(
+    Route::get('/product', fn (): string => Head::toHtml())->withHead(
         title: ['value' => 'Product', 'suffix' => ' - Store'],
         canonical: ['auto' => true, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
@@ -129,7 +130,7 @@ it('parses route metadata using the fluent field shapes', function (): void {
 });
 
 it('does not accept snake case route metadata aliases', function (): void {
-    Route::get('/legacy-inputs', fn (): string => Head::render())->withHead(
+    Route::get('/legacy-inputs', fn (): string => Head::toHtml())->withHead(
         canonical: ['auto' => true, 'force_https' => false],
         og: ['site_name' => 'Legacy'],
         ogImage: [
@@ -144,3 +145,17 @@ it('does not accept snake case route metadata aliases', function (): void {
         ->assertDontSee('<meta property="og:site_name" content="Legacy">', false)
         ->assertDontSee('<meta property="og:image:secure_url" content="https://secure.example.com/image.jpg">', false);
 });
+
+it('throws for unknown route metadata keys', function (): void {
+    Route::get('/unknown-head-key', fn (): string => Head::toHtml())->withHead(
+        heading: 'Dashboard',
+    );
+
+    $this->withoutExceptionHandling()->get('/unknown-head-key');
+})->throws(InvalidArgumentException::class, 'Unknown route head attribute [heading].');
+
+it('throws for positional route metadata values', function (): void {
+    Route::get('/positional-head-key', fn (): string => Head::toHtml())->withHead('Dashboard');
+
+    $this->withoutExceptionHandling()->get('/positional-head-key');
+})->throws(InvalidArgumentException::class, 'Route head attributes must be named.');

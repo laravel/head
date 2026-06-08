@@ -2,15 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Support;
+namespace Laravel\Head\Routing;
 
 use Closure;
 use Illuminate\Routing\Route;
+use InvalidArgumentException;
+use Laravel\Head\HeadData;
 
 /**
  * @phpstan-type HeadAttributeArray array<mixed, mixed>
  */
-class HeadAttributes
+class AttributeParser
 {
     /**
      * @param  array<int|string, mixed>  $arguments
@@ -58,7 +60,11 @@ class HeadAttributes
 
         foreach ($attributes as $key => $value) {
             if (! isset($attributeKeys[$key])) {
-                continue;
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown route head attribute [%s]. Supported attributes are: %s.',
+                    $key,
+                    implode(', ', array_keys($attributeKeys)),
+                ));
             }
 
             $metadata = $attributeKeys[$key]::fromAttributeValue($key, $value);
@@ -82,7 +88,11 @@ class HeadAttributes
         foreach ($attributes as $key => $value) {
             if (is_string($key)) {
                 $named[$key] = $value;
+
+                continue;
             }
+
+            throw new InvalidArgumentException('Route head attributes must be named.');
         }
 
         return $named;

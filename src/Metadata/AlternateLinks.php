@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
+
 /**
  * @phpstan-consistent-constructor
  */
@@ -17,6 +20,11 @@ class AlternateLinks extends Metadata
     public static function key(): string
     {
         return 'alternates';
+    }
+
+    public static function payloadKey(): string
+    {
+        return 'links.alternates';
     }
 
     public static function fromAttributeValue(string $key, mixed $value): ?self

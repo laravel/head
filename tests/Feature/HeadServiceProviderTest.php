@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Laravel\Head\Facades\Head;
-use Laravel\Head\Head as HeadManager;
+use Laravel\Head\HeadManager;
 
 it('registers the head manager', function (): void {
     expect(app('head'))->toBeInstanceOf(HeadManager::class);

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
 use Laravel\Head\TwitterCard;
 
 /**
@@ -30,6 +32,13 @@ class Twitter extends Metadata
     public static function attributeKeys(): array
     {
         return ['twitter', 'twitterImage'];
+    }
+
+    public static function rendersWhenEmpty(ResolvedHead $head): bool
+    {
+        return ! is_null($head->title())
+            || ! is_null($head->description())
+            || ! is_null($head->openGraphImage());
     }
 
     public static function fromAttributeValue(string $key, mixed $value): ?self

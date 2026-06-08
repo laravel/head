@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
+
 /**
  * @phpstan-consistent-constructor
  */
@@ -19,6 +22,11 @@ class Title extends Metadata
     public static function key(): string
     {
         return 'title';
+    }
+
+    public static function payloadDefault(): mixed
+    {
+        return null;
     }
 
     public static function fromAttributeValue(string $key, mixed $value): ?self

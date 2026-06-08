@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
+
 /**
  * @phpstan-consistent-constructor
  *
@@ -27,6 +30,21 @@ class PerformanceLinks extends Metadata
     public static function key(): string
     {
         return 'performance';
+    }
+
+    public static function payloadKey(): string
+    {
+        return 'links.performance';
+    }
+
+    public static function payloadDefault(): mixed
+    {
+        return [
+            'preload' => [],
+            'prefetch' => [],
+            'preconnect' => [],
+            'dnsPrefetch' => [],
+        ];
     }
 
     public static function attributeKeys(): array

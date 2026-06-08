@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
-use Laravel\Head\Support\HeadAttributes;
-use Laravel\Head\Support\HeadData;
+use Laravel\Head\Routing\AttributeParser;
 
 class Errors
 {
@@ -21,7 +20,7 @@ class Errors
 
     public function defaults(mixed ...$head): static
     {
-        HeadAttributes::apply($this->defaults, HeadAttributes::arguments($head));
+        AttributeParser::apply($this->defaults, AttributeParser::arguments($head));
 
         return $this;
     }
@@ -30,7 +29,7 @@ class Errors
     {
         $data = new HeadData;
 
-        HeadAttributes::apply($data, HeadAttributes::arguments($head));
+        AttributeParser::apply($data, AttributeParser::arguments($head));
 
         $this->statuses[$status] = $data;
 

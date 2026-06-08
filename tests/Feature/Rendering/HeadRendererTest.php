@@ -5,11 +5,12 @@ declare(strict_types=1);
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
+use Laravel\Head\HeadManager;
 use Laravel\Head\OgType;
 use Laravel\Head\TwitterCard;
 
 it('renders resolved head metadata in section order', function (): void {
-    Head::defaults(function (Laravel\Head\Head $head): void {
+    Head::defaults(function (HeadManager $head): void {
         $head
             ->title('Acme', suffix: ' - Acme')
             ->description('Build something great.')
@@ -30,7 +31,7 @@ it('renders resolved head metadata in section order', function (): void {
         ->feed('/feed', title: 'Acme RSS')
         ->schema(Schema::webPage()->name('About')->url('https://example.com/about'));
 
-    $html = Head::render();
+    $html = Head::toHtml();
 
     expect($html)
         ->toContain('<title>About - Acme</title>')
@@ -47,4 +48,24 @@ it('renders resolved head metadata in section order', function (): void {
         ->toContain('<link rel="alternate" hreflang="fr" href="https://example.com/fr/about">')
         ->toContain('<link rel="alternate" type="application/rss+xml" title="Acme RSS" href="/feed">')
         ->toContain('"@type":"WebPage"');
+});
+
+it('groups link sections under the links key when serialized to an array', function (): void {
+    Head::title('About')
+        ->preload('/fonts/inter.woff2', as: 'font')
+        ->paginate(new LengthAwarePaginator(['post'], total: 30, perPage: 10, currentPage: 2, options: ['path' => '/posts']))
+        ->alternates(['fr' => 'https://example.com/fr/about'])
+        ->feed('/feed', title: 'Acme RSS')
+        ->link('manifest', '/site.webmanifest');
+
+    $array = Head::toArray();
+
+    expect($array['title'])->toBe('About')
+        ->and($array['openGraph'])->toBe([])
+        ->and(array_keys($array['links']))->toEqualCanonicalizing([
+            'performance', 'pagination', 'alternates', 'feeds', 'generic',
+        ])
+        ->and($array['links']['performance']['preload'][0]['href'])->toBe('/fonts/inter.woff2')
+        ->and($array['links']['pagination'])->toBe(['prev' => '/posts?page=1', 'next' => '/posts?page=3'])
+        ->and($array['links']['alternates'])->toBe(['fr' => 'https://example.com/fr/about']);
 });

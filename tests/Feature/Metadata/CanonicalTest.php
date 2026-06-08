@@ -4,23 +4,24 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
 
 it('does not render a canonical URL by default', function (): void {
-    expect(Head::render())->not->toContain('rel="canonical"');
+    expect(Head::toHtml())->not->toContain('rel="canonical"');
 });
 
 it('can suppress an inherited canonical URL', function (): void {
-    Head::defaults(fn (Laravel\Head\Head $head): Laravel\Head\Head => $head->canonical());
+    Head::defaults(fn (HeadManager $head): HeadManager => $head->canonical());
 
     Head::canonical(false);
 
-    expect(Head::render())->not->toContain('rel="canonical"');
+    expect(Head::toHtml())->not->toContain('rel="canonical"');
 });
 
 it('carries inherited canonical options into later canonical URLs', function (): void {
-    Head::defaults(fn (Laravel\Head\Head $head): Laravel\Head\Head => $head->canonical(forceHttps: false, trailingSlash: true));
+    Head::defaults(fn (HeadManager $head): HeadManager => $head->canonical(forceHttps: false, trailingSlash: true));
 
-    Route::get('/about', fn (): string => Head::render())
+    Route::get('/about', fn (): string => Head::toHtml())
         ->withHead(canonical: '/about');
 
     $this->get('/about')

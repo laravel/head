@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Support;
+namespace Laravel\Head;
 
 use Illuminate\Contracts\Pagination\Paginator;
+use InvalidArgumentException;
 use Laravel\Head\Metadata\AlternateLinks;
 use Laravel\Head\Metadata\Canonical;
 use Laravel\Head\Metadata\Description;
@@ -19,9 +20,7 @@ use Laravel\Head\Metadata\Robots;
 use Laravel\Head\Metadata\Schemas;
 use Laravel\Head\Metadata\Title;
 use Laravel\Head\Metadata\Twitter;
-use Laravel\Head\OgType;
 use Laravel\Head\Schema\SchemaObject;
-use Laravel\Head\TwitterCard;
 
 /**
  * @phpstan-type SchemaPayload array<string, mixed>
@@ -31,15 +30,56 @@ class HeadData
     /** @var array<class-string<Metadata>, Metadata> */
     protected array $sections = [];
 
+    /** @var array<int, class-string<Metadata>> */
+    protected static array $extensions = [];
+
     public static function base(): self
     {
         return new self;
     }
 
     /**
+     * The metadata sections rendered for every head, in render order.
+     *
      * @return array<int, class-string<Metadata>>
      */
     public static function metadata(): array
+    {
+        return [...static::defaultMetadata(), ...static::$extensions];
+    }
+
+    /**
+     * Register a custom metadata section.
+     *
+     * @param  class-string<Metadata>  $section
+     */
+    public static function extend(string $section): void
+    {
+        if (! is_subclass_of($section, Metadata::class)) {
+            throw new InvalidArgumentException('Head metadata extensions must extend '.Metadata::class.'.');
+        }
+
+        if (in_array($section, static::defaultMetadata(), true)) {
+            throw new InvalidArgumentException('Built-in head metadata sections are already registered.');
+        }
+
+        if (! in_array($section, static::$extensions, true)) {
+            static::$extensions[] = $section;
+        }
+    }
+
+    /**
+     * Forget every registered custom metadata section.
+     */
+    public static function flushExtensions(): void
+    {
+        static::$extensions = [];
+    }
+
+    /**
+     * @return array<int, class-string<Metadata>>
+     */
+    protected static function defaultMetadata(): array
     {
         return [
             Title::class,
@@ -183,7 +223,7 @@ class HeadData
         ?string $type = null,
         ?string $secureUrl = null,
     ): static {
-        $this->openGraph()->image($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
+        $this->section(OpenGraph::class)->image($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
 
         return $this;
     }
@@ -196,14 +236,14 @@ class HeadData
         ?string $type = null,
         ?string $secureUrl = null,
     ): static {
-        $this->openGraph()->video($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
+        $this->section(OpenGraph::class)->video($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
 
         return $this;
     }
 
     public function ogAudio(string $url, ?string $type = null, ?string $secureUrl = null): static
     {
-        $this->openGraph()->audio($url, type: $type, secureUrl: $secureUrl);
+        $this->section(OpenGraph::class)->audio($url, type: $type, secureUrl: $secureUrl);
 
         return $this;
     }
@@ -228,35 +268,35 @@ class HeadData
 
     public function twitterImage(string $url, ?string $alt = null): static
     {
-        $this->twitterData()->image($url, alt: $alt);
+        $this->section(Twitter::class)->image($url, alt: $alt);
 
         return $this;
     }
 
     public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ?string $type = null, ?string $media = null): static
     {
-        $this->performance()->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
+        $this->section(PerformanceLinks::class)->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
 
         return $this;
     }
 
     public function prefetch(string $href, ?string $as = null): static
     {
-        $this->performance()->prefetch($href, as: $as);
+        $this->section(PerformanceLinks::class)->prefetch($href, as: $as);
 
         return $this;
     }
 
     public function preconnect(string $href, bool|string|null $crossorigin = null): static
     {
-        $this->performance()->preconnect($href, crossorigin: $crossorigin);
+        $this->section(PerformanceLinks::class)->preconnect($href, crossorigin: $crossorigin);
 
         return $this;
     }
 
     public function dnsPrefetch(string $href): static
     {
-        $this->performance()->dnsPrefetch($href);
+        $this->section(PerformanceLinks::class)->dnsPrefetch($href);
 
         return $this;
     }
@@ -279,14 +319,14 @@ class HeadData
 
     public function feed(string $href, string $title, string $type = 'rss'): static
     {
-        $this->feeds()->feed($href, $title, $type);
+        $this->section(FeedLinks::class)->feed($href, $title, $type);
 
         return $this;
     }
 
     public function meta(string $key, string $content, ?bool $property = null): static
     {
-        $this->metaTags()->tag($key, $content, $property);
+        $this->section(MetaTags::class)->tag($key, $content, $property);
 
         return $this;
     }
@@ -296,7 +336,7 @@ class HeadData
      */
     public function link(string $rel, string $href, array $attributes = []): static
     {
-        $this->links()->link($rel, $href, $attributes);
+        $this->section(GenericLinks::class)->link($rel, $href, $attributes);
 
         return $this;
     }
@@ -306,106 +346,22 @@ class HeadData
      */
     public function schema(SchemaObject|array $schema): static
     {
-        $this->schemas()->schema($schema);
+        $this->section(Schemas::class)->schema($schema);
 
         return $this;
     }
 
-    protected function openGraph(): OpenGraph
+    /**
+     * Resolve a mutable section instance, creating and storing it on first use.
+     *
+     * @template TMetadata of Metadata
+     *
+     * @param  class-string<TMetadata>  $class
+     * @return TMetadata
+     */
+    protected function section(string $class): Metadata
     {
-        $openGraph = $this->get(OpenGraph::class);
-
-        if ($openGraph instanceof OpenGraph) {
-            return $openGraph;
-        }
-
-        $openGraph = new OpenGraph;
-        $this->sections[OpenGraph::class] = $openGraph;
-
-        return $openGraph;
-    }
-
-    protected function twitterData(): Twitter
-    {
-        $twitter = $this->get(Twitter::class);
-
-        if ($twitter instanceof Twitter) {
-            return $twitter;
-        }
-
-        $twitter = new Twitter;
-        $this->sections[Twitter::class] = $twitter;
-
-        return $twitter;
-    }
-
-    protected function performance(): PerformanceLinks
-    {
-        $performance = $this->get(PerformanceLinks::class);
-
-        if ($performance instanceof PerformanceLinks) {
-            return $performance;
-        }
-
-        $performance = new PerformanceLinks;
-        $this->sections[PerformanceLinks::class] = $performance;
-
-        return $performance;
-    }
-
-    protected function feeds(): FeedLinks
-    {
-        $feeds = $this->get(FeedLinks::class);
-
-        if ($feeds instanceof FeedLinks) {
-            return $feeds;
-        }
-
-        $feeds = new FeedLinks;
-        $this->sections[FeedLinks::class] = $feeds;
-
-        return $feeds;
-    }
-
-    protected function metaTags(): MetaTags
-    {
-        $meta = $this->get(MetaTags::class);
-
-        if ($meta instanceof MetaTags) {
-            return $meta;
-        }
-
-        $meta = new MetaTags;
-        $this->sections[MetaTags::class] = $meta;
-
-        return $meta;
-    }
-
-    protected function links(): GenericLinks
-    {
-        $links = $this->get(GenericLinks::class);
-
-        if ($links instanceof GenericLinks) {
-            return $links;
-        }
-
-        $links = new GenericLinks;
-        $this->sections[GenericLinks::class] = $links;
-
-        return $links;
-    }
-
-    protected function schemas(): Schemas
-    {
-        $schemas = $this->get(Schemas::class);
-
-        if ($schemas instanceof Schemas) {
-            return $schemas;
-        }
-
-        $schemas = new Schemas;
-        $this->sections[Schemas::class] = $schemas;
-
-        return $schemas;
+        /** @var TMetadata */
+        return $this->sections[$class] ??= new $class;
     }
 }

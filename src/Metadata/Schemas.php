@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
 use Laravel\Head\Schema\SchemaObject;
 
 /**
@@ -87,10 +89,13 @@ class Schemas extends Metadata
      */
     public function toPayload(ResolvedHead $head): array
     {
-        return array_map(
-            fn (SchemaObject|array $schema): array => $schema instanceof SchemaObject ? $schema->toJsonLd() : $schema,
-            $this->payload(),
-        );
+        return array_map(function (SchemaObject|array $schema) use ($head): array {
+            $payload = $schema instanceof SchemaObject ? $schema->toJsonLd() : $schema;
+
+            $head->validateSchema($payload);
+
+            return $payload;
+        }, $this->payload());
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array

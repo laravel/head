@@ -10,7 +10,6 @@ use Illuminate\Routing\PendingSingletonResourceRegistration;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
-use Laravel\Head\Support\HeadAttributes;
 
 class RegistersHeadRoutes
 {
@@ -19,7 +18,7 @@ class RegistersHeadRoutes
     public function register(): void
     {
         Route::macro('withHead', function (...$head): Route {
-            app(RouteHeadRepository::class)->put($this, HeadAttributes::arguments($head));
+            app(RouteHeadRepository::class)->put($this, AttributeParser::arguments($head));
 
             return $this;
         });
@@ -27,19 +26,19 @@ class RegistersHeadRoutes
         $routes = $this;
 
         RouteRegistrar::macro('withHead', function (...$head) use ($routes): RouteRegistrar {
-            return $routes->withGroupHead($this, HeadAttributes::arguments($head));
+            return $routes->withGroupHead($this, AttributeParser::arguments($head));
         });
 
         Router::macro('withHead', function (...$head) use ($routes): RouteRegistrar {
-            return $routes->withGroupHead(new RouteRegistrar($this), HeadAttributes::arguments($head));
+            return $routes->withGroupHead(new RouteRegistrar($this), AttributeParser::arguments($head));
         });
 
         PendingResourceRegistration::macro('withHead', function (...$head) use ($routes): PendingResourceRegistration {
-            return $routes->withPendingHead($this, HeadAttributes::arguments($head));
+            return $routes->withPendingHead($this, AttributeParser::arguments($head));
         });
 
         PendingSingletonResourceRegistration::macro('withHead', function (...$head) use ($routes): PendingSingletonResourceRegistration {
-            return $routes->withPendingHead($this, HeadAttributes::arguments($head));
+            return $routes->withPendingHead($this, AttributeParser::arguments($head));
         });
     }
 

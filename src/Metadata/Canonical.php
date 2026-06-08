@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Laravel\Head\Metadata;
 
 use Illuminate\Http\Request;
+use Laravel\Head\Rendering\ResolvedHead;
+use Laravel\Head\Rendering\TagRenderer;
 
 /**
  * @phpstan-consistent-constructor
@@ -21,6 +23,11 @@ class Canonical extends Metadata
     public static function key(): string
     {
         return 'canonical';
+    }
+
+    public static function payloadDefault(): mixed
+    {
+        return null;
     }
 
     public static function fromAttributeValue(string $key, mixed $value): ?self

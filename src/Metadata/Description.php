@@ -7,7 +7,7 @@ namespace Laravel\Head\Metadata;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
-class Description extends StringMetadata
+class Description extends StringSection
 {
     public static function key(): string
     {

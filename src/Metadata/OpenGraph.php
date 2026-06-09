@@ -13,7 +13,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type MediaAttributes array{url: string, alt?: string|null, width?: int|null, height?: int|null, type?: string|null, secureUrl?: string|null}
  */
-class OpenGraph extends GroupedMetadata
+class OpenGraph extends GroupedSection
 {
     /**
      * @param  array<string, string>  $properties
@@ -120,8 +120,8 @@ class OpenGraph extends GroupedMetadata
                 $openGraph->image(
                     $image['url'],
                     alt: self::string($image['alt'] ?? null),
-                    width: self::integer($image['width'] ?? null),
-                    height: self::integer($image['height'] ?? null),
+                    width: self::int($image['width'] ?? null),
+                    height: self::int($image['height'] ?? null),
                     type: self::string($image['type'] ?? null),
                     secureUrl: self::string($image['secureUrl'] ?? null),
                 );
@@ -144,8 +144,8 @@ class OpenGraph extends GroupedMetadata
                 $openGraph->video(
                     $video['url'],
                     alt: self::string($video['alt'] ?? null),
-                    width: self::integer($video['width'] ?? null),
-                    height: self::integer($video['height'] ?? null),
+                    width: self::int($video['width'] ?? null),
+                    height: self::int($video['height'] ?? null),
                     type: self::string($video['type'] ?? null),
                     secureUrl: self::string($video['secureUrl'] ?? null),
                 );
@@ -209,7 +209,7 @@ class OpenGraph extends GroupedMetadata
         return $this;
     }
 
-    public function overlay(?Metadata $base): static
+    public function overlayOn(?Section $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -244,7 +244,7 @@ class OpenGraph extends GroupedMetadata
     /**
      * @return array<string, mixed>
      */
-    public function headArray(?string $title = null, ?string $description = null): array
+    protected function headArray(?string $title = null, ?string $description = null): array
     {
         return array_filter([
             ...$this->render($title, $description),
@@ -296,32 +296,6 @@ class OpenGraph extends GroupedMetadata
     }
 
     /**
-     * @return array{properties: array<string, string>, images: array<string, MediaAttributes>, videos: array<string, MediaAttributes>, audios: array<string, MediaAttributes>}
-     */
-    protected function parts(): array
-    {
-        return [
-            'properties' => $this->properties,
-            'images' => $this->images,
-            'videos' => $this->videos,
-            'audios' => $this->audios,
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(
-            self::stringArray($parts['properties'] ?? null),
-            self::mediaArray($parts['images'] ?? null),
-            self::mediaArray($parts['videos'] ?? null),
-            self::mediaArray($parts['audios'] ?? null),
-        );
-    }
-
-    /**
      * @param  array<string, string|null>  $properties
      */
     protected function set(array $properties): void
@@ -351,7 +325,7 @@ class OpenGraph extends GroupedMetadata
             'height' => $height,
             'type' => $type,
             'secureUrl' => $secureUrl,
-        ], fn (mixed $value): bool => ! is_null($value));
+        ], fn ($value) => ! is_null($value));
     }
 
     protected static function ogType(mixed $value): OgType|string|null
@@ -394,34 +368,5 @@ class OpenGraph extends GroupedMetadata
     protected static function items(mixed $value): array
     {
         return is_array($value) && array_is_list($value) ? $value : [$value];
-    }
-
-    /**
-     * @return array<string, MediaAttributes>
-     */
-    protected static function mediaArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        $media = [];
-
-        foreach ($value as $key => $item) {
-            if (! is_string($key) || ! is_array($item) || ! is_string($item['url'] ?? null)) {
-                continue;
-            }
-
-            $media[$key] = self::media(
-                $item['url'],
-                alt: self::string($item['alt'] ?? null),
-                width: self::integer($item['width'] ?? null),
-                height: self::integer($item['height'] ?? null),
-                type: self::string($item['type'] ?? null),
-                secureUrl: self::string($item['secureUrl'] ?? null),
-            );
-        }
-
-        return $media;
     }
 }

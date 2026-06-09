@@ -10,13 +10,13 @@ use Laravel\Head\Metadata\Canonical;
 use Laravel\Head\Metadata\Description;
 use Laravel\Head\Metadata\FeedLinks;
 use Laravel\Head\Metadata\GenericLinks;
-use Laravel\Head\Metadata\Metadata;
 use Laravel\Head\Metadata\MetaTags;
 use Laravel\Head\Metadata\OpenGraph;
 use Laravel\Head\Metadata\PaginationLinks;
 use Laravel\Head\Metadata\PerformanceLinks;
 use Laravel\Head\Metadata\Robots;
 use Laravel\Head\Metadata\Schemas;
+use Laravel\Head\Metadata\Section;
 use Laravel\Head\Metadata\Title;
 use Laravel\Head\Metadata\Twitter;
 use Laravel\Head\Schema\SchemaObject;
@@ -26,16 +26,11 @@ use Laravel\Head\Schema\SchemaObject;
  */
 class HeadData
 {
-    /** @var array<class-string<Metadata>, Metadata> */
+    /** @var array<class-string<Section>, Section> */
     protected array $sections = [];
 
-    public static function base(): self
-    {
-        return new self;
-    }
-
     /**
-     * @return array<class-string<Metadata>, Metadata>
+     * @return array<class-string<Section>, Section>
      */
     public function sections(): array
     {
@@ -43,17 +38,17 @@ class HeadData
     }
 
     /**
-     * @param  class-string<Metadata>  $section
+     * @param  class-string<Section>  $section
      */
-    public function get(string $section): ?Metadata
+    public function get(string $section): ?Section
     {
         return $this->sections[$section] ?? null;
     }
 
-    public function set(Metadata $section): static
+    public function overlaySection(Section $section): static
     {
         $class = $section::class;
-        $this->sections[$class] = $section->overlay($this->sections[$class] ?? null);
+        $this->sections[$class] = $section->overlayOn($this->sections[$class] ?? null);
 
         return $this;
     }
@@ -63,7 +58,7 @@ class HeadData
         $merged = clone $this;
 
         foreach ($data->sections as $section) {
-            $merged->set($section);
+            $merged->overlaySection($section);
         }
 
         return $merged;
@@ -82,31 +77,33 @@ class HeadData
 
     public function asDefaults(): static
     {
-        foreach ($this->sections as $class => $section) {
-            $this->sections[$class] = $section->asDefaults();
+        $defaults = clone $this;
+
+        foreach ($defaults->sections as $class => $section) {
+            $defaults->sections[$class] = $section->asDefaults();
         }
 
-        return $this;
+        return $defaults;
     }
 
     public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): static
     {
-        return $this->set(Title::make($title, prefix: $prefix, suffix: $suffix, bare: $bare));
+        return $this->overlaySection(Title::make($title, prefix: $prefix, suffix: $suffix, bare: $bare));
     }
 
     public function description(string $description): static
     {
-        return $this->set(Description::make($description));
+        return $this->overlaySection(Description::make($description));
     }
 
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
-        return $this->set(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
+        return $this->overlaySection(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
     }
 
     public function robots(string $directives): static
     {
-        return $this->set(Robots::make($directives));
+        return $this->overlaySection(Robots::make($directives));
     }
 
     public function og(
@@ -121,7 +118,7 @@ class HeadData
         ?string $locale = null,
         ?string $determiner = null,
     ): static {
-        return $this->set(OpenGraph::make(
+        return $this->overlaySection(OpenGraph::make(
             type: $type,
             title: $title,
             description: $description,
@@ -176,7 +173,7 @@ class HeadData
         ?string $description = null,
         ?string $image = null,
     ): static {
-        return $this->set(Twitter::make(
+        return $this->overlaySection(Twitter::make(
             card: $card,
             site: $site,
             creator: $creator,
@@ -226,7 +223,7 @@ class HeadData
      */
     public function paginate(Paginator $paginator): static
     {
-        return $this->set(PaginationLinks::fromPaginator($paginator));
+        return $this->overlaySection(PaginationLinks::fromPaginator($paginator));
     }
 
     /**
@@ -234,7 +231,7 @@ class HeadData
      */
     public function alternates(array $alternates): static
     {
-        return $this->set(AlternateLinks::fromAttributes($alternates));
+        return $this->overlaySection(AlternateLinks::fromAttributes($alternates));
     }
 
     public function feed(string $href, string $title, string $type = 'rss'): static
@@ -274,14 +271,14 @@ class HeadData
     /**
      * Resolve a mutable section instance, creating and storing it on first use.
      *
-     * @template TMetadata of Metadata
+     * @template TSection of Section
      *
-     * @param  class-string<TMetadata>  $class
-     * @return TMetadata
+     * @param  class-string<TSection>  $class
+     * @return TSection
      */
-    protected function section(string $class): Metadata
+    protected function section(string $class): Section
     {
-        /** @var TMetadata */
+        /** @var TSection */
         return $this->sections[$class] ??= new $class;
     }
 }

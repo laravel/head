@@ -20,13 +20,14 @@ class CurrentHead
         return $this->data;
     }
 
-    public function status(?int $status = null): ?int
+    public function status(): ?int
     {
-        if (! is_null($status)) {
-            $this->status = $status;
-        }
-
         return $this->status;
+    }
+
+    public function setStatus(int $status): void
+    {
+        $this->status = $status;
     }
 
     public function flush(): void

@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type FeedAttributes array{href: string, title: string, type: string}
  */
-class FeedLinks extends GroupedMetadata
+class FeedLinks extends GroupedSection
 {
     /**
      * @param  array<string, FeedAttributes>  $feeds
@@ -74,7 +74,7 @@ class FeedLinks extends GroupedMetadata
         return $this;
     }
 
-    public function overlay(?Metadata $base): static
+    public function overlayOn(?Section $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -86,7 +86,7 @@ class FeedLinks extends GroupedMetadata
     /**
      * @return array<int, FeedAttributes>
      */
-    public function headArray(): array
+    protected function headArray(): array
     {
         return array_values($this->feeds);
     }
@@ -111,45 +111,5 @@ class FeedLinks extends GroupedMetadata
     public function isEmpty(): bool
     {
         return $this->feeds === [];
-    }
-
-    /**
-     * @return array{feeds: array<string, FeedAttributes>}
-     */
-    protected function parts(): array
-    {
-        return ['feeds' => $this->feeds];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(self::feedsArray($parts['feeds'] ?? null));
-    }
-
-    /**
-     * @return array<string, FeedAttributes>
-     */
-    protected static function feedsArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        $feeds = [];
-
-        foreach ($value as $key => $feed) {
-            if (is_string($key) && is_array($feed) && is_string($feed['href'] ?? null) && is_string($feed['title'] ?? null) && is_string($feed['type'] ?? null)) {
-                $feeds[$key] = [
-                    'href' => $feed['href'],
-                    'title' => $feed['title'],
-                    'type' => $feed['type'],
-                ];
-            }
-        }
-
-        return $feeds;
     }
 }

@@ -35,7 +35,7 @@ class AttributeParser
     /**
      * @param  array<mixed, mixed>|Closure|null  $attributes
      */
-    public static function apply(HeadData $head, array|Closure|null $attributes, MetadataRegistry $metadata, ?Route $route = null): HeadData
+    public static function apply(HeadData $head, array|Closure|null $attributes, MetadataRegistry $registry, ?Route $route = null): HeadData
     {
         if (is_null($attributes)) {
             return $head;
@@ -49,17 +49,17 @@ class AttributeParser
             return $head->merge($attributes);
         }
 
-        return is_array($attributes) ? static::fill($head, static::named($attributes), $metadata) : $head;
+        return is_array($attributes) ? static::fill($head, static::named($attributes), $registry) : $head;
     }
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    protected static function fill(HeadData $head, array $attributes, MetadataRegistry $metadata): HeadData
+    protected static function fill(HeadData $head, array $attributes, MetadataRegistry $registry): HeadData
     {
         $head = clone $head;
 
-        $attributeKeys = $metadata->attributeKeys();
+        $attributeKeys = $registry->attributeKeys();
 
         foreach ($attributes as $key => $value) {
             if (! isset($attributeKeys[$key])) {
@@ -70,10 +70,10 @@ class AttributeParser
                 ));
             }
 
-            $metadata = $attributeKeys[$key]::fromAttributeValue($key, $value);
+            $section = $attributeKeys[$key]::fromAttributeValue($key, $value);
 
-            if (! is_null($metadata)) {
-                $head->set($metadata);
+            if (! is_null($section)) {
+                $head->overlaySection($section);
             }
         }
 

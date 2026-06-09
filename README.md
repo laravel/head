@@ -126,15 +126,15 @@ public function show(Post $post)
 
 Multiple runtime calls are merged in the order they run. For single-value fields like title, description, canonical URL, and robots directives, the later call wins. Repeatable fields like images, performance links, feeds, schemas, generic meta tags, and generic links accumulate or replace existing entries by their internal key.
 
-## Errors
+## Error Pages
 
 Error metadata can be registered for status-code-specific pages:
 
 ```php
-use Laravel\Head\Errors;
+use Laravel\Head\ErrorPages;
 use Laravel\Head\Facades\Head;
 
-Head::errors(function (Errors $errors) {
+Head::errors(function (ErrorPages $errors) {
     $errors->defaults(robots: 'noindex, follow');
 
     $errors->status(404,

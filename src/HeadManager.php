@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Traits\Macroable;
-use Laravel\Head\Metadata\Metadata;
+use Laravel\Head\Metadata\Section;
 use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\AttributeParser;
 use Laravel\Head\Routing\RouteHeadRepository;
@@ -28,7 +28,7 @@ class HeadManager implements Arrayable, Htmlable
 
     protected HeadData $defaults;
 
-    protected Errors $errors;
+    protected ErrorPages $errorPages;
 
     protected ?HeadData $recording = null;
 
@@ -36,10 +36,10 @@ class HeadManager implements Arrayable, Htmlable
         protected Container $app,
         protected HeadRenderer $renderer,
         protected RouteHeadRepository $routes,
-        protected MetadataRegistry $metadata,
+        protected MetadataRegistry $registry,
     ) {
         $this->defaults = new HeadData;
-        $this->errors = new Errors($this->metadata);
+        $this->errorPages = new ErrorPages($this->registry);
     }
 
     public function defaults(callable $callback): static
@@ -53,7 +53,7 @@ class HeadManager implements Arrayable, Htmlable
 
     public function errors(callable $callback): static
     {
-        $callback($this->errors);
+        $callback($this->errorPages);
 
         return $this;
     }
@@ -61,18 +61,18 @@ class HeadManager implements Arrayable, Htmlable
     /**
      * Register a custom metadata section to render on every head.
      *
-     * @param  class-string<Metadata>  $section
+     * @param  class-string<Section>  $section
      */
     public function extend(string $section): static
     {
-        $this->metadata->extend($section);
+        $this->registry->extend($section);
 
         return $this;
     }
 
     public function status(int $status): static
     {
-        $this->state()->status($status);
+        $this->state()->setStatus($status);
 
         return $this;
     }
@@ -318,17 +318,17 @@ class HeadManager implements Arrayable, Htmlable
      */
     protected function resolve(?int $status = null): HeadData
     {
-        $data = HeadData::base()->merge($this->defaults);
+        $data = (new HeadData)->merge($this->defaults);
 
         if ($route = $this->route()) {
             foreach ($this->routes->groups($route) as $attributes) {
-                $data = AttributeParser::apply($data, $attributes, $this->metadata, $route);
+                $data = AttributeParser::apply($data, $attributes, $this->registry, $route);
             }
 
             $attributes = $this->routes->get($route);
 
             if (! is_null($attributes)) {
-                $data = AttributeParser::apply($data, $attributes, $this->metadata, $route);
+                $data = AttributeParser::apply($data, $attributes, $this->registry, $route);
             }
         }
 
@@ -336,7 +336,7 @@ class HeadManager implements Arrayable, Htmlable
 
         $errorStatus = $status ?? $this->state()->status();
 
-        if (! is_null($errorStatus) && $error = $this->errors->forStatus($errorStatus)) {
+        if (! is_null($errorStatus) && $error = $this->errorPages->forStatus($errorStatus)) {
             $data = $data->merge($error);
         }
 

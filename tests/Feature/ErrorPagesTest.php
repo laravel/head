@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Laravel\Head\Errors;
+use Laravel\Head\ErrorPages;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
 
 it('lets error head beat the resolved page head', function (): void {
     Head::defaults(fn (HeadManager $head) => $head->title('Acme', suffix: ' - Acme'));
 
-    Head::errors(function (Errors $errors): void {
+    Head::errors(function (ErrorPages $errors): void {
         $errors->defaults(robots: 'noindex, follow');
 
         $errors->status(404,

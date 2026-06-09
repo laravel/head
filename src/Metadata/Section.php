@@ -7,19 +7,16 @@ namespace Laravel\Head\Metadata;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
-abstract class Metadata
+abstract class Section
 {
     abstract public static function key(): string;
 
     /**
-     * @return array<string, mixed>
+     * Merge this section over the given base section, preferring this section's values.
      */
-    abstract protected function parts(): array;
+    abstract public function overlayOn(?self $base): static;
 
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    abstract protected function withParts(array $parts): static;
+    abstract public function isEmpty(): bool;
 
     /**
      * The dot-notated key this section occupies in the Head::toArray() result.
@@ -58,32 +55,6 @@ abstract class Metadata
         return false;
     }
 
-    public function overlay(?self $base): static
-    {
-        if (! $base instanceof static) {
-            return $this;
-        }
-
-        $parts = $this->parts();
-
-        foreach ($base->parts() as $key => $value) {
-            $parts[$key] ??= $value;
-        }
-
-        return $this->withParts($parts);
-    }
-
-    public function isEmpty(): bool
-    {
-        foreach ($this->parts() as $value) {
-            if (! is_null($value)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public function asDefaults(): static
     {
         return $this;
@@ -117,7 +88,7 @@ abstract class Metadata
         return is_bool($value) ? $value : null;
     }
 
-    protected static function integer(mixed $value): ?int
+    protected static function int(mixed $value): ?int
     {
         return is_int($value) ? $value : null;
     }

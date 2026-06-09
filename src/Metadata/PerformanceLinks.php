@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type LinkAttributes array{href: string, as?: string|null, crossorigin?: bool|string|null, type?: string|null, media?: string|null}
  */
-class PerformanceLinks extends GroupedMetadata
+class PerformanceLinks extends GroupedSection
 {
     /**
      * @param  array<string, LinkAttributes>  $preloads
@@ -159,7 +159,7 @@ class PerformanceLinks extends GroupedMetadata
             'crossorigin' => $crossorigin,
             'type' => $type,
             'media' => $media,
-        ], fn (mixed $value): bool => ! is_null($value));
+        ], fn ($value) => ! is_null($value));
 
         return $this;
     }
@@ -169,7 +169,7 @@ class PerformanceLinks extends GroupedMetadata
         $this->prefetches[$href] = array_filter([
             'href' => $href,
             'as' => $as,
-        ], fn (mixed $value): bool => ! is_null($value));
+        ], fn ($value) => ! is_null($value));
 
         return $this;
     }
@@ -179,7 +179,7 @@ class PerformanceLinks extends GroupedMetadata
         $this->preconnects[$href] = array_filter([
             'href' => $href,
             'crossorigin' => $crossorigin,
-        ], fn (mixed $value): bool => ! is_null($value));
+        ], fn ($value) => ! is_null($value));
 
         return $this;
     }
@@ -191,7 +191,7 @@ class PerformanceLinks extends GroupedMetadata
         return $this;
     }
 
-    public function overlay(?Metadata $base): static
+    public function overlayOn(?Section $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -208,7 +208,7 @@ class PerformanceLinks extends GroupedMetadata
     /**
      * @return array{preload: array<int, LinkAttributes>, prefetch: array<int, LinkAttributes>, preconnect: array<int, LinkAttributes>, dnsPrefetch: array<int, array{href: string}>}
      */
-    public function headArray(): array
+    protected function headArray(): array
     {
         return [
             'preload' => array_values($this->preloads),
@@ -244,82 +244,8 @@ class PerformanceLinks extends GroupedMetadata
             && $this->dnsPrefetches === [];
     }
 
-    /**
-     * @return array{preloads: array<string, LinkAttributes>, prefetches: array<string, LinkAttributes>, preconnects: array<string, LinkAttributes>, dnsPrefetches: array<string, array{href: string}>}
-     */
-    protected function parts(): array
-    {
-        return [
-            'preloads' => $this->preloads,
-            'prefetches' => $this->prefetches,
-            'preconnects' => $this->preconnects,
-            'dnsPrefetches' => $this->dnsPrefetches,
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(
-            self::linksArray($parts['preloads'] ?? null),
-            self::linksArray($parts['prefetches'] ?? null),
-            self::linksArray($parts['preconnects'] ?? null),
-            self::dnsPrefetchesArray($parts['dnsPrefetches'] ?? null),
-        );
-    }
-
     protected static function boolOrString(mixed $value): bool|string|null
     {
         return is_bool($value) || is_string($value) ? $value : null;
-    }
-
-    /**
-     * @return array<string, LinkAttributes>
-     */
-    protected static function linksArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        $links = [];
-
-        foreach ($value as $key => $link) {
-            if (! is_string($key) || ! is_array($link) || ! is_string($link['href'] ?? null)) {
-                continue;
-            }
-
-            $links[$key] = array_filter([
-                'href' => $link['href'],
-                'as' => self::string($link['as'] ?? null),
-                'crossorigin' => self::boolOrString($link['crossorigin'] ?? null),
-                'type' => self::string($link['type'] ?? null),
-                'media' => self::string($link['media'] ?? null),
-            ], fn (mixed $item): bool => ! is_null($item));
-        }
-
-        return $links;
-    }
-
-    /**
-     * @return array<string, array{href: string}>
-     */
-    protected static function dnsPrefetchesArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        $links = [];
-
-        foreach ($value as $key => $link) {
-            if (is_string($key) && is_array($link) && is_string($link['href'] ?? null)) {
-                $links[$key] = ['href' => $link['href']];
-            }
-        }
-
-        return $links;
     }
 }

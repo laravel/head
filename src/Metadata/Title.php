@@ -10,11 +10,11 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class Title extends Metadata
+class Title extends Section
 {
     public function __construct(
         protected ?string $value = null,
-        protected ?bool $decorated = null,
+        protected ?bool $bare = null,
         protected ?string $prefix = null,
         protected ?string $suffix = null,
     ) {}
@@ -31,7 +31,7 @@ class Title extends Metadata
 
     public static function make(string $value, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): self
     {
-        return new self($value, ! ($bare ?? false), $prefix, $suffix);
+        return new self($value, $bare ?? false, $prefix, $suffix);
     }
 
     public static function fromAttributes(mixed $title): ?self
@@ -52,11 +52,33 @@ class Title extends Metadata
         );
     }
 
+    public function overlayOn(?Section $base): static
+    {
+        if (! $base instanceof static) {
+            return $this;
+        }
+
+        return new static(
+            $this->value ?? $base->value,
+            $this->bare ?? $base->bare,
+            $this->prefix ?? $base->prefix,
+            $this->suffix ?? $base->suffix,
+        );
+    }
+
+    public function isEmpty(): bool
+    {
+        return is_null($this->value)
+            && is_null($this->bare)
+            && is_null($this->prefix)
+            && is_null($this->suffix);
+    }
+
     public function asDefaults(): static
     {
         return is_null($this->value)
             ? $this
-            : new static($this->value, false, $this->prefix, $this->suffix);
+            : new static($this->value, true, $this->prefix, $this->suffix);
     }
 
     public function render(): ?string
@@ -65,7 +87,7 @@ class Title extends Metadata
             return null;
         }
 
-        if ($this->decorated === false) {
+        if ($this->bare === true) {
             return $this->value;
         }
 
@@ -80,31 +102,5 @@ class Title extends Metadata
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return ($title = $this->render()) ? [$tags->title($title)] : [];
-    }
-
-    /**
-     * @return array{value: string|null, decorated: bool|null, prefix: string|null, suffix: string|null}
-     */
-    protected function parts(): array
-    {
-        return [
-            'value' => $this->value,
-            'decorated' => $this->decorated,
-            'prefix' => $this->prefix,
-            'suffix' => $this->suffix,
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(
-            self::string($parts['value'] ?? null),
-            self::bool($parts['decorated'] ?? null),
-            self::string($parts['prefix'] ?? null),
-            self::string($parts['suffix'] ?? null),
-        );
     }
 }

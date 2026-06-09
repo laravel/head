@@ -10,27 +10,27 @@ use Laravel\Head\Metadata\Canonical;
 use Laravel\Head\Metadata\Description;
 use Laravel\Head\Metadata\FeedLinks;
 use Laravel\Head\Metadata\GenericLinks;
-use Laravel\Head\Metadata\Metadata;
 use Laravel\Head\Metadata\MetaTags;
 use Laravel\Head\Metadata\OpenGraph;
 use Laravel\Head\Metadata\PaginationLinks;
 use Laravel\Head\Metadata\PerformanceLinks;
 use Laravel\Head\Metadata\Robots;
 use Laravel\Head\Metadata\Schemas;
+use Laravel\Head\Metadata\Section;
 use Laravel\Head\Metadata\Title;
 use Laravel\Head\Metadata\Twitter;
 
 class MetadataRegistry
 {
-    /** @var array<int, class-string<Metadata>> */
+    /** @var array<int, class-string<Section>> */
     protected array $extensions = [];
 
     /**
      * The metadata sections rendered for every head, in render order.
      *
-     * @return array<int, class-string<Metadata>>
+     * @return array<int, class-string<Section>>
      */
-    public function metadata(): array
+    public function sections(): array
     {
         return [...$this->defaults(), ...$this->extensions];
     }
@@ -38,12 +38,12 @@ class MetadataRegistry
     /**
      * Register a custom metadata section.
      *
-     * @param  class-string<Metadata>  $section
+     * @param  class-string<Section>  $section
      */
     public function extend(string $section): static
     {
-        if (! is_subclass_of($section, Metadata::class)) {
-            throw new InvalidArgumentException('Head metadata extensions must extend '.Metadata::class.'.');
+        if (! is_subclass_of($section, Section::class)) {
+            throw new InvalidArgumentException('Head metadata extensions must extend '.Section::class.'.');
         }
 
         if (in_array($section, $this->defaults(), true)) {
@@ -58,15 +58,15 @@ class MetadataRegistry
     }
 
     /**
-     * @return array<string, class-string<Metadata>>
+     * @return array<string, class-string<Section>>
      */
     public function attributeKeys(): array
     {
         $keys = [];
 
-        foreach ($this->metadata() as $metadata) {
-            foreach ($metadata::attributeKeys() as $key) {
-                $keys[$key] = $metadata;
+        foreach ($this->sections() as $section) {
+            foreach ($section::attributeKeys() as $key) {
+                $keys[$key] = $section;
             }
         }
 
@@ -74,7 +74,7 @@ class MetadataRegistry
     }
 
     /**
-     * @return array<int, class-string<Metadata>>
+     * @return array<int, class-string<Section>>
      */
     protected function defaults(): array
     {

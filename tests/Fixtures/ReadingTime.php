@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tests\Fixtures;
 
-use Laravel\Head\Metadata\Metadata;
+use Laravel\Head\Metadata\Section;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
 /**
  * @phpstan-consistent-constructor
  */
-class ReadingTime extends Metadata
+class ReadingTime extends Section
 {
     public function __construct(protected ?int $minutes = null) {}
 
@@ -42,26 +42,17 @@ class ReadingTime extends Metadata
             : [$tags->meta('name', 'twitter:label1', 'Reading time'), $tags->meta('name', 'twitter:data1', $this->minutes.' min read')];
     }
 
+    public function overlayOn(?Section $base): static
+    {
+        if (! $base instanceof static) {
+            return $this;
+        }
+
+        return new static($this->minutes ?? $base->minutes);
+    }
+
     public function isEmpty(): bool
     {
         return is_null($this->minutes);
-    }
-
-    /**
-     * @return array{minutes: int|null}
-     */
-    protected function parts(): array
-    {
-        return ['minutes' => $this->minutes];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        $minutes = $parts['minutes'] ?? null;
-
-        return new static(is_int($minutes) ? $minutes : null);
     }
 }

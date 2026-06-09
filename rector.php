@@ -6,6 +6,8 @@ use Rector\CodingStyle\Rector\ClassLike\NewlineBetweenClassLikeStmtsRector;
 use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
 use Rector\Config\RectorConfig;
 use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
+use Rector\TypeDeclaration\Rector\ArrowFunction\AddArrowFunctionReturnTypeRector;
+use Rector\TypeDeclaration\Rector\FuncCall\AddArrayFunctionClosureParamTypeRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -16,6 +18,8 @@ return RectorConfig::configure()
         ReadOnlyPropertyRector::class,
         EncapsedStringsToSprintfRector::class,
         NewlineBetweenClassLikeStmtsRector::class,
+        AddArrowFunctionReturnTypeRector::class,
+        AddArrayFunctionClosureParamTypeRector::class,
     ])
     ->withPreparedSets(
         deadCode: true,

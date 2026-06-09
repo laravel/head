@@ -11,7 +11,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class Canonical extends Metadata
+class Canonical extends Section
 {
     public function __construct(
         protected string $mode,
@@ -78,6 +78,28 @@ class Canonical extends Metadata
         return null;
     }
 
+    public function overlayOn(?Section $base): static
+    {
+        if (! $base instanceof static) {
+            return $this;
+        }
+
+        return new static(
+            $this->mode,
+            $this->url ?? $base->url,
+            $this->forceHttps ?? $base->forceHttps,
+            $this->trailingSlash ?? $base->trailingSlash,
+        );
+    }
+
+    /**
+     * Canonical sections always carry a resolution mode, so they are never empty.
+     */
+    public function isEmpty(): bool
+    {
+        return false;
+    }
+
     public function render(?Request $request): ?string
     {
         $url = match ($this->mode) {
@@ -101,32 +123,6 @@ class Canonical extends Metadata
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return ($canonical = $this->render($head->request())) ? [$tags->link('canonical', $canonical)] : [];
-    }
-
-    /**
-     * @return array{mode: string, url: string|null, forceHttps: bool|null, trailingSlash: bool|null}
-     */
-    protected function parts(): array
-    {
-        return [
-            'mode' => $this->mode,
-            'url' => $this->url,
-            'forceHttps' => $this->forceHttps,
-            'trailingSlash' => $this->trailingSlash,
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(
-            self::string($parts['mode'] ?? null) ?? 'auto',
-            self::string($parts['url'] ?? null),
-            self::bool($parts['forceHttps'] ?? null),
-            self::bool($parts['trailingSlash'] ?? null),
-        );
     }
 
     protected function normalizeUrl(string $url, ?Request $request, bool $forceHttps, bool $trailingSlash): string

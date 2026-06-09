@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Metadata;
 
+use Illuminate\Support\Arr;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 use Laravel\Head\TwitterCard;
@@ -11,9 +12,9 @@ use Laravel\Head\TwitterCard;
 /**
  * @phpstan-consistent-constructor
  *
- * @phpstan-type ImageAttributes array{url: string, alt?: string|null}
+ * @phpstan-type ImageAttributes array<string, string>
  */
-class Twitter extends GroupedMetadata
+class Twitter extends GroupedSection
 {
     /**
      * @param  array<string, string>  $properties
@@ -107,15 +108,15 @@ class Twitter extends GroupedMetadata
 
     public function image(string $url, ?string $alt = null): static
     {
-        $this->image = array_filter([
+        $this->image = Arr::whereNotNull([
             'url' => $url,
             'alt' => $alt,
-        ], fn (mixed $value): bool => ! is_null($value));
+        ]);
 
         return $this;
     }
 
-    public function overlay(?Metadata $base): static
+    public function overlayOn(?Section $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -149,7 +150,7 @@ class Twitter extends GroupedMetadata
      * @param  ImageAttributes|null  $fallback
      * @return ImageAttributes|null
      */
-    public function headArrayImage(?array $fallback = null): ?array
+    protected function headArrayImage(?array $fallback = null): ?array
     {
         return $this->image ?? $fallback;
     }
@@ -158,7 +159,7 @@ class Twitter extends GroupedMetadata
      * @param  ImageAttributes|null  $fallbackImage
      * @return array<string, mixed>
      */
-    public function headArray(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
+    protected function headArray(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
     {
         return array_filter([
             ...$this->render($title, $description),
@@ -202,28 +203,6 @@ class Twitter extends GroupedMetadata
     }
 
     /**
-     * @return array{properties: array<string, string>, image: ImageAttributes|null}
-     */
-    protected function parts(): array
-    {
-        return [
-            'properties' => $this->properties,
-            'image' => $this->image,
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(
-            self::stringArray($parts['properties'] ?? null),
-            self::imageArray($parts['image'] ?? null),
-        );
-    }
-
-    /**
      * @param  array<string, string|null>  $properties
      */
     protected function set(array $properties): void
@@ -238,20 +217,5 @@ class Twitter extends GroupedMetadata
     protected static function twitterCard(mixed $value): TwitterCard|string|null
     {
         return $value instanceof TwitterCard || is_string($value) ? $value : null;
-    }
-
-    /**
-     * @return ImageAttributes|null
-     */
-    protected static function imageArray(mixed $value): ?array
-    {
-        if (! is_array($value) || ! is_string($value['url'] ?? null)) {
-            return null;
-        }
-
-        return array_filter([
-            'url' => $value['url'],
-            'alt' => self::string($value['alt'] ?? null),
-        ], fn (mixed $item): bool => ! is_null($item));
     }
 }

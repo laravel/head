@@ -10,7 +10,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class AlternateLinks extends GroupedMetadata
+class AlternateLinks extends GroupedSection
 {
     /**
      * @param  array<string, string>  $links
@@ -55,7 +55,7 @@ class AlternateLinks extends GroupedMetadata
         return $this;
     }
 
-    public function overlay(?Metadata $base): static
+    public function overlayOn(?Section $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -67,7 +67,7 @@ class AlternateLinks extends GroupedMetadata
     /**
      * @return array<string, string>
      */
-    public function headArray(): array
+    protected function headArray(): array
     {
         return $this->links;
     }
@@ -92,21 +92,5 @@ class AlternateLinks extends GroupedMetadata
     public function isEmpty(): bool
     {
         return $this->links === [];
-    }
-
-    /**
-     * @return array{links: array<string, string>}
-     */
-    protected function parts(): array
-    {
-        return ['links' => $this->links];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(self::stringArray($parts['links'] ?? null));
     }
 }

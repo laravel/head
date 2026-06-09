@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Laravel\Head\Rendering;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Laravel\Head\HeadData;
 use Laravel\Head\Metadata\Canonical;
 use Laravel\Head\Metadata\Description;
-use Laravel\Head\Metadata\Metadata;
 use Laravel\Head\Metadata\OpenGraph;
 use Laravel\Head\Metadata\Robots;
+use Laravel\Head\Metadata\Section;
 use Laravel\Head\Metadata\Title;
 use Laravel\Head\MetadataRegistry;
 use Laravel\Head\Schema\SchemaValidator;
@@ -19,7 +20,7 @@ class ResolvedHead
 {
     public function __construct(
         protected HeadData $data,
-        protected MetadataRegistry $metadata,
+        protected MetadataRegistry $registry,
         protected ?Request $request = null,
         protected ?SchemaValidator $schemas = null,
     ) {}
@@ -71,7 +72,7 @@ class ResolvedHead
     }
 
     /**
-     * @return array{url: string, alt?: string|null}|null
+     * @return array<string, string>|null
      */
     public function openGraphImage(): ?array
     {
@@ -83,26 +84,26 @@ class ResolvedHead
 
         $image = reset($images);
 
-        return array_filter([
+        return Arr::whereNotNull([
             'url' => $image['url'],
             'alt' => $image['alt'] ?? null,
-        ], fn (mixed $value): bool => ! is_null($value));
+        ]);
     }
 
     /**
      * The sections to render, in declared order, including those that derive
      * their values from the rest of the head even when never set explicitly.
      *
-     * @return array<int, Metadata>
+     * @return array<int, Section>
      */
     public function sections(): array
     {
         $sections = [];
 
-        foreach ($this->metadata->metadata() as $section) {
+        foreach ($this->registry->sections() as $section) {
             $value = $this->section($section);
 
-            if ($value instanceof Metadata) {
+            if ($value instanceof Section) {
                 $sections[] = $value;
             } elseif ($section::rendersWhenEmpty($this)) {
                 $sections[] = new $section;
@@ -116,13 +117,13 @@ class ResolvedHead
      * Resolve one metadata section into its Head::toArray() / Inertia head array
      * value, including section defaults for metadata that was never set.
      *
-     * @param  class-string<Metadata>  $section
+     * @param  class-string<Section>  $section
      */
     public function headArray(string $section): mixed
     {
         $value = $this->section($section);
 
-        if (! $value instanceof Metadata && $section::rendersWhenEmpty($this)) {
+        if (! $value instanceof Section && $section::rendersWhenEmpty($this)) {
             $value = new $section;
         }
 
@@ -130,9 +131,9 @@ class ResolvedHead
     }
 
     /**
-     * @param  class-string<Metadata>  $section
+     * @param  class-string<Section>  $section
      */
-    public function section(string $section): ?Metadata
+    public function section(string $section): ?Section
     {
         return $this->data->get($section);
     }

@@ -13,7 +13,7 @@ use Laravel\Head\Schema\SchemaObject;
  *
  * @phpstan-type SchemaData array<string, mixed>
  */
-class Schemas extends GroupedMetadata
+class Schemas extends GroupedSection
 {
     /**
      * @param  array<string, SchemaObject|SchemaData>  $schemas
@@ -67,7 +67,7 @@ class Schemas extends GroupedMetadata
         return $this;
     }
 
-    public function overlay(?Metadata $base): static
+    public function overlayOn(?Section $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -79,7 +79,7 @@ class Schemas extends GroupedMetadata
     /**
      * @return array<int, SchemaObject|SchemaData>
      */
-    public function headArray(): array
+    protected function headArray(): array
     {
         return array_values($this->schemas);
     }
@@ -112,22 +112,6 @@ class Schemas extends GroupedMetadata
     }
 
     /**
-     * @return array{schemas: array<string, SchemaObject|SchemaData>}
-     */
-    protected function parts(): array
-    {
-        return ['schemas' => $this->schemas];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(self::schemasArray($parts['schemas'] ?? null));
-    }
-
-    /**
      * @param  array<mixed, mixed>  $values
      * @return array<string, mixed>
      */
@@ -142,25 +126,5 @@ class Schemas extends GroupedMetadata
         }
 
         return $named;
-    }
-
-    /**
-     * @return array<string, SchemaObject|SchemaData>
-     */
-    protected static function schemasArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        $schemas = [];
-
-        foreach ($value as $key => $schema) {
-            if (is_string($key) && ($schema instanceof SchemaObject || is_array($schema))) {
-                $schemas[$key] = $schema instanceof SchemaObject ? $schema : self::named($schema);
-            }
-        }
-
-        return $schemas;
     }
 }

@@ -16,7 +16,7 @@ it('renders a registered custom metadata section', function (): void {
     Head::extend(ReadingTime::class);
 
     Head::macro('readingTime', function (int $minutes): HeadManager {
-        $this->data()->set(ReadingTime::make($minutes));
+        $this->data()->overlaySection(ReadingTime::make($minutes));
 
         return $this;
     });
@@ -41,7 +41,7 @@ it('resolves custom section values from route attributes', function (): void {
         ->assertSee('<meta name="twitter:data1" content="4 min read">', false);
 });
 
-it('rejects metadata extensions that do not extend metadata', function (): void {
+it('rejects metadata extensions that do not extend sections', function (): void {
     expect(fn (): HeadManager => Head::extend(stdClass::class))
         ->toThrow(InvalidArgumentException::class, 'Head metadata extensions must extend');
 });

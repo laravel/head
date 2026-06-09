@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type LinkAttributes array{rel: string, href: string, attributes: array<string, bool|float|int|string|null>}
  */
-class GenericLinks extends GroupedMetadata
+class GenericLinks extends GroupedSection
 {
     /**
      * @param  array<string, LinkAttributes>  $links
@@ -76,7 +76,7 @@ class GenericLinks extends GroupedMetadata
         return $this;
     }
 
-    public function overlay(?Metadata $base): static
+    public function overlayOn(?Section $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -88,7 +88,7 @@ class GenericLinks extends GroupedMetadata
     /**
      * @return array<int, LinkAttributes>
      */
-    public function headArray(): array
+    protected function headArray(): array
     {
         return array_values($this->links);
     }
@@ -111,22 +111,6 @@ class GenericLinks extends GroupedMetadata
     public function isEmpty(): bool
     {
         return $this->links === [];
-    }
-
-    /**
-     * @return array{links: array<string, LinkAttributes>}
-     */
-    protected function parts(): array
-    {
-        return ['links' => $this->links];
-    }
-
-    /**
-     * @param  array<string, mixed>  $parts
-     */
-    protected function withParts(array $parts): static
-    {
-        return new static(self::linksArray($parts['links'] ?? null));
     }
 
     /**
@@ -162,33 +146,7 @@ class GenericLinks extends GroupedMetadata
     {
         return array_filter(
             $values,
-            fn (mixed $value): bool => is_null($value) || is_bool($value) || is_float($value) || is_int($value) || is_string($value)
+            fn ($value) => is_null($value) || is_bool($value) || is_float($value) || is_int($value) || is_string($value)
         );
-    }
-
-    /**
-     * @return array<string, LinkAttributes>
-     */
-    protected static function linksArray(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        $links = [];
-
-        foreach ($value as $key => $link) {
-            if (! is_string($key) || ! is_array($link) || ! is_string($link['rel'] ?? null) || ! is_string($link['href'] ?? null) || ! is_array($link['attributes'] ?? null)) {
-                continue;
-            }
-
-            $links[$key] = [
-                'rel' => $link['rel'],
-                'href' => $link['href'],
-                'attributes' => self::attributes(self::named($link['attributes'])),
-            ];
-        }
-
-        return $links;
     }
 }

@@ -25,19 +25,30 @@ class HeadRenderer
 
     public function render(HeadData $head, ?Request $request = null): string
     {
+        return implode(PHP_EOL, $this->toElements($head, $request));
+    }
+
+    /**
+     * Render the resolved head as individual HTML element strings.
+     *
+     * These elements are shared with Inertia as the page's head prop by the
+     * service provider when Inertia is installed.
+     *
+     * @return array<int, string>
+     */
+    public function toElements(HeadData $head, ?Request $request = null): array
+    {
         $resolved = new ResolvedHead($head, $this->registry, $request, $this->schemas);
 
         return collect($resolved->sections())
             ->flatMap(fn (Section $section): array => $section->toTags($resolved, $this->tags))
             ->filter()
-            ->implode(PHP_EOL);
+            ->values()
+            ->all();
     }
 
     /**
      * Render the resolved head as the array returned by Head::toArray().
-     *
-     * This same head array is shared as the Inertia "head" prop by the service
-     * provider when Inertia is installed.
      *
      * @return array<string, mixed>
      */

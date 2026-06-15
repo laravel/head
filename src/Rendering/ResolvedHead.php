@@ -114,8 +114,8 @@ class ResolvedHead
     }
 
     /**
-     * Resolve one metadata section into its Head::toArray() / Inertia head array
-     * value, including section defaults for metadata that was never set.
+     * Resolve one metadata section into its Head::toArray() value,
+     * including section defaults for metadata that was never set.
      *
      * @param  class-string<Section>  $section
      */

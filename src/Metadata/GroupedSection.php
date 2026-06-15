@@ -8,7 +8,7 @@ abstract class GroupedSection extends Section
 {
     /**
      * Grouped metadata sections are represented as an empty array when absent
-     * from the Head::toArray() / Inertia head array.
+     * from the Head::toArray() result.
      */
     public static function headArrayDefault(): mixed
     {

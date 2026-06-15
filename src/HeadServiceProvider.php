@@ -8,6 +8,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Http\Request;
 use Illuminate\Routing\ResourceRegistrar as BaseResourceRegistrar;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Head\Rendering\HeadRenderer;
@@ -26,6 +27,8 @@ class HeadServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/head.php', 'head');
+
         $this->app->scoped(CurrentHead::class);
 
         $this->app->singleton(SchemaFactory::class);
@@ -52,6 +55,10 @@ class HeadServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->publishes([
+            __DIR__.'/../config/head.php' => config_path('head.php'),
+        ], 'head-config');
+
         Blade::directive('head', fn (): string => "<?php echo app('head')->render(); ?>");
 
         $this->app->make(RegistersHeadRoutes::class)->register();
@@ -83,8 +90,12 @@ class HeadServiceProvider extends ServiceProvider
             return;
         }
 
-        Inertia::share('head', Inertia::always(
-            fn (): array => $this->app->make(HeadManager::class)->toArray(),
-        ));
+        // A plain callable (rather than Inertia::always) keeps the elements
+        // off the wire during partial reloads; the client retains the head
+        // from the last full visit.
+        Inertia::share(
+            Config::string('head.inertia.prop', 'head'),
+            fn (): array => $this->app->make(HeadManager::class)->toElements(),
+        );
     }
 }

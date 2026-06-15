@@ -20,9 +20,6 @@ abstract class Section
 
     /**
      * The dot-notated key this section occupies in the Head::toArray() result.
-     *
-     * This head array is also shared automatically with Inertia as the page's
-     * "head" prop when Inertia is installed.
      */
     public static function headArrayKey(): string
     {
@@ -61,7 +58,7 @@ abstract class Section
     }
 
     /**
-     * Convert this section into its Head::toArray() / Inertia head array value.
+     * Convert this section into its Head::toArray() value.
      */
     public function toHeadArray(ResolvedHead $head): mixed
     {

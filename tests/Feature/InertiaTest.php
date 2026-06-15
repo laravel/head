@@ -8,7 +8,7 @@ use Inertia\Support\Header;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
 
-it('injects resolved head data into inertia page objects', function (): void {
+it('shares rendered head elements with inertia page objects', function (): void {
     Head::defaults(fn (HeadManager $head) => $head->title('Acme', suffix: ' - Acme'));
 
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
@@ -18,15 +18,19 @@ it('injects resolved head data into inertia page objects', function (): void {
         description: 'Your application overview.',
     );
 
-    $this->get('/dashboard', [Header::INERTIA => 'true'])
+    $response = $this->get('/dashboard', [Header::INERTIA => 'true'])
         ->assertOk()
         ->assertJsonPath('component', 'Dashboard')
-        ->assertJsonPath('props.user', 'Taylor')
-        ->assertJsonPath('props.head.title', 'Dashboard - Acme')
-        ->assertJsonPath('props.head.description', 'Your application overview.');
+        ->assertJsonPath('props.user', 'Taylor');
+
+    $elements = $response->json('props.head');
+
+    expect($elements)->toBeArray()
+        ->toContain('<title>Dashboard - Acme</title>')
+        ->toContain('<meta name="description" content="Your application overview.">');
 });
 
-it('keeps head data in inertia partial reloads', function (): void {
+it('keeps head elements off the wire during inertia partial reloads', function (): void {
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
         'user' => 'Taylor',
     ]))->withHead(title: 'Dashboard');
@@ -38,5 +42,5 @@ it('keeps head data in inertia partial reloads', function (): void {
     ])
         ->assertOk()
         ->assertJsonPath('props.user', 'Taylor')
-        ->assertJsonPath('props.head.title', 'Dashboard');
+        ->assertJsonMissingPath('props.head');
 });

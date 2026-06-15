@@ -277,7 +277,7 @@ Head::schema(
 
 Laravel Head resolves these layers into a single set of tags. Where that result is emitted depends on your stack.
 
-The HTML renderer powers the `@head` directive. The head array renderer powers `Head::toArray()` and is also the data Laravel Head shares with Inertia as the `head` prop.
+The HTML renderer powers the `@head` directive and the rendered elements Laravel Head shares with Inertia as the `head` prop. The head array renderer powers `Head::toArray()` for applications that want the resolved head as structured data.
 
 ### Blade
 
@@ -312,43 +312,45 @@ No Livewire-specific configuration is required. Head data is resolved per reques
 
 ### Inertia
 
-When Inertia is installed, Laravel Head automatically shares the resolved `Head::toArray()` head array as a `head` prop on every page object:
+When Inertia is installed, Laravel Head automatically shares the resolved head as an array of rendered element strings under a `head` prop on every page object:
 
 ```json
 {
     "props": {
-        "head": {
-            "title": "Dashboard - Acme",
-            "description": "Your application overview."
-        }
+        "head": [
+            "<title>Dashboard - Acme</title>",
+            "<meta name=\"description\" content=\"Your application overview.\">"
+        ]
     }
 }
 ```
 
-The `head` prop is shared as an always-included Inertia prop, so it is still present during partial reloads.
+Inertia renders these elements into the document head for you — enable it with the `serverHead` option in your application's entry point:
 
-Render that head array with your Inertia application's client-side head component. For example, a Vue application can map the shared values into Inertia's `<Head>` component:
-
-```vue
-<script setup>
-import { Head, usePage } from '@inertiajs/vue3'
-
-const page = usePage()
-</script>
-
-<template>
-    <Head>
-        <title>{{ page.props.head.title }}</title>
-        <meta
-            v-if="page.props.head.description"
-            name="description"
-            :content="page.props.head.description"
-        >
-    </Head>
-</template>
+```js
+createInertiaApp({
+    // ...
+    serverHead: true,
+})
 ```
 
-The shared head array contains structured values for Open Graph, Twitter cards, links, generic meta tags, and JSON-LD schemas too, so applications can decide how much of the resolved head they want to render on the client.
+The elements are rendered during server-side rendering, hydrated on the client, and kept in sync on every Inertia visit. No client-side `<Head>` component or template is required.
+
+The prop is not sent during partial reloads; the client keeps the head from the last full visit. If your application already uses the `head` prop for something else, publish the configuration file and change the prop name:
+
+```shell
+php artisan vendor:publish --tag=head-config
+```
+
+```php
+'inertia' => [
+    'prop' => '_head',
+],
+```
+
+Then point Inertia at the same prop with `serverHead: '_head'`.
+
+Applications that want the resolved head as structured data (titles, Open Graph values, JSON-LD schemas, etc.) rather than rendered tags can still call `Head::toArray()`.
 
 ## Security Vulnerabilities
 

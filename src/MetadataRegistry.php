@@ -38,7 +38,7 @@ class MetadataRegistry
     /**
      * Register a custom metadata section.
      *
-     * @param  class-string<Section>  $section
+     * @param  class-string  $section
      */
     public function extend(string $section): static
     {

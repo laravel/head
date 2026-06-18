@@ -229,10 +229,10 @@ class PerformanceLinks extends GroupedSection
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return [
-            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('preload', $attributes), array_values($this->preloads)),
-            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('prefetch', $attributes), array_values($this->prefetches)),
-            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('preconnect', $attributes), array_values($this->preconnects)),
-            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('dns-prefetch', $attributes), array_values($this->dnsPrefetches)),
+            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('preload', $attributes, $tags->stableKey('preload', $attributes['href'])), array_values($this->preloads)),
+            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('prefetch', $attributes, $tags->stableKey('prefetch', $attributes['href'])), array_values($this->prefetches)),
+            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('preconnect', $attributes, $tags->stableKey('preconnect', $attributes['href'])), array_values($this->preconnects)),
+            ...array_map(fn (array $attributes): string => $tags->linkWithAttributes('dns-prefetch', $attributes, $tags->stableKey('dns-prefetch', $attributes['href'])), array_values($this->dnsPrefetches)),
         ];
     }
 

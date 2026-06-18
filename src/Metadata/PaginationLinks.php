@@ -81,7 +81,7 @@ class PaginationLinks extends GroupedSection
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(
-            fn (string $rel, string $href): string => $tags->link($rel, $href),
+            fn (string $rel, string $href): string => $tags->link($rel, $href, 'pagination:'.$rel),
             array_keys($this->links),
             $this->links,
         );

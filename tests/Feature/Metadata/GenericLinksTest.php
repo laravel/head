@@ -9,6 +9,6 @@ it('renders generic link tags', function (): void {
         ->link('apple-touch-icon', '/apple-touch-icon.png', ['sizes' => '180x180']);
 
     expect(Head::toHtml())
-        ->toContain('<link rel="manifest" href="/manifest.json">')
-        ->toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">');
+        ->toContain('rel="manifest" href="/manifest.json">')
+        ->toContain('rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">');
 });

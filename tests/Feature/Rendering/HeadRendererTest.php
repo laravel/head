@@ -39,15 +39,25 @@ it('renders resolved head metadata in section order', function (): void {
         ->toContain('<link rel="canonical" href="https://example.com/about">')
         ->toContain('<meta property="og:site_name" content="Acme">')
         ->toContain('<meta name="twitter:card" content="summary_large_image">')
-        ->toContain('<link rel="preload" href="/fonts/inter.woff2" as="font" crossorigin>')
-        ->toContain('<link rel="prefetch" href="/images/next.webp">')
-        ->toContain('<link rel="preconnect" href="https://fonts.example.com">')
-        ->toContain('<link rel="dns-prefetch" href="https://analytics.example.com">')
-        ->toContain('<link rel="prev" href="/posts?page=1">')
-        ->toContain('<link rel="next" href="/posts?page=3">')
-        ->toContain('<link rel="alternate" hreflang="fr" href="https://example.com/fr/about">')
-        ->toContain('<link rel="alternate" type="application/rss+xml" title="Acme RSS" href="/feed">')
+        ->toContain('rel="preload" href="/fonts/inter.woff2" as="font" crossorigin>')
+        ->toContain('rel="prefetch" href="/images/next.webp">')
+        ->toContain('rel="preconnect" href="https://fonts.example.com">')
+        ->toContain('rel="dns-prefetch" href="https://analytics.example.com">')
+        ->toContain('rel="prev" href="/posts?page=1">')
+        ->toContain('rel="next" href="/posts?page=3">')
+        ->toContain('rel="alternate" hreflang="fr" href="https://example.com/fr/about">')
+        ->toContain('rel="alternate" type="application/rss+xml" title="Acme RSS" href="/feed">')
         ->toContain('"@type":"WebPage"');
+});
+
+it('does not render inertia keys in blade html output', function (): void {
+    Head::title('Dashboard')
+        ->description('Dashboard overview.');
+
+    expect(Head::toHtml())
+        ->toContain('<title>Dashboard</title>')
+        ->toContain('<meta name="description" content="Dashboard overview.">')
+        ->not->toContain('data-inertia');
 });
 
 it('groups link sections under the links key when serialized to an array', function (): void {

@@ -101,7 +101,7 @@ class Schemas extends GroupedSection
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(
-            fn (array $schema): string => $tags->jsonLd($schema),
+            fn (array $schema): string => $tags->jsonLd($schema, $tags->stableKey('schema', json_encode($schema, JSON_THROW_ON_ERROR))),
             $this->toHeadArray($head),
         );
     }

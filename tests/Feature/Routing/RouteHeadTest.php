@@ -120,13 +120,13 @@ it('parses route metadata using the fluent field shapes', function (): void {
         ->assertSee('<title>Product - Store</title>', false)
         ->assertSee('<link rel="canonical" href="http://localhost/product">', false)
         ->assertSee('<meta property="og:type" content="website">', false)
-        ->assertSee('<meta property="og:image" content="https://example.com/og.jpg">', false)
-        ->assertSee('<meta property="og:image:alt" content="Structured image">', false)
-        ->assertSee('<meta property="og:image:width" content="1200">', false)
+        ->assertSee('property="og:image" content="https://example.com/og.jpg">', false)
+        ->assertSee('property="og:image:alt" content="Structured image">', false)
+        ->assertSee('property="og:image:width" content="1200">', false)
         ->assertSee('<meta name="twitter:card" content="summary_large_image">', false)
         ->assertSee('<meta name="twitter:image:alt" content="Twitter image">', false)
         ->assertSee('<meta property="product:price:amount" content="99.00">', false)
-        ->assertSee('<link rel="manifest" href="/manifest.json">', false);
+        ->assertSee('rel="manifest" href="/manifest.json">', false);
 });
 
 it('does not accept snake case route metadata aliases', function (): void {
@@ -141,9 +141,9 @@ it('does not accept snake case route metadata aliases', function (): void {
     $this->get('/legacy-inputs')
         ->assertOk()
         ->assertSee('<link rel="canonical" href="https://localhost/legacy-inputs">', false)
-        ->assertSee('<meta property="og:image" content="https://example.com/image.jpg">', false)
+        ->assertSee('property="og:image" content="https://example.com/image.jpg">', false)
         ->assertDontSee('<meta property="og:site_name" content="Legacy">', false)
-        ->assertDontSee('<meta property="og:image:secure_url" content="https://secure.example.com/image.jpg">', false);
+        ->assertDontSee('property="og:image:secure_url" content="https://secure.example.com/image.jpg">', false);
 });
 
 it('throws for unknown route metadata keys', function (): void {

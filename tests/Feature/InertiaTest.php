@@ -26,8 +26,33 @@ it('shares rendered head elements with inertia page objects', function (): void 
     $elements = $response->json('props.head');
 
     expect($elements)->toBeArray()
-        ->toContain('<title>Dashboard - Acme</title>')
-        ->toContain('<meta name="description" content="Your application overview.">');
+        ->toContain('<title data-inertia="title">Dashboard - Acme</title>')
+        ->toContain('<meta data-inertia="description" name="description" content="Your application overview.">');
+});
+
+it('shares stable semantic inertia keys for each head element', function (): void {
+    Route::get('/lean', fn () => Inertia::render('Page'))->withHead(
+        description: 'Lean page.',
+    );
+
+    Route::get('/rich', fn () => Inertia::render('Page'))->withHead(
+        title: 'Rich page',
+        description: 'Rich page.',
+        preload: [['href' => '/fonts/inter.woff2', 'as' => 'font']],
+        ogImage: 'https://example.com/rich.jpg',
+    );
+
+    $lean = $this->get('/lean', [Header::INERTIA => 'true'])->json('props.head');
+    $rich = $this->get('/rich', [Header::INERTIA => 'true'])->json('props.head');
+
+    expect($lean)
+        ->toContain('<meta data-inertia="description" name="description" content="Lean page.">')
+        ->each->toContain(' data-inertia="');
+
+    expect($rich)
+        ->toContain('<title data-inertia="title">Rich page</title>')
+        ->toContain('<meta data-inertia="description" name="description" content="Rich page.">')
+        ->each->toContain(' data-inertia="');
 });
 
 it('keeps head elements off the wire during inertia partial reloads', function (): void {

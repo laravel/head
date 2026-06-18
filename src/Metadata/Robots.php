@@ -16,6 +16,6 @@ class Robots extends StringSection
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
-        return ($robots = $this->render()) ? [$tags->meta('name', 'robots', $robots)] : [];
+        return ($robots = $this->render()) ? [$tags->meta('name', 'robots', $robots, 'robots')] : [];
     }
 }

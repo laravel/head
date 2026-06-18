@@ -104,7 +104,7 @@ class GenericLinks extends GroupedSection
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(function (array $link) use ($tags): string {
-            return $tags->linkWithAttributes($link['rel'], ['href' => $link['href'], ...$link['attributes']]);
+            return $tags->linkWithAttributes($link['rel'], ['href' => $link['href'], ...$link['attributes']], $tags->stableKey('link:'.$link['rel'], $link['href']));
         }, $this->headArray());
     }
 

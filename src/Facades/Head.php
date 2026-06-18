@@ -34,6 +34,7 @@ use Laravel\Head\HeadManager;
  * @method static \Laravel\Head\HeadManager schema(\Laravel\Head\Schema\SchemaObject|array<string, mixed>|callable $schema)
  * @method static array<string, mixed> toArray(?int $status = null)
  * @method static array<int, string> toElements(?int $status = null)
+ * @method static array<int, string> toInertiaElements(?int $status = null)
  * @method static \Illuminate\Support\HtmlString render(?int $status = null)
  * @method static string toHtml(?int $status = null)
  * @method static \Laravel\Head\HeadManager flush()

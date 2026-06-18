@@ -101,10 +101,14 @@ class FeedLinks extends GroupedSection
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
-        return array_map(function (array $feed): string {
+        return array_map(function (array $feed) use ($tags): string {
             $type = $feed['type'] === 'atom' ? 'application/atom+xml' : 'application/rss+xml';
 
-            return '<link rel="alternate" type="'.e($type).'" title="'.e($feed['title']).'" href="'.e($feed['href']).'">';
+            return $tags->linkWithAttributes('alternate', [
+                'type' => $type,
+                'title' => $feed['title'],
+                'href' => $feed['href'],
+            ], $tags->stableKey('feed', $feed['href']));
         }, $this->headArray());
     }
 

@@ -301,6 +301,14 @@ class HeadManager implements Arrayable, Htmlable
         return $this->renderer->toElements($this->resolve($status), $this->request());
     }
 
+    /**
+     * @return array<int, string>
+     */
+    public function toInertiaElements(?int $status = null): array
+    {
+        return $this->renderer->toInertiaElements($this->resolve($status), $this->request());
+    }
+
     public function render(?int $status = null): HtmlString
     {
         return new HtmlString($this->renderer->render($this->resolve($status), $this->request()));

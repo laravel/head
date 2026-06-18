@@ -31,17 +31,33 @@ class HeadRenderer
     /**
      * Render the resolved head as individual HTML element strings.
      *
-     * These elements are shared with Inertia as the page's head prop by the
-     * service provider when Inertia is installed.
-     *
      * @return array<int, string>
      */
     public function toElements(HeadData $head, ?Request $request = null): array
     {
+        return $this->elements($head, $request, $this->tags);
+    }
+
+    /**
+     * Render the resolved head as individual HTML element strings with stable
+     * data-inertia keys for Inertia's server-managed head reconciler.
+     *
+     * @return array<int, string>
+     */
+    public function toInertiaElements(HeadData $head, ?Request $request = null): array
+    {
+        return $this->elements($head, $request, $this->tags->withInertiaAttributes());
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function elements(HeadData $head, ?Request $request, TagRenderer $tags): array
+    {
         $resolved = new ResolvedHead($head, $this->registry, $request, $this->schemas);
 
         return collect($resolved->sections())
-            ->flatMap(fn (Section $section): array => $section->toTags($resolved, $this->tags))
+            ->flatMap(fn (Section $section): array => $section->toTags($resolved, $tags))
             ->filter()
             ->values()
             ->all();

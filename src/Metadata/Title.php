@@ -101,6 +101,6 @@ class Title extends Section
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
-        return ($title = $this->render()) ? [$tags->title($title)] : [];
+        return ($title = $this->render()) ? [$tags->title($title, 'title')] : [];
     }
 }

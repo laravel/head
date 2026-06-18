@@ -6,35 +6,52 @@ namespace Laravel\Head\Rendering;
 
 class TagRenderer
 {
-    public function title(string $title): string
+    public function __construct(protected bool $withInertiaAttributes = false) {}
+
+    public function withInertiaAttributes(): self
     {
-        return '<title>'.e($title).'</title>';
+        return new self(true);
     }
 
-    public function meta(string $attribute, string $key, string|int|float|bool $content): string
+    public function title(string $title, ?string $inertiaKey = null): string
     {
-        return '<meta '.$attribute.'="'.e($key).'" content="'.e((string) $content).'">';
+        $inertiaKey ??= 'title';
+
+        return '<title'.$this->inertiaAttribute($inertiaKey).'>'.e($title).'</title>';
     }
 
-    public function link(string $rel, string $href): string
+    public function meta(string $attribute, string $key, string|int|float|bool $content, ?string $inertiaKey = null): string
     {
-        return '<link rel="'.e($rel).'" href="'.e($href).'">';
+        $inertiaKey ??= $key;
+
+        return '<meta'.$this->inertiaAttribute($inertiaKey).' '.$attribute.'="'.e($key).'" content="'.e((string) $content).'">';
+    }
+
+    public function link(string $rel, string $href, ?string $inertiaKey = null): string
+    {
+        $inertiaKey ??= $this->stableKey($rel, $href);
+
+        return '<link'.$this->inertiaAttribute($inertiaKey).' rel="'.e($rel).'" href="'.e($href).'">';
     }
 
     /**
      * @param  array<string, bool|float|int|string|null>  $attributes
      */
-    public function linkWithAttributes(string $rel, array $attributes): string
+    public function linkWithAttributes(string $rel, array $attributes, ?string $inertiaKey = null): string
     {
-        return '<link rel="'.e($rel).'" '.$this->attributes($attributes).'>';
+        $inertiaKey ??= $this->stableKey($rel, (string) ($attributes['href'] ?? serialize($attributes)));
+
+        return '<link'.$this->inertiaAttribute($inertiaKey).' rel="'.e($rel).'" '.$this->attributes($attributes).'>';
     }
 
     /**
      * @param  array<string, mixed>  $schema
      */
-    public function jsonLd(array $schema): string
+    public function jsonLd(array $schema, ?string $inertiaKey = null): string
     {
-        return '<script type="application/ld+json">'.json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR).'</script>';
+        $inertiaKey ??= $this->stableKey('schema', json_encode($schema, JSON_THROW_ON_ERROR));
+
+        return '<script'.$this->inertiaAttribute($inertiaKey).' type="application/ld+json">'.json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR).'</script>';
     }
 
     /**
@@ -56,5 +73,15 @@ class TagRenderer
             })
             ->filter()
             ->implode(' ');
+    }
+
+    public function stableKey(string $prefix, string $value): string
+    {
+        return $prefix.':'.substr(md5($value), 0, 16);
+    }
+
+    protected function inertiaAttribute(?string $key): string
+    {
+        return $this->withInertiaAttributes && ! is_null($key) ? ' data-inertia="'.e($key).'"' : '';
     }
 }

@@ -91,7 +91,7 @@ class MetaTags extends GroupedSection
         return array_map(function (array $meta) use ($tags): string {
             $attribute = ($meta['property'] ?? $this->isRdfaProperty($meta['key'])) ? 'property' : 'name';
 
-            return $tags->meta($attribute, $meta['key'], $meta['content']);
+            return $tags->meta($attribute, $meta['key'], $meta['content'], $meta['key']);
         }, $this->headArray());
     }
 

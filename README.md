@@ -318,8 +318,8 @@ When Inertia is installed, Laravel Head automatically shares the resolved head a
 {
     "props": {
         "head": [
-            "<title>Dashboard - Acme</title>",
-            "<meta name=\"description\" content=\"Your application overview.\">"
+            "<title data-inertia=\"title\">Dashboard - Acme</title>",
+            "<meta data-inertia=\"description\" name=\"description\" content=\"Your application overview.\">"
         ]
     }
 }

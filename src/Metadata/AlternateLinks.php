@@ -83,7 +83,7 @@ class AlternateLinks extends GroupedSection
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(
-            fn (string $hreflang, string $href): string => '<link rel="alternate" hreflang="'.e($hreflang).'" href="'.e($href).'">',
+            fn (string $hreflang, string $href): string => $tags->linkWithAttributes('alternate', ['hreflang' => $hreflang, 'href' => $href], 'alternate:'.$hreflang),
             array_keys($this->links),
             $this->links,
         );

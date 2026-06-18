@@ -11,8 +11,8 @@ it('renders performance links', function (): void {
         ->dnsPrefetch('https://analytics.example.com');
 
     expect(Head::toHtml())
-        ->toContain('<link rel="preload" href="/fonts/inter.woff2" as="font" crossorigin>')
-        ->toContain('<link rel="prefetch" href="/images/next.webp">')
-        ->toContain('<link rel="preconnect" href="https://fonts.example.com">')
-        ->toContain('<link rel="dns-prefetch" href="https://analytics.example.com">');
+        ->toContain('rel="preload" href="/fonts/inter.woff2" as="font" crossorigin>')
+        ->toContain('rel="prefetch" href="/images/next.webp">')
+        ->toContain('rel="preconnect" href="https://fonts.example.com">')
+        ->toContain('rel="dns-prefetch" href="https://analytics.example.com">');
 });

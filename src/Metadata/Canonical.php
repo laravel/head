@@ -122,7 +122,7 @@ class Canonical extends Section
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
-        return ($canonical = $this->render($head->request())) ? [$tags->link('canonical', $canonical)] : [];
+        return ($canonical = $this->render($head->request())) ? [$tags->link('canonical', $canonical, 'canonical')] : [];
     }
 
     protected function normalizeUrl(string $url, ?Request $request, bool $forceHttps, bool $trailingSlash): string

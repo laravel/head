@@ -16,6 +16,6 @@ class Description extends StringSection
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
-        return ($description = $this->render()) ? [$tags->meta('name', 'description', $description)] : [];
+        return ($description = $this->render()) ? [$tags->meta('name', 'description', $description, 'description')] : [];
     }
 }

@@ -27,6 +27,6 @@ class InertiaCustomPropTest extends TestCase
         $this->get('/dashboard', [Header::INERTIA => 'true'])
             ->assertOk()
             ->assertJsonPath('props.head', 'An unrelated app prop')
-            ->assertJsonPath('props._head.0', '<title>Dashboard</title>');
+            ->assertJsonPath('props._head.0', '<title data-inertia="title">Dashboard</title>');
     }
 }

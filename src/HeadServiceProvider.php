@@ -95,7 +95,7 @@ class HeadServiceProvider extends ServiceProvider
         // from the last full visit.
         Inertia::share(
             Config::string('head.inertia.prop', 'head'),
-            fn (): array => $this->app->make(HeadManager::class)->toElements(),
+            fn (): array => $this->app->make(HeadManager::class)->toInertiaElements(),
         );
     }
 }

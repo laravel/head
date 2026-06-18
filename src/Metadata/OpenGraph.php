@@ -266,7 +266,7 @@ class OpenGraph extends GroupedSection
     {
         $properties = $this->render($head->title(), $head->description());
         $propertyTags = array_map(
-            fn (string $property, string $content): string => $tags->meta('property', 'og:'.$property, $content),
+            fn (string $property, string $content): string => $tags->meta('property', 'og:'.$property, $content, 'og:'.$property),
             array_keys($properties),
             $properties,
         );
@@ -350,11 +350,13 @@ class OpenGraph extends GroupedSection
         $rendered = [];
 
         foreach ($media as $item) {
-            $rendered[] = $tags->meta('property', 'og:'.$property, $item['url']);
+            $mediaKey = 'og:'.$property.':'.$tags->stableKey('item', $item['url']);
 
-            foreach ($attributes as $key => $name) {
-                if (isset($item[$key])) {
-                    $rendered[] = $tags->meta('property', 'og:'.$property.':'.$name, $item[$key]);
+            $rendered[] = $tags->meta('property', 'og:'.$property, $item['url'], $mediaKey);
+
+            foreach ($attributes as $attribute => $name) {
+                if (isset($item[$attribute])) {
+                    $rendered[] = $tags->meta('property', 'og:'.$property.':'.$name, $item[$attribute], $mediaKey.':'.$name);
                 }
             }
         }

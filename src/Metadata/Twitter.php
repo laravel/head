@@ -179,7 +179,7 @@ class Twitter extends GroupedSection
     {
         $properties = $this->render($head->title(), $head->description());
         $rendered = array_map(
-            fn (string $name, string $content): string => $tags->meta('name', 'twitter:'.$name, $content),
+            fn (string $name, string $content): string => $tags->meta('name', 'twitter:'.$name, $content, 'twitter:'.$name),
             array_keys($properties),
             $properties,
         );
@@ -188,10 +188,10 @@ class Twitter extends GroupedSection
             return $rendered;
         }
 
-        $rendered[] = $tags->meta('name', 'twitter:image', $image['url']);
+        $rendered[] = $tags->meta('name', 'twitter:image', $image['url'], 'twitter:image');
 
         if (isset($image['alt'])) {
-            $rendered[] = $tags->meta('name', 'twitter:image:alt', $image['alt']);
+            $rendered[] = $tags->meta('name', 'twitter:image:alt', $image['alt'], 'twitter:image:alt');
         }
 
         return $rendered;

@@ -18,11 +18,11 @@ it('renders open graph media metadata', function (): void {
 
     expect(Head::toHtml())
         ->toContain('<meta property="og:type" content="article">')
-        ->toContain('<meta property="og:image" content="https://example.com/hero.jpg">')
-        ->toContain('<meta property="og:image" content="https://example.com/gallery.jpg">')
-        ->toContain('<meta property="og:image:secure_url" content="https://secure.example.com/gallery.jpg">')
-        ->toContain('<meta property="og:image:type" content="image/jpeg">')
-        ->toContain('<meta property="og:image:width" content="1200">')
-        ->toContain('<meta property="og:image:height" content="630">')
-        ->toContain('<meta property="og:image:alt" content="Gallery image">');
+        ->toContain('property="og:image" content="https://example.com/hero.jpg">')
+        ->toContain('property="og:image" content="https://example.com/gallery.jpg">')
+        ->toContain('property="og:image:secure_url" content="https://secure.example.com/gallery.jpg">')
+        ->toContain('property="og:image:type" content="image/jpeg">')
+        ->toContain('property="og:image:width" content="1200">')
+        ->toContain('property="og:image:height" content="630">')
+        ->toContain('property="og:image:alt" content="Gallery image">');
 });

@@ -89,4 +89,29 @@ abstract class TagBuilder
     {
         return is_int($value) ? $value : null;
     }
+
+    /**
+     * @return array<int, mixed>
+     */
+    protected static function items(mixed $value): array
+    {
+        return is_array($value) && array_is_list($value) ? $value : [$value];
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $values
+     * @return array<string, mixed>
+     */
+    protected static function named(array $values): array
+    {
+        $named = [];
+
+        foreach ($values as $key => $value) {
+            if (is_string($key)) {
+                $named[$key] = $value;
+            }
+        }
+
+        return $named;
+    }
 }

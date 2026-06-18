@@ -104,21 +104,4 @@ class Schemas extends GroupedTagBuilder
     {
         return array_values($this->schemas);
     }
-
-    /**
-     * @param  array<mixed, mixed>  $values
-     * @return array<string, mixed>
-     */
-    protected static function named(array $values): array
-    {
-        $named = [];
-
-        foreach ($values as $key => $value) {
-            if (is_string($key)) {
-                $named[$key] = $value;
-            }
-        }
-
-        return $named;
-    }
 }

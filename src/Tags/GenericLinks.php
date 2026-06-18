@@ -43,14 +43,7 @@ class GenericLinks extends GroupedTagBuilder
         $links = new self;
 
         foreach (self::items($value) as $link) {
-            if (! is_array($link) || ! is_string($link['rel'] ?? null) || ! is_string($link['href'] ?? null)) {
-                continue;
-            }
-
-            $attributes = self::named($link);
-            unset($attributes['rel'], $attributes['href']);
-
-            $links->link($link['rel'], $link['href'], self::attributes($attributes));
+            $links->addRouteAttributeLink($link);
         }
 
         return $links;
@@ -109,29 +102,16 @@ class GenericLinks extends GroupedTagBuilder
         return array_values($this->links);
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    protected static function items(mixed $value): array
+    private function addRouteAttributeLink(mixed $link): void
     {
-        return is_array($value) && array_is_list($value) ? $value : [$value];
-    }
-
-    /**
-     * @param  array<mixed, mixed>  $values
-     * @return array<string, mixed>
-     */
-    protected static function named(array $values): array
-    {
-        $named = [];
-
-        foreach ($values as $key => $value) {
-            if (is_string($key)) {
-                $named[$key] = $value;
-            }
+        if (! is_array($link) || ! is_string($link['rel'] ?? null) || ! is_string($link['href'] ?? null)) {
+            return;
         }
 
-        return $named;
+        $attributes = self::named($link);
+        unset($attributes['rel'], $attributes['href']);
+
+        $this->link($link['rel'], $link['href'], self::attributes($attributes));
     }
 
     /**

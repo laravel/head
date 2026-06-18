@@ -231,7 +231,7 @@ class HeadData
      */
     public function alternates(array $alternates): static
     {
-        return $this->overlayBuilder(AlternateLinks::fromAttributes($alternates));
+        return $this->overlayBuilder(new AlternateLinks($alternates));
     }
 
     public function feed(string $href, string $title, string $type = 'rss'): static

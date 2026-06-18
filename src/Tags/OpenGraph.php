@@ -363,12 +363,4 @@ class OpenGraph extends GroupedTagBuilder
 
         return $rendered;
     }
-
-    /**
-     * @return array<int, mixed>
-     */
-    protected static function items(mixed $value): array
-    {
-        return is_array($value) && array_is_list($value) ? $value : [$value];
-    }
 }

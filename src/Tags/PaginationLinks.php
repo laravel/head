@@ -72,7 +72,7 @@ class PaginationLinks extends GroupedTagBuilder
      */
     public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->headArray();
+        return $this->links;
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -82,13 +82,5 @@ class PaginationLinks extends GroupedTagBuilder
             array_keys($this->links),
             $this->links,
         );
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function headArray(): array
-    {
-        return $this->links;
     }
 }

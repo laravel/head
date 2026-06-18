@@ -102,10 +102,6 @@ class RouteHeadRepository
 
     protected function getMetadata(Route $route, ?string $key = null, mixed $default = null): mixed
     {
-        if (method_exists($route, 'getMetadata')) {
-            return $route->getMetadata($key, $default);
-        }
-
         $metadata = $route->getAction(static::METADATA) ?? [];
 
         if (is_null($key)) {

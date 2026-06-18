@@ -12,12 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Traits\Macroable;
-use Laravel\Head\Metadata\Section;
 use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\RouteAttributeParser;
 use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\Tags\TagBuilder;
 
 /**
  * @implements Arrayable<string, mixed>
@@ -36,7 +36,7 @@ class HeadManager implements Arrayable, Htmlable
         protected Container $app,
         protected HeadRenderer $renderer,
         protected RouteHeadRepository $routes,
-        protected MetadataRegistry $registry,
+        protected TagRegistry $registry,
     ) {
         $this->defaults = new HeadData;
         $this->errorPages = new ErrorPages($this->registry);
@@ -59,13 +59,13 @@ class HeadManager implements Arrayable, Htmlable
     }
 
     /**
-     * Register a custom metadata section to render on every head.
+     * Register a custom tag builder to render on every head.
      *
-     * @param  class-string<Section>  $section
+     * @param  class-string<TagBuilder>  $builder
      */
-    public function extend(string $section): static
+    public function extend(string $builder): static
     {
-        $this->registry->extend($section);
+        $this->registry->extend($builder);
 
         return $this;
     }

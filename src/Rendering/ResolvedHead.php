@@ -7,20 +7,20 @@ namespace Laravel\Head\Rendering;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Laravel\Head\HeadData;
-use Laravel\Head\Metadata\Canonical;
-use Laravel\Head\Metadata\Description;
-use Laravel\Head\Metadata\OpenGraph;
-use Laravel\Head\Metadata\Robots;
-use Laravel\Head\Metadata\Section;
-use Laravel\Head\Metadata\Title;
-use Laravel\Head\MetadataRegistry;
 use Laravel\Head\Schema\SchemaValidator;
+use Laravel\Head\TagRegistry;
+use Laravel\Head\Tags\Canonical;
+use Laravel\Head\Tags\Description;
+use Laravel\Head\Tags\OpenGraph;
+use Laravel\Head\Tags\Robots;
+use Laravel\Head\Tags\TagBuilder;
+use Laravel\Head\Tags\Title;
 
 class ResolvedHead
 {
     public function __construct(
         protected HeadData $data,
-        protected MetadataRegistry $registry,
+        protected TagRegistry $registry,
         protected ?Request $request = null,
         protected ?SchemaValidator $schemas = null,
     ) {}
@@ -45,28 +45,28 @@ class ResolvedHead
 
     public function title(): ?string
     {
-        $title = $this->section(Title::class);
+        $title = $this->builder(Title::class);
 
         return $title instanceof Title ? $title->render() : null;
     }
 
     public function description(): ?string
     {
-        $description = $this->section(Description::class);
+        $description = $this->builder(Description::class);
 
         return $description instanceof Description ? $description->render() : null;
     }
 
     public function canonical(): ?string
     {
-        $canonical = $this->section(Canonical::class);
+        $canonical = $this->builder(Canonical::class);
 
         return $canonical instanceof Canonical ? $canonical->render($this->request) : null;
     }
 
     public function robots(): ?string
     {
-        $robots = $this->section(Robots::class);
+        $robots = $this->builder(Robots::class);
 
         return $robots instanceof Robots ? $robots->render() : null;
     }
@@ -76,7 +76,7 @@ class ResolvedHead
      */
     public function openGraphImage(): ?array
     {
-        $openGraph = $this->section(OpenGraph::class);
+        $openGraph = $this->builder(OpenGraph::class);
 
         if (! $openGraph instanceof OpenGraph || ($images = $openGraph->images()) === []) {
             return null;
@@ -91,50 +91,50 @@ class ResolvedHead
     }
 
     /**
-     * The sections to render, in declared order, including those that derive
+     * The tag builders to render, in declared order, including those that derive
      * their values from the rest of the head even when never set explicitly.
      *
-     * @return array<int, Section>
+     * @return array<int, TagBuilder>
      */
-    public function sections(): array
+    public function builders(): array
     {
-        $sections = [];
+        $builders = [];
 
-        foreach ($this->registry->sections() as $section) {
-            $value = $this->section($section);
+        foreach ($this->registry->builders() as $builder) {
+            $value = $this->builder($builder);
 
-            if ($value instanceof Section) {
-                $sections[] = $value;
-            } elseif ($section::rendersWhenEmpty($this)) {
-                $sections[] = new $section;
+            if ($value instanceof TagBuilder) {
+                $builders[] = $value;
+            } elseif ($builder::rendersWhenEmpty($this)) {
+                $builders[] = new $builder;
             }
         }
 
-        return $sections;
+        return $builders;
     }
 
     /**
-     * Resolve one metadata section into its Head::toArray() value,
-     * including section defaults for metadata that was never set.
+     * Resolve one tag builder into its Head::toArray() value,
+     * including defaults for builder data that was never set.
      *
-     * @param  class-string<Section>  $section
+     * @param  class-string<TagBuilder>  $builder
      */
-    public function headArray(string $section): mixed
+    public function headArray(string $builder): mixed
     {
-        $value = $this->section($section);
+        $value = $this->builder($builder);
 
-        if (! $value instanceof Section && $section::rendersWhenEmpty($this)) {
-            $value = new $section;
+        if (! $value instanceof TagBuilder && $builder::rendersWhenEmpty($this)) {
+            $value = new $builder;
         }
 
-        return $value?->toHeadArray($this) ?? $section::headArrayDefault();
+        return $value?->toHeadArray($this) ?? $builder::headArrayDefault();
     }
 
     /**
-     * @param  class-string<Section>  $section
+     * @param  class-string<TagBuilder>  $builder
      */
-    public function section(string $section): ?Section
+    public function builder(string $builder): ?TagBuilder
     {
-        return $this->data->get($section);
+        return $this->data->get($builder);
     }
 }

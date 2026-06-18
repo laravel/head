@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -10,7 +10,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class Title extends Section
+class Title extends TagBuilder
 {
     public function __construct(
         protected ?string $value = null,
@@ -53,7 +53,7 @@ class Title extends Section
         );
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof static) {
             return $this;

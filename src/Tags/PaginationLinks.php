@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
+use Illuminate\Contracts\Pagination\Paginator;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
 /**
  * @phpstan-consistent-constructor
  */
-class AlternateLinks extends GroupedSection
+class PaginationLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, string>  $links
@@ -19,43 +20,40 @@ class AlternateLinks extends GroupedSection
 
     public static function key(): string
     {
-        return 'alternates';
+        return 'pagination';
     }
 
     public static function headArrayKey(): string
     {
-        return 'links.alternates';
-    }
-
-    public static function fromRouteAttribute(string $key, mixed $value): ?self
-    {
-        return $key === 'alternates' && is_array($value) ? self::fromAttributes($value) : null;
+        return 'links.pagination';
     }
 
     /**
-     * @param  array<mixed, mixed>  $alternates
+     * @param  Paginator<int, mixed>  $paginator
      */
-    public static function fromAttributes(array $alternates): self
+    public static function fromPaginator(Paginator $paginator): self
     {
         $links = new self;
 
-        foreach ($alternates as $locale => $href) {
-            if (is_string($href)) {
-                $links->link((string) $locale, $href);
-            }
+        if ($previous = $paginator->previousPageUrl()) {
+            $links->link('prev', $previous);
+        }
+
+        if ($next = $paginator->nextPageUrl()) {
+            $links->link('next', $next);
         }
 
         return $links;
     }
 
-    public function link(string $locale, string $href): static
+    public function link(string $rel, string $href): static
     {
-        $this->links[$locale] = $href;
+        $this->links[$rel] = $href;
 
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -83,7 +81,7 @@ class AlternateLinks extends GroupedSection
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(
-            fn (string $hreflang, string $href): string => $tags->linkWithAttributes('alternate', ['hreflang' => $hreflang, 'href' => $href], 'alternate:'.$hreflang),
+            fn (string $rel, string $href): string => $tags->link($rel, $href, 'pagination:'.$rel),
             array_keys($this->links),
             $this->links,
         );

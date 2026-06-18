@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\OgType;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -13,7 +13,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type MediaAttributes array{url: string, alt?: string|null, width?: int|null, height?: int|null, type?: string|null, secureUrl?: string|null}
  */
-class OpenGraph extends GroupedSection
+class OpenGraph extends GroupedTagBuilder
 {
     /**
      * @param  array<string, string>  $properties
@@ -209,7 +209,7 @@ class OpenGraph extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;

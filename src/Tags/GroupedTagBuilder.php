@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
-abstract class GroupedSection extends Section
+abstract class GroupedTagBuilder extends TagBuilder
 {
     /**
-     * Grouped metadata sections are represented as an empty array when absent
+     * Grouped tag builders are represented as an empty array when absent
      * from the Head::toArray() result.
      */
     public static function headArrayDefault(): mixed

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tests\Fixtures;
 
-use Laravel\Head\Metadata\Section;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
+use Laravel\Head\Tags\TagBuilder;
 
 /**
  * @phpstan-consistent-constructor
  */
-class ReadingTime extends Section
+class ReadingTime extends TagBuilder
 {
     public function __construct(protected ?int $minutes = null) {}
 
@@ -42,7 +42,7 @@ class ReadingTime extends Section
             : [$tags->meta('name', 'twitter:label1', 'Reading time'), $tags->meta('name', 'twitter:data1', $this->minutes.' min read')];
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof static) {
             return $this;

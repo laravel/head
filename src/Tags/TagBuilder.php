@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
-abstract class Section
+abstract class TagBuilder
 {
     abstract public static function key(): string;
 
     /**
-     * Merge this section over the given base section, preferring this section's values.
+     * Merge this builder over the given base builder, preferring this builder's values.
      */
     abstract public function overlayOn(?self $base): static;
 
     abstract public function isEmpty(): bool;
 
     /**
-     * The dot-notated key this section occupies in the Head::toArray() result.
+     * The dot-notated key this builder occupies in the Head::toArray() result.
      */
     public static function headArrayKey(): string
     {
@@ -27,7 +27,7 @@ abstract class Section
     }
 
     /**
-     * The value used in Head::toArray() when this section has no metadata.
+     * The value used in Head::toArray() when this builder has no data.
      */
     public static function headArrayDefault(): mixed
     {
@@ -58,7 +58,7 @@ abstract class Section
     }
 
     /**
-     * Convert this section into its Head::toArray() value.
+     * Convert this builder into its Head::toArray() value.
      */
     public function toHeadArray(ResolvedHead $head): mixed
     {
@@ -66,7 +66,7 @@ abstract class Section
     }
 
     /**
-     * Convert this section into the HTML tags rendered by @head.
+     * Convert this builder into the HTML tags rendered by @head.
      *
      * @return array<int, string>
      */

@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Routing\Route;
 use InvalidArgumentException;
 use Laravel\Head\HeadData;
-use Laravel\Head\MetadataRegistry;
+use Laravel\Head\TagRegistry;
 
 /**
  * @phpstan-type HeadAttributeArray array<mixed, mixed>
@@ -35,7 +35,7 @@ class RouteAttributeParser
     /**
      * @param  array<mixed, mixed>|Closure|null  $attributes
      */
-    public static function apply(HeadData $head, array|Closure|null $attributes, MetadataRegistry $registry, ?Route $route = null): HeadData
+    public static function apply(HeadData $head, array|Closure|null $attributes, TagRegistry $registry, ?Route $route = null): HeadData
     {
         if (is_null($attributes)) {
             return $head;
@@ -55,7 +55,7 @@ class RouteAttributeParser
     /**
      * @param  array<string, mixed>  $attributes
      */
-    protected static function fill(HeadData $head, array $attributes, MetadataRegistry $registry): HeadData
+    protected static function fill(HeadData $head, array $attributes, TagRegistry $registry): HeadData
     {
         $head = clone $head;
 
@@ -70,12 +70,12 @@ class RouteAttributeParser
                 ));
             }
 
-            $sectionClass = $routeAttributeKeys[$key];
+            $builderClass = $routeAttributeKeys[$key];
 
-            $section = $sectionClass::fromRouteAttribute($key, $value);
+            $builder = $builderClass::fromRouteAttribute($key, $value);
 
-            if (! is_null($section)) {
-                $head->overlaySection($section);
+            if (! is_null($builder)) {
+                $head->overlayBuilder($builder);
             }
         }
 

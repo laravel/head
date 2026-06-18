@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Illuminate\Support\Str;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -13,7 +13,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type MetaAttributes array{key: string, content: string, property?: bool|null}
  */
-class MetaTags extends GroupedSection
+class MetaTags extends GroupedTagBuilder
 {
     /**
      * @param  array<string, MetaAttributes>  $tags
@@ -57,7 +57,7 @@ class MetaTags extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;

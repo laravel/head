@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -13,7 +13,7 @@ use Laravel\Head\Schema\SchemaObject;
  *
  * @phpstan-type SchemaData array<string, mixed>
  */
-class Schemas extends GroupedSection
+class Schemas extends GroupedTagBuilder
 {
     /**
      * @param  array<string, SchemaObject|SchemaData>  $schemas
@@ -36,19 +36,19 @@ class Schemas extends GroupedSection
             return null;
         }
 
-        $metadata = new self;
+        $builder = new self;
 
         if ($value instanceof SchemaObject || ! array_is_list($value)) {
-            return $metadata->schema($value instanceof SchemaObject ? $value : self::named($value));
+            return $builder->schema($value instanceof SchemaObject ? $value : self::named($value));
         }
 
         foreach ($value as $schema) {
             if ($schema instanceof SchemaObject || is_array($schema)) {
-                $metadata->schema($schema instanceof SchemaObject ? $schema : self::named($schema));
+                $builder->schema($schema instanceof SchemaObject ? $schema : self::named($schema));
             }
         }
 
-        return $metadata;
+        return $builder;
     }
 
     /**
@@ -61,7 +61,7 @@ class Schemas extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;

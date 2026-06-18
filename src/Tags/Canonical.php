@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Illuminate\Http\Request;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -11,7 +11,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class Canonical extends Section
+class Canonical extends TagBuilder
 {
     public function __construct(
         protected string $mode,
@@ -79,7 +79,7 @@ class Canonical extends Section
         return null;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof static) {
             return $this;
@@ -94,7 +94,7 @@ class Canonical extends Section
     }
 
     /**
-     * Canonical sections always carry a resolution mode, so they are never empty.
+     * Canonical builders always carry a resolution mode, so they are never empty.
      */
     public function isEmpty(): bool
     {

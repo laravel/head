@@ -13,7 +13,7 @@ class ErrorPages
     /** @var array<int, HeadData> */
     protected array $statuses = [];
 
-    public function __construct(protected MetadataRegistry $registry)
+    public function __construct(protected TagRegistry $registry)
     {
         $this->defaults = new HeadData;
     }

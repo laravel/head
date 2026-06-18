@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type LinkAttributes array{rel: string, href: string, attributes: array<string, bool|float|int|string|null>}
  */
-class GenericLinks extends GroupedSection
+class GenericLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, LinkAttributes>  $links
@@ -72,7 +72,7 @@ class GenericLinks extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;

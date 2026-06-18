@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type FeedAttributes array{href: string, title: string, type: string}
  */
-class FeedLinks extends GroupedSection
+class FeedLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, FeedAttributes>  $feeds
@@ -70,7 +70,7 @@ class FeedLinks extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;

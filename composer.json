@@ -1,7 +1,7 @@
 {
     "name": "laravel/head",
     "description": "First-party head management for Laravel applications",
-    "keywords": ["laravel", "head", "seo", "metadata"],
+    "keywords": ["laravel", "head", "seo", "metadata", "tags"],
     "homepage": "https://github.com/laravel/head",
     "license": "MIT",
     "support": {

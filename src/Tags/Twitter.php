@@ -42,15 +42,6 @@ class Twitter extends GroupedTagBuilder
             || ! is_null($head->openGraphImage());
     }
 
-    public static function fromRouteAttribute(string $key, mixed $value): ?self
-    {
-        return match ($key) {
-            'twitter' => is_array($value) ? self::fromAttributes($value) : null,
-            'twitterImage' => self::fromImageAttributes($value),
-            default => null,
-        };
-    }
-
     public static function make(
         TwitterCard|string|null $card = null,
         ?string $site = null,
@@ -74,6 +65,15 @@ class Twitter extends GroupedTagBuilder
         }
 
         return $twitter;
+    }
+
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
+    {
+        return match ($key) {
+            'twitter' => is_array($value) ? self::fromAttributes($value) : null,
+            'twitterImage' => self::fromImageAttributes($value),
+            default => null,
+        };
     }
 
     /**
@@ -128,6 +128,11 @@ class Twitter extends GroupedTagBuilder
         );
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->properties === [] && is_null($this->image);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -144,27 +149,6 @@ class Twitter extends GroupedTagBuilder
         }
 
         return $properties;
-    }
-
-    /**
-     * @param  ImageAttributes|null  $fallback
-     * @return ImageAttributes|null
-     */
-    protected function headArrayImage(?array $fallback = null): ?array
-    {
-        return $this->image ?? $fallback;
-    }
-
-    /**
-     * @param  ImageAttributes|null  $fallbackImage
-     * @return array<string, mixed>
-     */
-    protected function headArray(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
-    {
-        return array_filter([
-            ...$this->render($title, $description),
-            'image' => $this->headArrayImage($fallbackImage),
-        ]);
     }
 
     /**
@@ -197,9 +181,25 @@ class Twitter extends GroupedTagBuilder
         return $rendered;
     }
 
-    public function isEmpty(): bool
+    /**
+     * @param  ImageAttributes|null  $fallback
+     * @return ImageAttributes|null
+     */
+    protected function headArrayImage(?array $fallback = null): ?array
     {
-        return $this->properties === [] && is_null($this->image);
+        return $this->image ?? $fallback;
+    }
+
+    /**
+     * @param  ImageAttributes|null  $fallbackImage
+     * @return array<string, mixed>
+     */
+    protected function headArray(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
+    {
+        return array_filter([
+            ...$this->render($title, $description),
+            'image' => $this->headArrayImage($fallbackImage),
+        ]);
     }
 
     /**

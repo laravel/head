@@ -38,17 +38,6 @@ class OpenGraph extends GroupedTagBuilder
         return ['og', 'ogImage', 'ogVideo', 'ogAudio'];
     }
 
-    public static function fromRouteAttribute(string $key, mixed $value): ?self
-    {
-        return match ($key) {
-            'og' => is_array($value) ? self::fromAttributes($value) : null,
-            'ogImage' => self::fromImageAttributes($value),
-            'ogVideo' => self::fromVideoAttributes($value),
-            'ogAudio' => self::fromAudioAttributes($value),
-            default => null,
-        };
-    }
-
     public static function make(
         OgType|string|null $type = null,
         ?string $title = null,
@@ -86,6 +75,17 @@ class OpenGraph extends GroupedTagBuilder
         }
 
         return $openGraph;
+    }
+
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
+    {
+        return match ($key) {
+            'og' => is_array($value) ? self::fromAttributes($value) : null,
+            'ogImage' => self::fromImageAttributes($value),
+            'ogVideo' => self::fromVideoAttributes($value),
+            'ogAudio' => self::fromAudioAttributes($value),
+            default => null,
+        };
     }
 
     /**
@@ -223,6 +223,14 @@ class OpenGraph extends GroupedTagBuilder
         );
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->properties === []
+            && $this->images === []
+            && $this->videos === []
+            && $this->audios === [];
+    }
+
     /**
      * @return array<string, string>
      */
@@ -242,16 +250,11 @@ class OpenGraph extends GroupedTagBuilder
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, MediaAttributes>
      */
-    protected function headArray(?string $title = null, ?string $description = null): array
+    public function images(): array
     {
-        return array_filter([
-            ...$this->render($title, $description),
-            'images' => array_values($this->images),
-            'videos' => array_values($this->videos),
-            'audios' => array_values($this->audios),
-        ]);
+        return $this->images;
     }
 
     /**
@@ -280,19 +283,16 @@ class OpenGraph extends GroupedTagBuilder
     }
 
     /**
-     * @return array<string, MediaAttributes>
+     * @return array<string, mixed>
      */
-    public function images(): array
+    protected function headArray(?string $title = null, ?string $description = null): array
     {
-        return $this->images;
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->properties === []
-            && $this->images === []
-            && $this->videos === []
-            && $this->audios === [];
+        return array_filter([
+            ...$this->render($title, $description),
+            'images' => array_values($this->images),
+            'videos' => array_values($this->videos),
+            'audios' => array_values($this->audios),
+        ]);
     }
 
     /**

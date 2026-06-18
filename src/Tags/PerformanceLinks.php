@@ -205,17 +205,12 @@ class PerformanceLinks extends GroupedTagBuilder
         );
     }
 
-    /**
-     * @return array{preload: array<int, LinkAttributes>, prefetch: array<int, LinkAttributes>, preconnect: array<int, LinkAttributes>, dnsPrefetch: array<int, array{href: string}>}
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return [
-            'preload' => array_values($this->preloads),
-            'prefetch' => array_values($this->prefetches),
-            'preconnect' => array_values($this->preconnects),
-            'dnsPrefetch' => array_values($this->dnsPrefetches),
-        ];
+        return $this->preloads === []
+            && $this->prefetches === []
+            && $this->preconnects === []
+            && $this->dnsPrefetches === [];
     }
 
     /**
@@ -236,12 +231,17 @@ class PerformanceLinks extends GroupedTagBuilder
         ];
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array{preload: array<int, LinkAttributes>, prefetch: array<int, LinkAttributes>, preconnect: array<int, LinkAttributes>, dnsPrefetch: array<int, array{href: string}>}
+     */
+    protected function headArray(): array
     {
-        return $this->preloads === []
-            && $this->prefetches === []
-            && $this->preconnects === []
-            && $this->dnsPrefetches === [];
+        return [
+            'preload' => array_values($this->preloads),
+            'prefetch' => array_values($this->prefetches),
+            'preconnect' => array_values($this->preconnects),
+            'dnsPrefetch' => array_values($this->dnsPrefetches),
+        ];
     }
 
     protected static function boolOrString(mixed $value): bool|string|null

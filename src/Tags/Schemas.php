@@ -70,12 +70,9 @@ class Schemas extends GroupedTagBuilder
         return new static(array_replace($base->schemas, $this->schemas));
     }
 
-    /**
-     * @return array<int, SchemaObject|SchemaData>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->schemas);
+        return $this->schemas === [];
     }
 
     /**
@@ -100,9 +97,12 @@ class Schemas extends GroupedTagBuilder
         );
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array<int, SchemaObject|SchemaData>
+     */
+    protected function headArray(): array
     {
-        return $this->schemas === [];
+        return array_values($this->schemas);
     }
 
     /**

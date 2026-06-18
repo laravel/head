@@ -81,12 +81,9 @@ class GenericLinks extends GroupedTagBuilder
         return new static(array_replace($base->links, $this->links));
     }
 
-    /**
-     * @return array<int, LinkAttributes>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->links);
+        return $this->links === [];
     }
 
     /**
@@ -104,9 +101,12 @@ class GenericLinks extends GroupedTagBuilder
         }, $this->headArray());
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array<int, LinkAttributes>
+     */
+    protected function headArray(): array
     {
-        return $this->links === [];
+        return array_values($this->links);
     }
 
     /**

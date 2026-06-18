@@ -79,12 +79,9 @@ class FeedLinks extends GroupedTagBuilder
         return new static(array_replace($base->feeds, $this->feeds));
     }
 
-    /**
-     * @return array<int, FeedAttributes>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->feeds);
+        return $this->feeds === [];
     }
 
     /**
@@ -108,8 +105,11 @@ class FeedLinks extends GroupedTagBuilder
         }, $this->headArray());
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array<int, FeedAttributes>
+     */
+    protected function headArray(): array
     {
-        return $this->feeds === [];
+        return array_values($this->feeds);
     }
 }

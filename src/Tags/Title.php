@@ -67,19 +67,19 @@ class Title extends TagBuilder
         );
     }
 
+    public function asDefaults(): static
+    {
+        return is_null($this->value)
+            ? $this
+            : new static($this->value, true, $this->prefix, $this->suffix);
+    }
+
     public function isEmpty(): bool
     {
         return is_null($this->value)
             && is_null($this->bare)
             && is_null($this->prefix)
             && is_null($this->suffix);
-    }
-
-    public function asDefaults(): static
-    {
-        return is_null($this->value)
-            ? $this
-            : new static($this->value, true, $this->prefix, $this->suffix);
     }
 
     public function render(): ?string

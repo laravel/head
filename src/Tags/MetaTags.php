@@ -66,12 +66,9 @@ class MetaTags extends GroupedTagBuilder
         return new static(array_replace($base->tags, $this->tags));
     }
 
-    /**
-     * @return array<int, MetaAttributes>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->tags);
+        return $this->tags === [];
     }
 
     /**
@@ -91,13 +88,16 @@ class MetaTags extends GroupedTagBuilder
         }, $this->headArray());
     }
 
+    /**
+     * @return array<int, MetaAttributes>
+     */
+    protected function headArray(): array
+    {
+        return array_values($this->tags);
+    }
+
     protected function isRdfaProperty(string $key): bool
     {
         return Str::startsWith($key, ['og:', 'article:', 'book:', 'profile:', 'music:', 'video:', 'fb:', 'product:']);
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->tags === [];
     }
 }

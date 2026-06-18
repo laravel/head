@@ -12,13 +12,6 @@ abstract class TagBuilder
     abstract public static function key(): string;
 
     /**
-     * Merge this builder over the given base builder, preferring this builder's values.
-     */
-    abstract public function overlayOn(?self $base): static;
-
-    abstract public function isEmpty(): bool;
-
-    /**
      * The dot-notated key this builder occupies in the Head::toArray() result.
      */
     public static function headArrayKey(): string
@@ -52,10 +45,17 @@ abstract class TagBuilder
         return false;
     }
 
+    /**
+     * Merge this builder over the given base builder, preferring this builder's values.
+     */
+    abstract public function overlayOn(?self $base): static;
+
     public function asDefaults(): static
     {
         return $this;
     }
+
+    abstract public function isEmpty(): bool;
 
     /**
      * Convert this builder into its Head::toArray() value.

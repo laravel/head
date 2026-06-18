@@ -62,12 +62,9 @@ class PaginationLinks extends GroupedTagBuilder
         return new static(array_replace($base->links, $this->links));
     }
 
-    /**
-     * @return array<string, string>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return $this->links;
+        return $this->links === [];
     }
 
     /**
@@ -87,8 +84,11 @@ class PaginationLinks extends GroupedTagBuilder
         );
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array<string, string>
+     */
+    protected function headArray(): array
     {
-        return $this->links === [];
+        return $this->links;
     }
 }

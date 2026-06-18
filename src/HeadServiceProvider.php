@@ -32,7 +32,7 @@ class HeadServiceProvider extends ServiceProvider
         $this->app->singleton(SchemaFactory::class);
         $this->app->alias(SchemaFactory::class, 'head.schema');
 
-        $this->app->singleton(MetadataRegistry::class);
+        $this->app->singleton(TagRegistry::class);
         $this->app->singleton(HeadRenderer::class);
         $this->app->singleton(SchemaValidator::class);
         $this->app->singleton(RouteHeadRepository::class);
@@ -41,7 +41,7 @@ class HeadServiceProvider extends ServiceProvider
             $app,
             $app->make(HeadRenderer::class),
             $app->make(RouteHeadRepository::class),
-            $app->make(MetadataRegistry::class),
+            $app->make(TagRegistry::class),
         ));
         $this->app->alias(HeadManager::class, 'head');
 

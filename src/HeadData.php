@@ -5,50 +5,50 @@ declare(strict_types=1);
 namespace Laravel\Head;
 
 use Illuminate\Contracts\Pagination\Paginator;
-use Laravel\Head\Metadata\AlternateLinks;
-use Laravel\Head\Metadata\Canonical;
-use Laravel\Head\Metadata\Description;
-use Laravel\Head\Metadata\FeedLinks;
-use Laravel\Head\Metadata\GenericLinks;
-use Laravel\Head\Metadata\MetaTags;
-use Laravel\Head\Metadata\OpenGraph;
-use Laravel\Head\Metadata\PaginationLinks;
-use Laravel\Head\Metadata\PerformanceLinks;
-use Laravel\Head\Metadata\Robots;
-use Laravel\Head\Metadata\Schemas;
-use Laravel\Head\Metadata\Section;
-use Laravel\Head\Metadata\Title;
-use Laravel\Head\Metadata\Twitter;
 use Laravel\Head\Schema\SchemaObject;
+use Laravel\Head\Tags\AlternateLinks;
+use Laravel\Head\Tags\Canonical;
+use Laravel\Head\Tags\Description;
+use Laravel\Head\Tags\FeedLinks;
+use Laravel\Head\Tags\GenericLinks;
+use Laravel\Head\Tags\MetaTags;
+use Laravel\Head\Tags\OpenGraph;
+use Laravel\Head\Tags\PaginationLinks;
+use Laravel\Head\Tags\PerformanceLinks;
+use Laravel\Head\Tags\Robots;
+use Laravel\Head\Tags\Schemas;
+use Laravel\Head\Tags\TagBuilder;
+use Laravel\Head\Tags\Title;
+use Laravel\Head\Tags\Twitter;
 
 /**
  * @phpstan-type SchemaData array<string, mixed>
  */
 class HeadData
 {
-    /** @var array<class-string<Section>, Section> */
-    protected array $sections = [];
+    /** @var array<class-string<TagBuilder>, TagBuilder> */
+    protected array $builders = [];
 
     /**
-     * @return array<class-string<Section>, Section>
+     * @return array<class-string<TagBuilder>, TagBuilder>
      */
-    public function sections(): array
+    public function builders(): array
     {
-        return $this->sections;
+        return $this->builders;
     }
 
     /**
-     * @param  class-string<Section>  $section
+     * @param  class-string<TagBuilder>  $builder
      */
-    public function get(string $section): ?Section
+    public function get(string $builder): ?TagBuilder
     {
-        return $this->sections[$section] ?? null;
+        return $this->builders[$builder] ?? null;
     }
 
-    public function overlaySection(Section $section): static
+    public function overlayBuilder(TagBuilder $builder): static
     {
-        $class = $section::class;
-        $this->sections[$class] = $section->overlayOn($this->sections[$class] ?? null);
+        $class = $builder::class;
+        $this->builders[$class] = $builder->overlayOn($this->builders[$class] ?? null);
 
         return $this;
     }
@@ -57,8 +57,8 @@ class HeadData
     {
         $merged = clone $this;
 
-        foreach ($data->sections as $section) {
-            $merged->overlaySection($section);
+        foreach ($data->builders as $builder) {
+            $merged->overlayBuilder($builder);
         }
 
         return $merged;
@@ -66,8 +66,8 @@ class HeadData
 
     public function isEmpty(): bool
     {
-        foreach ($this->sections as $section) {
-            if (! $section->isEmpty()) {
+        foreach ($this->builders as $builder) {
+            if (! $builder->isEmpty()) {
                 return false;
             }
         }
@@ -79,8 +79,8 @@ class HeadData
     {
         $defaults = clone $this;
 
-        foreach ($defaults->sections as $class => $section) {
-            $defaults->sections[$class] = $section->asDefaults();
+        foreach ($defaults->builders as $class => $builder) {
+            $defaults->builders[$class] = $builder->asDefaults();
         }
 
         return $defaults;
@@ -88,22 +88,22 @@ class HeadData
 
     public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): static
     {
-        return $this->overlaySection(Title::make($title, prefix: $prefix, suffix: $suffix, bare: $bare));
+        return $this->overlayBuilder(Title::make($title, prefix: $prefix, suffix: $suffix, bare: $bare));
     }
 
     public function description(string $description): static
     {
-        return $this->overlaySection(Description::make($description));
+        return $this->overlayBuilder(Description::make($description));
     }
 
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
-        return $this->overlaySection(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
+        return $this->overlayBuilder(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
     }
 
     public function robots(string $directives): static
     {
-        return $this->overlaySection(Robots::make($directives));
+        return $this->overlayBuilder(Robots::make($directives));
     }
 
     public function og(
@@ -118,7 +118,7 @@ class HeadData
         ?string $locale = null,
         ?string $determiner = null,
     ): static {
-        return $this->overlaySection(OpenGraph::make(
+        return $this->overlayBuilder(OpenGraph::make(
             type: $type,
             title: $title,
             description: $description,
@@ -140,7 +140,7 @@ class HeadData
         ?string $type = null,
         ?string $secureUrl = null,
     ): static {
-        $this->section(OpenGraph::class)->image($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
+        $this->builder(OpenGraph::class)->image($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
 
         return $this;
     }
@@ -153,14 +153,14 @@ class HeadData
         ?string $type = null,
         ?string $secureUrl = null,
     ): static {
-        $this->section(OpenGraph::class)->video($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
+        $this->builder(OpenGraph::class)->video($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
 
         return $this;
     }
 
     public function ogAudio(string $url, ?string $type = null, ?string $secureUrl = null): static
     {
-        $this->section(OpenGraph::class)->audio($url, type: $type, secureUrl: $secureUrl);
+        $this->builder(OpenGraph::class)->audio($url, type: $type, secureUrl: $secureUrl);
 
         return $this;
     }
@@ -173,7 +173,7 @@ class HeadData
         ?string $description = null,
         ?string $image = null,
     ): static {
-        return $this->overlaySection(Twitter::make(
+        return $this->overlayBuilder(Twitter::make(
             card: $card,
             site: $site,
             creator: $creator,
@@ -185,35 +185,35 @@ class HeadData
 
     public function twitterImage(string $url, ?string $alt = null): static
     {
-        $this->section(Twitter::class)->image($url, alt: $alt);
+        $this->builder(Twitter::class)->image($url, alt: $alt);
 
         return $this;
     }
 
     public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ?string $type = null, ?string $media = null): static
     {
-        $this->section(PerformanceLinks::class)->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
+        $this->builder(PerformanceLinks::class)->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
 
         return $this;
     }
 
     public function prefetch(string $href, ?string $as = null): static
     {
-        $this->section(PerformanceLinks::class)->prefetch($href, as: $as);
+        $this->builder(PerformanceLinks::class)->prefetch($href, as: $as);
 
         return $this;
     }
 
     public function preconnect(string $href, bool|string|null $crossorigin = null): static
     {
-        $this->section(PerformanceLinks::class)->preconnect($href, crossorigin: $crossorigin);
+        $this->builder(PerformanceLinks::class)->preconnect($href, crossorigin: $crossorigin);
 
         return $this;
     }
 
     public function dnsPrefetch(string $href): static
     {
-        $this->section(PerformanceLinks::class)->dnsPrefetch($href);
+        $this->builder(PerformanceLinks::class)->dnsPrefetch($href);
 
         return $this;
     }
@@ -223,7 +223,7 @@ class HeadData
      */
     public function paginate(Paginator $paginator): static
     {
-        return $this->overlaySection(PaginationLinks::fromPaginator($paginator));
+        return $this->overlayBuilder(PaginationLinks::fromPaginator($paginator));
     }
 
     /**
@@ -231,19 +231,19 @@ class HeadData
      */
     public function alternates(array $alternates): static
     {
-        return $this->overlaySection(AlternateLinks::fromAttributes($alternates));
+        return $this->overlayBuilder(new AlternateLinks($alternates));
     }
 
     public function feed(string $href, string $title, string $type = 'rss'): static
     {
-        $this->section(FeedLinks::class)->feed($href, $title, $type);
+        $this->builder(FeedLinks::class)->feed($href, $title, $type);
 
         return $this;
     }
 
     public function meta(string $key, string $content, ?bool $property = null): static
     {
-        $this->section(MetaTags::class)->tag($key, $content, $property);
+        $this->builder(MetaTags::class)->tag($key, $content, $property);
 
         return $this;
     }
@@ -253,7 +253,7 @@ class HeadData
      */
     public function link(string $rel, string $href, array $attributes = []): static
     {
-        $this->section(GenericLinks::class)->link($rel, $href, $attributes);
+        $this->builder(GenericLinks::class)->link($rel, $href, $attributes);
 
         return $this;
     }
@@ -263,22 +263,22 @@ class HeadData
      */
     public function schema(SchemaObject|array $schema): static
     {
-        $this->section(Schemas::class)->schema($schema);
+        $this->builder(Schemas::class)->schema($schema);
 
         return $this;
     }
 
     /**
-     * Resolve a mutable section instance, creating and storing it on first use.
+     * Resolve a mutable tag builder instance, creating and storing it on first use.
      *
-     * @template TSection of Section
+     * @template TBuilder of TagBuilder
      *
-     * @param  class-string<TSection>  $class
-     * @return TSection
+     * @param  class-string<TBuilder>  $class
+     * @return TBuilder
      */
-    protected function section(string $class): Section
+    protected function builder(string $class): TagBuilder
     {
-        /** @var TSection */
-        return $this->sections[$class] ??= new $class;
+        /** @var TBuilder */
+        return $this->builders[$class] ??= new $class;
     }
 }

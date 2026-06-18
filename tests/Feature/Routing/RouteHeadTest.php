@@ -99,7 +99,7 @@ it('stores head attributes on resource and singleton routes', function (): void 
     ]);
 });
 
-it('parses route metadata using the fluent field shapes', function (): void {
+it('parses route head data using the fluent field shapes', function (): void {
     Route::get('/product', fn (): string => Head::toHtml())->withHead(
         title: ['value' => 'Product', 'suffix' => ' - Store'],
         canonical: ['auto' => true, 'forceHttps' => false],
@@ -129,7 +129,7 @@ it('parses route metadata using the fluent field shapes', function (): void {
         ->assertSee('rel="manifest" href="/manifest.json">', false);
 });
 
-it('does not accept snake case route metadata aliases', function (): void {
+it('does not accept snake case route head data aliases', function (): void {
     Route::get('/legacy-inputs', fn (): string => Head::toHtml())->withHead(
         canonical: ['auto' => true, 'force_https' => false],
         og: ['site_name' => 'Legacy'],
@@ -146,7 +146,7 @@ it('does not accept snake case route metadata aliases', function (): void {
         ->assertDontSee('property="og:image:secure_url" content="https://secure.example.com/image.jpg">', false);
 });
 
-it('throws for unknown route metadata keys', function (): void {
+it('throws for unknown route head data keys', function (): void {
     Route::get('/unknown-head-key', fn (): string => Head::toHtml())->withHead(
         heading: 'Dashboard',
     );
@@ -154,7 +154,7 @@ it('throws for unknown route metadata keys', function (): void {
     $this->withoutExceptionHandling()->get('/unknown-head-key');
 })->throws(InvalidArgumentException::class, 'Unknown route head attribute [heading].');
 
-it('throws for positional route metadata values', function (): void {
+it('throws for positional route head data values', function (): void {
     Route::get('/positional-head-key', fn (): string => Head::toHtml())->withHead('Dashboard');
 
     $this->withoutExceptionHandling()->get('/positional-head-key');

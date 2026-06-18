@@ -8,12 +8,12 @@ use Closure;
 use Illuminate\Routing\Route;
 use InvalidArgumentException;
 use Laravel\Head\HeadData;
-use Laravel\Head\MetadataRegistry;
+use Laravel\Head\TagRegistry;
 
 /**
  * @phpstan-type HeadAttributeArray array<mixed, mixed>
  */
-class AttributeParser
+class RouteAttributeParser
 {
     /**
      * @param  array<int|string, mixed>  $arguments
@@ -35,7 +35,7 @@ class AttributeParser
     /**
      * @param  array<mixed, mixed>|Closure|null  $attributes
      */
-    public static function apply(HeadData $head, array|Closure|null $attributes, MetadataRegistry $registry, ?Route $route = null): HeadData
+    public static function apply(HeadData $head, array|Closure|null $attributes, TagRegistry $registry, ?Route $route = null): HeadData
     {
         if (is_null($attributes)) {
             return $head;
@@ -55,25 +55,27 @@ class AttributeParser
     /**
      * @param  array<string, mixed>  $attributes
      */
-    protected static function fill(HeadData $head, array $attributes, MetadataRegistry $registry): HeadData
+    protected static function fill(HeadData $head, array $attributes, TagRegistry $registry): HeadData
     {
         $head = clone $head;
 
-        $attributeKeys = $registry->attributeKeys();
+        $routeAttributeKeys = $registry->routeAttributeKeys();
 
         foreach ($attributes as $key => $value) {
-            if (! isset($attributeKeys[$key])) {
+            if (! isset($routeAttributeKeys[$key])) {
                 throw new InvalidArgumentException(sprintf(
                     'Unknown route head attribute [%s]. Supported attributes are: %s.',
                     $key,
-                    implode(', ', array_keys($attributeKeys)),
+                    implode(', ', array_keys($routeAttributeKeys)),
                 ));
             }
 
-            $section = $attributeKeys[$key]::fromAttributeValue($key, $value);
+            $builderClass = $routeAttributeKeys[$key];
 
-            if (! is_null($section)) {
-                $head->overlaySection($section);
+            $builder = $builderClass::fromRouteAttribute($key, $value);
+
+            if (! is_null($builder)) {
+                $head->overlayBuilder($builder);
             }
         }
 

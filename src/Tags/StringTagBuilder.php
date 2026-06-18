@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 
 /**
  * @phpstan-consistent-constructor
  */
-abstract class StringSection extends Section
+abstract class StringTagBuilder extends TagBuilder
 {
     public function __construct(protected ?string $value = null) {}
 
@@ -18,14 +18,14 @@ abstract class StringSection extends Section
         return new static($value);
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return $key === static::key() && is_string($value)
             ? static::make($value)
             : null;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof static) {
             return $this;

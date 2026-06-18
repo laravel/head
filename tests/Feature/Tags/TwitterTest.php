@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Laravel\Head\Facades\Head;
 use Laravel\Head\TwitterCard;
 
-it('renders twitter image metadata', function (): void {
+it('renders twitter image tags', function (): void {
     Head::twitter(card: TwitterCard::SummaryLargeImage, image: 'https://example.com/twitter.jpg')
         ->twitterImage('https://example.com/twitter-alt.jpg', alt: 'Twitter alt');
 
@@ -15,7 +15,7 @@ it('renders twitter image metadata', function (): void {
         ->toContain('<meta name="twitter:image:alt" content="Twitter alt">');
 });
 
-it('falls back from document metadata to social metadata', function (): void {
+it('falls back from document tags to social tags', function (): void {
     Head::title('Gallery')
         ->description('Gallery description.')
         ->ogImage('https://example.com/gallery.jpg', alt: 'Gallery image');
@@ -32,7 +32,7 @@ it('falls back from document metadata to social metadata', function (): void {
     ]);
 });
 
-it('prefers explicit twitter image metadata over open graph image metadata', function (): void {
+it('prefers explicit twitter image tags over open graph image tags', function (): void {
     Head::ogImage('https://example.com/gallery.jpg', alt: 'Gallery image')
         ->twitterImage('https://example.com/twitter.jpg', alt: 'Twitter image');
 

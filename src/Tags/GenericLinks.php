@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type LinkAttributes array{rel: string, href: string, attributes: array<string, bool|float|int|string|null>}
  */
-class GenericLinks extends GroupedSection
+class GenericLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, LinkAttributes>  $links
@@ -29,32 +29,21 @@ class GenericLinks extends GroupedSection
         return 'links.generic';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['link'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'link' && is_array($value) ? self::fromAttributes($value) : null;
-    }
+        if ($key !== 'link' || ! is_array($value)) {
+            return null;
+        }
 
-    /**
-     * @param  array<mixed, mixed>  $values
-     */
-    public static function fromAttributes(array $values): self
-    {
         $links = new self;
 
-        foreach (self::items($values) as $value) {
-            if (! is_array($value) || ! is_string($value['rel'] ?? null) || ! is_string($value['href'] ?? null)) {
-                continue;
-            }
-
-            $attributes = self::named($value);
-            unset($attributes['rel'], $attributes['href']);
-
-            $links->link($value['rel'], $value['href'], self::attributes($attributes));
+        foreach (self::items($value) as $link) {
+            $links->addRouteAttributeLink($link);
         }
 
         return $links;
@@ -76,7 +65,7 @@ class GenericLinks extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -85,12 +74,9 @@ class GenericLinks extends GroupedSection
         return new static(array_replace($base->links, $this->links));
     }
 
-    /**
-     * @return array<int, LinkAttributes>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->links);
+        return $this->links === [];
     }
 
     /**
@@ -108,34 +94,24 @@ class GenericLinks extends GroupedSection
         }, $this->headArray());
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array<int, LinkAttributes>
+     */
+    protected function headArray(): array
     {
-        return $this->links === [];
+        return array_values($this->links);
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    protected static function items(mixed $value): array
+    private function addRouteAttributeLink(mixed $link): void
     {
-        return is_array($value) && array_is_list($value) ? $value : [$value];
-    }
-
-    /**
-     * @param  array<mixed, mixed>  $values
-     * @return array<string, mixed>
-     */
-    protected static function named(array $values): array
-    {
-        $named = [];
-
-        foreach ($values as $key => $value) {
-            if (is_string($key)) {
-                $named[$key] = $value;
-            }
+        if (! is_array($link) || ! is_string($link['rel'] ?? null) || ! is_string($link['href'] ?? null)) {
+            return;
         }
 
-        return $named;
+        $attributes = self::named($link);
+        unset($attributes['rel'], $attributes['href']);
+
+        $this->link($link['rel'], $link['href'], self::attributes($attributes));
     }
 
     /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Illuminate\Contracts\Pagination\Paginator;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -11,7 +11,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class PaginationLinks extends GroupedSection
+class PaginationLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, string>  $links
@@ -53,7 +53,7 @@ class PaginationLinks extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -62,12 +62,9 @@ class PaginationLinks extends GroupedSection
         return new static(array_replace($base->links, $this->links));
     }
 
-    /**
-     * @return array<string, string>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return $this->links;
+        return $this->links === [];
     }
 
     /**
@@ -75,7 +72,7 @@ class PaginationLinks extends GroupedSection
      */
     public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->headArray();
+        return $this->links;
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -85,10 +82,5 @@ class PaginationLinks extends GroupedSection
             array_keys($this->links),
             $this->links,
         );
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->links === [];
     }
 }

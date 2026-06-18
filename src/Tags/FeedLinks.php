@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type FeedAttributes array{href: string, title: string, type: string}
  */
-class FeedLinks extends GroupedSection
+class FeedLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, FeedAttributes>  $feeds
@@ -29,35 +29,21 @@ class FeedLinks extends GroupedSection
         return 'links.feeds';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['feed'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'feed' && is_array($value) ? self::fromAttributes($value) : null;
-    }
+        if ($key !== 'feed' || ! is_array($value)) {
+            return null;
+        }
 
-    /**
-     * @param  array<mixed, mixed>  $feeds
-     */
-    public static function fromAttributes(array $feeds): self
-    {
         $links = new self;
 
-        foreach ($feeds as $href => $feed) {
-            if (is_string($href) && is_string($feed)) {
-                $links->feed($href, $feed);
-            }
-
-            if (is_array($feed) && is_string($feed['title'] ?? null)) {
-                $links->feed(
-                    self::string($feed['href'] ?? null) ?? self::string($href) ?? '',
-                    $feed['title'],
-                    self::string($feed['type'] ?? null) ?? 'rss',
-                );
-            }
+        foreach ($value as $href => $feed) {
+            $links->addRouteAttributeFeed($href, $feed);
         }
 
         return $links;
@@ -74,7 +60,7 @@ class FeedLinks extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -83,12 +69,9 @@ class FeedLinks extends GroupedSection
         return new static(array_replace($base->feeds, $this->feeds));
     }
 
-    /**
-     * @return array<int, FeedAttributes>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->feeds);
+        return $this->feeds === [];
     }
 
     /**
@@ -112,8 +95,34 @@ class FeedLinks extends GroupedSection
         }, $this->headArray());
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array<int, FeedAttributes>
+     */
+    protected function headArray(): array
     {
-        return $this->feeds === [];
+        return array_values($this->feeds);
+    }
+
+    private function addRouteAttributeFeed(mixed $href, mixed $feed): void
+    {
+        if (is_string($href) && is_string($feed)) {
+            $this->feed($href, $feed);
+        }
+
+        if (is_array($feed) && is_string($feed['title'] ?? null)) {
+            $this->feed(
+                self::routeAttributeHref($href, $feed),
+                $feed['title'],
+                self::string($feed['type'] ?? null) ?? 'rss',
+            );
+        }
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $feed
+     */
+    private static function routeAttributeHref(mixed $href, array $feed): string
+    {
+        return self::string($feed['href'] ?? null) ?? self::string($href) ?? '';
     }
 }

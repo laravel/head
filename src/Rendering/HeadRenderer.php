@@ -7,9 +7,9 @@ namespace Laravel\Head\Rendering;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Laravel\Head\HeadData;
-use Laravel\Head\Metadata\Section;
-use Laravel\Head\MetadataRegistry;
 use Laravel\Head\Schema\SchemaValidator;
+use Laravel\Head\TagRegistry;
+use Laravel\Head\Tags\TagBuilder;
 
 class HeadRenderer
 {
@@ -17,7 +17,7 @@ class HeadRenderer
 
     public function __construct(
         protected SchemaValidator $schemas,
-        protected MetadataRegistry $registry,
+        protected TagRegistry $registry,
         ?TagRenderer $tags = null,
     ) {
         $this->tags = $tags ?? new TagRenderer;
@@ -56,8 +56,8 @@ class HeadRenderer
     {
         $resolved = new ResolvedHead($head, $this->registry, $request, $this->schemas);
 
-        return collect($resolved->sections())
-            ->flatMap(fn (Section $section): array => $section->toTags($resolved, $tags))
+        return collect($resolved->builders())
+            ->flatMap(fn (TagBuilder $builder): array => $builder->toTags($resolved, $tags))
             ->filter()
             ->values()
             ->all();
@@ -74,8 +74,8 @@ class HeadRenderer
 
         $headArray = [];
 
-        foreach ($this->registry->sections() as $section) {
-            Arr::set($headArray, $section::headArrayKey(), $resolved->headArray($section));
+        foreach ($this->registry->builders() as $builder) {
+            Arr::set($headArray, $builder::headArrayKey(), $resolved->headArray($builder));
         }
 
         return $headArray;

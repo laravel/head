@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Laravel\Head\Facades\Head;
 use Laravel\Head\OgType;
 
-it('renders open graph media metadata', function (): void {
+it('renders open graph media tags', function (): void {
     Head::og(type: OgType::Article, image: 'https://example.com/hero.jpg')
         ->ogImage(
             'https://example.com/gallery.jpg',

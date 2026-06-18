@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -10,7 +10,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class Title extends Section
+class Title extends TagBuilder
 {
     public function __construct(
         protected ?string $value = null,
@@ -24,18 +24,19 @@ class Title extends Section
         return 'title';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
-    {
-        return $key === 'title' ? self::fromAttributes($value) : null;
-    }
-
     public static function make(string $value, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): self
     {
         return new self($value, $bare ?? false, $prefix, $suffix);
     }
 
-    public static function fromAttributes(mixed $title): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
+        if ($key !== 'title') {
+            return null;
+        }
+
+        $title = $value;
+
         if (is_string($title)) {
             return self::make($title);
         }
@@ -52,7 +53,7 @@ class Title extends Section
         );
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof static) {
             return $this;
@@ -66,19 +67,19 @@ class Title extends Section
         );
     }
 
+    public function asDefaults(): static
+    {
+        return is_null($this->value)
+            ? $this
+            : new static($this->value, true, $this->prefix, $this->suffix);
+    }
+
     public function isEmpty(): bool
     {
         return is_null($this->value)
             && is_null($this->bare)
             && is_null($this->prefix)
             && is_null($this->suffix);
-    }
-
-    public function asDefaults(): static
-    {
-        return is_null($this->value)
-            ? $this
-            : new static($this->value, true, $this->prefix, $this->suffix);
     }
 
     public function render(): ?string

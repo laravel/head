@@ -10,7 +10,7 @@ use Laravel\Head\HeadManager;
 /**
  * @method static \Laravel\Head\HeadManager defaults(callable $callback)
  * @method static \Laravel\Head\HeadManager errors(callable $callback)
- * @method static \Laravel\Head\HeadManager extend(class-string<\Laravel\Head\Metadata\Section> $section)
+ * @method static \Laravel\Head\HeadManager extend(class-string<\Laravel\Head\Tags\TagBuilder> $builder)
  * @method static \Laravel\Head\HeadManager status(int $status)
  * @method static \Laravel\Head\HeadManager title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null)
  * @method static \Laravel\Head\HeadManager description(string $description)

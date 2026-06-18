@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Illuminate\Http\Request;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -11,7 +11,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class Canonical extends Section
+class Canonical extends TagBuilder
 {
     public function __construct(
         protected string $mode,
@@ -25,11 +25,6 @@ class Canonical extends Section
         return 'canonical';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
-    {
-        return $key === 'canonical' ? self::fromAttributes($value) : null;
-    }
-
     public static function make(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): self
     {
         return $url === false
@@ -37,48 +32,22 @@ class Canonical extends Section
             : new self(is_null($url) ? 'auto' : 'url', $url, $forceHttps, $trailingSlash);
     }
 
-    public static function fromAttributes(mixed $canonical): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        if (is_array($canonical)) {
-            if (self::bool($canonical['none'] ?? null) === true) {
-                return self::make(false);
-            }
-
-            $value = $canonical['value'] ?? null;
-
-            if ($value === false) {
-                return self::make(false);
-            }
-
-            if ($value === true || self::bool($canonical['auto'] ?? null) === true) {
-                $value = null;
-            }
-
-            return is_string($value) || is_null($value)
-                ? self::make(
-                    $value,
-                    forceHttps: self::bool($canonical['forceHttps'] ?? null),
-                    trailingSlash: self::bool($canonical['trailingSlash'] ?? null),
-                )
-                : null;
+        if ($key !== 'canonical') {
+            return null;
         }
 
-        if (is_string($canonical)) {
-            return self::make($canonical);
-        }
-
-        if ($canonical === true || is_null($canonical)) {
-            return self::make();
-        }
-
-        if ($canonical === false) {
-            return self::make(false);
-        }
-
-        return null;
+        return match (true) {
+            is_array($value) => self::fromRouteAttributeArray($value),
+            is_string($value) => self::make($value),
+            $value === true || is_null($value) => self::make(),
+            $value === false => self::make(false),
+            default => null,
+        };
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof static) {
             return $this;
@@ -93,7 +62,7 @@ class Canonical extends Section
     }
 
     /**
-     * Canonical sections always carry a resolution mode, so they are never empty.
+     * Canonical builders always carry a resolution mode, so they are never empty.
      */
     public function isEmpty(): bool
     {
@@ -123,6 +92,47 @@ class Canonical extends Section
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return ($canonical = $this->render($head->request())) ? [$tags->link('canonical', $canonical, 'canonical')] : [];
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $attributes
+     */
+    private static function fromRouteAttributeArray(array $attributes): ?self
+    {
+        if (self::suppressesCanonical($attributes)) {
+            return self::make(false);
+        }
+
+        $value = self::routeAttributeUrl($attributes);
+
+        return is_string($value) || is_null($value)
+            ? self::make(
+                $value,
+                forceHttps: self::bool($attributes['forceHttps'] ?? null),
+                trailingSlash: self::bool($attributes['trailingSlash'] ?? null),
+            )
+            : null;
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $attributes
+     */
+    private static function suppressesCanonical(array $attributes): bool
+    {
+        return self::bool($attributes['none'] ?? null) === true
+            || ($attributes['value'] ?? null) === false;
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $attributes
+     */
+    private static function routeAttributeUrl(array $attributes): mixed
+    {
+        $value = $attributes['value'] ?? null;
+
+        return $value === true || self::bool($attributes['auto'] ?? null) === true
+            ? null
+            : $value;
     }
 
     protected function normalizeUrl(string $url, ?Request $request, bool $forceHttps, bool $trailingSlash): string

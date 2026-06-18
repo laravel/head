@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -10,7 +10,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  */
-class AlternateLinks extends GroupedSection
+class AlternateLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, string>  $links
@@ -27,19 +27,15 @@ class AlternateLinks extends GroupedSection
         return 'links.alternates';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'alternates' && is_array($value) ? self::fromAttributes($value) : null;
-    }
+        if ($key !== 'alternates' || ! is_array($value)) {
+            return null;
+        }
 
-    /**
-     * @param  array<mixed, mixed>  $alternates
-     */
-    public static function fromAttributes(array $alternates): self
-    {
         $links = new self;
 
-        foreach ($alternates as $locale => $href) {
+        foreach ($value as $locale => $href) {
             if (is_string($href)) {
                 $links->link((string) $locale, $href);
             }
@@ -55,7 +51,7 @@ class AlternateLinks extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -64,12 +60,9 @@ class AlternateLinks extends GroupedSection
         return new static(array_replace($base->links, $this->links));
     }
 
-    /**
-     * @return array<string, string>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return $this->links;
+        return $this->links === [];
     }
 
     /**
@@ -77,7 +70,7 @@ class AlternateLinks extends GroupedSection
      */
     public function toHeadArray(ResolvedHead $head): array
     {
-        return $this->headArray();
+        return $this->links;
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
@@ -87,10 +80,5 @@ class AlternateLinks extends GroupedSection
             array_keys($this->links),
             $this->links,
         );
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->links === [];
     }
 }

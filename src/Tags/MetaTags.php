@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Illuminate\Support\Str;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -13,7 +13,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type MetaAttributes array{key: string, content: string, property?: bool|null}
  */
-class MetaTags extends GroupedSection
+class MetaTags extends GroupedTagBuilder
 {
     /**
      * @param  array<string, MetaAttributes>  $tags
@@ -25,25 +25,21 @@ class MetaTags extends GroupedSection
         return 'meta';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'meta' && is_array($value) ? self::fromAttributes($value) : null;
-    }
+        if ($key !== 'meta' || ! is_array($value)) {
+            return null;
+        }
 
-    /**
-     * @param  array<mixed, mixed>  $values
-     */
-    public static function fromAttributes(array $values): self
-    {
         $tags = new self;
 
-        foreach ($values as $key => $value) {
-            if (is_string($key) && is_string($value)) {
-                $tags->tag($key, $value);
+        foreach ($value as $metaKey => $meta) {
+            if (is_string($metaKey) && is_string($meta)) {
+                $tags->tag($metaKey, $meta);
             }
 
-            if (is_array($value) && is_string($value['key'] ?? null) && is_string($value['content'] ?? null)) {
-                $tags->tag($value['key'], $value['content'], self::bool($value['property'] ?? null));
+            if (is_array($meta) && is_string($meta['key'] ?? null) && is_string($meta['content'] ?? null)) {
+                $tags->tag($meta['key'], $meta['content'], self::bool($meta['property'] ?? null));
             }
         }
 
@@ -61,7 +57,7 @@ class MetaTags extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -70,12 +66,9 @@ class MetaTags extends GroupedSection
         return new static(array_replace($base->tags, $this->tags));
     }
 
-    /**
-     * @return array<int, MetaAttributes>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->tags);
+        return $this->tags === [];
     }
 
     /**
@@ -95,13 +88,16 @@ class MetaTags extends GroupedSection
         }, $this->headArray());
     }
 
+    /**
+     * @return array<int, MetaAttributes>
+     */
+    protected function headArray(): array
+    {
+        return array_values($this->tags);
+    }
+
     protected function isRdfaProperty(string $key): bool
     {
         return Str::startsWith($key, ['og:', 'article:', 'book:', 'profile:', 'music:', 'video:', 'fb:', 'product:']);
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->tags === [];
     }
 }

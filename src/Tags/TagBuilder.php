@@ -2,24 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
-abstract class Section
+abstract class TagBuilder
 {
     abstract public static function key(): string;
 
     /**
-     * Merge this section over the given base section, preferring this section's values.
-     */
-    abstract public function overlayOn(?self $base): static;
-
-    abstract public function isEmpty(): bool;
-
-    /**
-     * The dot-notated key this section occupies in the Head::toArray() result.
+     * The dot-notated key this builder occupies in the Head::toArray() result.
      */
     public static function headArrayKey(): string
     {
@@ -27,7 +20,7 @@ abstract class Section
     }
 
     /**
-     * The value used in Head::toArray() when this section has no metadata.
+     * The value used in Head::toArray() when this builder has no data.
      */
     public static function headArrayDefault(): mixed
     {
@@ -37,12 +30,12 @@ abstract class Section
     /**
      * @return array<int, string>
      */
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return [static::key()];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return null;
     }
@@ -52,13 +45,20 @@ abstract class Section
         return false;
     }
 
+    /**
+     * Merge this builder over the given base builder, preferring this builder's values.
+     */
+    abstract public function overlayOn(?self $base): static;
+
     public function asDefaults(): static
     {
         return $this;
     }
 
+    abstract public function isEmpty(): bool;
+
     /**
-     * Convert this section into its Head::toArray() value.
+     * Convert this builder into its Head::toArray() value.
      */
     public function toHeadArray(ResolvedHead $head): mixed
     {
@@ -66,7 +66,7 @@ abstract class Section
     }
 
     /**
-     * Convert this section into the HTML tags rendered by @head.
+     * Convert this builder into the HTML tags rendered by @head.
      *
      * @return array<int, string>
      */
@@ -88,5 +88,30 @@ abstract class Section
     protected static function int(mixed $value): ?int
     {
         return is_int($value) ? $value : null;
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    protected static function items(mixed $value): array
+    {
+        return is_array($value) && array_is_list($value) ? $value : [$value];
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $values
+     * @return array<string, mixed>
+     */
+    protected static function named(array $values): array
+    {
+        $named = [];
+
+        foreach ($values as $key => $value) {
+            if (is_string($key)) {
+                $named[$key] = $value;
+            }
+        }
+
+        return $named;
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -13,7 +13,7 @@ use Laravel\Head\Schema\SchemaObject;
  *
  * @phpstan-type SchemaData array<string, mixed>
  */
-class Schemas extends GroupedSection
+class Schemas extends GroupedTagBuilder
 {
     /**
      * @param  array<string, SchemaObject|SchemaData>  $schemas
@@ -25,36 +25,30 @@ class Schemas extends GroupedSection
         return 'schemas';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['schema'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'schema' && ($value instanceof SchemaObject || is_array($value))
-            ? self::fromAttributes($value)
-            : null;
-    }
-
-    /**
-     * @param  SchemaObject|SchemaData|array<int, SchemaObject|SchemaData>  $schemas
-     */
-    public static function fromAttributes(SchemaObject|array $schemas): self
-    {
-        $metadata = new self;
-
-        if ($schemas instanceof SchemaObject || ! array_is_list($schemas)) {
-            return $metadata->schema($schemas instanceof SchemaObject ? $schemas : self::named($schemas));
+        if ($key !== 'schema' || (! $value instanceof SchemaObject && ! is_array($value))) {
+            return null;
         }
 
-        foreach ($schemas as $schema) {
+        $builder = new self;
+
+        if ($value instanceof SchemaObject || ! array_is_list($value)) {
+            return $builder->schema($value instanceof SchemaObject ? $value : self::named($value));
+        }
+
+        foreach ($value as $schema) {
             if ($schema instanceof SchemaObject || is_array($schema)) {
-                $metadata->schema($schema instanceof SchemaObject ? $schema : self::named($schema));
+                $builder->schema($schema instanceof SchemaObject ? $schema : self::named($schema));
             }
         }
 
-        return $metadata;
+        return $builder;
     }
 
     /**
@@ -67,7 +61,7 @@ class Schemas extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -76,12 +70,9 @@ class Schemas extends GroupedSection
         return new static(array_replace($base->schemas, $this->schemas));
     }
 
-    /**
-     * @return array<int, SchemaObject|SchemaData>
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return array_values($this->schemas);
+        return $this->schemas === [];
     }
 
     /**
@@ -106,25 +97,11 @@ class Schemas extends GroupedSection
         );
     }
 
-    public function isEmpty(): bool
-    {
-        return $this->schemas === [];
-    }
-
     /**
-     * @param  array<mixed, mixed>  $values
-     * @return array<string, mixed>
+     * @return array<int, SchemaObject|SchemaData>
      */
-    protected static function named(array $values): array
+    protected function headArray(): array
     {
-        $named = [];
-
-        foreach ($values as $key => $value) {
-            if (is_string($key)) {
-                $named[$key] = $value;
-            }
-        }
-
-        return $named;
+        return array_values($this->schemas);
     }
 }

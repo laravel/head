@@ -9,7 +9,7 @@ use Laravel\Head\HeadManager;
 use Laravel\Head\OgType;
 use Laravel\Head\TwitterCard;
 
-it('renders resolved head metadata in section order', function (): void {
+it('renders resolved head tags in builder order', function (): void {
     Head::defaults(function (HeadManager $head): void {
         $head
             ->title('Acme', suffix: ' - Acme')
@@ -60,7 +60,7 @@ it('does not render inertia keys in blade html output', function (): void {
         ->not->toContain('data-inertia');
 });
 
-it('groups link sections under the links key when serialized to an array', function (): void {
+it('groups link builders under the links key when serialized to an array', function (): void {
     Head::title('About')
         ->preload('/fonts/inter.woff2', as: 'font')
         ->paginate(new LengthAwarePaginator(['post'], total: 30, perPage: 10, currentPage: 2, options: ['path' => '/posts']))

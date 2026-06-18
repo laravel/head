@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -12,7 +12,7 @@ use Laravel\Head\Rendering\TagRenderer;
  *
  * @phpstan-type LinkAttributes array{href: string, as?: string|null, crossorigin?: bool|string|null, type?: string|null, media?: string|null}
  */
-class PerformanceLinks extends GroupedSection
+class PerformanceLinks extends GroupedTagBuilder
 {
     /**
      * @param  array<string, LinkAttributes>  $preloads
@@ -47,12 +47,12 @@ class PerformanceLinks extends GroupedSection
         ];
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['preload', 'prefetch', 'preconnect', 'dnsPrefetch'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return match ($key) {
             'preload' => is_array($value) ? self::fromPreloadAttributes($value) : null,
@@ -191,7 +191,7 @@ class PerformanceLinks extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -205,17 +205,12 @@ class PerformanceLinks extends GroupedSection
         );
     }
 
-    /**
-     * @return array{preload: array<int, LinkAttributes>, prefetch: array<int, LinkAttributes>, preconnect: array<int, LinkAttributes>, dnsPrefetch: array<int, array{href: string}>}
-     */
-    protected function headArray(): array
+    public function isEmpty(): bool
     {
-        return [
-            'preload' => array_values($this->preloads),
-            'prefetch' => array_values($this->prefetches),
-            'preconnect' => array_values($this->preconnects),
-            'dnsPrefetch' => array_values($this->dnsPrefetches),
-        ];
+        return $this->preloads === []
+            && $this->prefetches === []
+            && $this->preconnects === []
+            && $this->dnsPrefetches === [];
     }
 
     /**
@@ -236,12 +231,17 @@ class PerformanceLinks extends GroupedSection
         ];
     }
 
-    public function isEmpty(): bool
+    /**
+     * @return array{preload: array<int, LinkAttributes>, prefetch: array<int, LinkAttributes>, preconnect: array<int, LinkAttributes>, dnsPrefetch: array<int, array{href: string}>}
+     */
+    protected function headArray(): array
     {
-        return $this->preloads === []
-            && $this->prefetches === []
-            && $this->preconnects === []
-            && $this->dnsPrefetches === [];
+        return [
+            'preload' => array_values($this->preloads),
+            'prefetch' => array_values($this->prefetches),
+            'preconnect' => array_values($this->preconnects),
+            'dnsPrefetch' => array_values($this->dnsPrefetches),
+        ];
     }
 
     protected static function boolOrString(mixed $value): bool|string|null

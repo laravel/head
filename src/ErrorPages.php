@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
-use Laravel\Head\Routing\AttributeParser;
+use Laravel\Head\Routing\RouteAttributeParser;
 
 class ErrorPages
 {
@@ -13,21 +13,21 @@ class ErrorPages
     /** @var array<int, HeadData> */
     protected array $statuses = [];
 
-    public function __construct(protected MetadataRegistry $registry)
+    public function __construct(protected TagRegistry $registry)
     {
         $this->defaults = new HeadData;
     }
 
     public function defaults(mixed ...$head): static
     {
-        $this->defaults = AttributeParser::apply($this->defaults, AttributeParser::arguments($head), $this->registry);
+        $this->defaults = RouteAttributeParser::apply($this->defaults, RouteAttributeParser::arguments($head), $this->registry);
 
         return $this;
     }
 
     public function status(int $status, mixed ...$head): static
     {
-        $this->statuses[$status] = AttributeParser::apply(new HeadData, AttributeParser::arguments($head), $this->registry);
+        $this->statuses[$status] = RouteAttributeParser::apply(new HeadData, RouteAttributeParser::arguments($head), $this->registry);
 
         return $this;
     }

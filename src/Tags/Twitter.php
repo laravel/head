@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head\Metadata;
+namespace Laravel\Head\Tags;
 
 use Illuminate\Support\Arr;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -14,7 +14,7 @@ use Laravel\Head\TwitterCard;
  *
  * @phpstan-type ImageAttributes array<string, string>
  */
-class Twitter extends GroupedSection
+class Twitter extends GroupedTagBuilder
 {
     /**
      * @param  array<string, string>  $properties
@@ -30,7 +30,7 @@ class Twitter extends GroupedSection
         return 'twitter';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['twitter', 'twitterImage'];
     }
@@ -40,15 +40,6 @@ class Twitter extends GroupedSection
         return ! is_null($head->title())
             || ! is_null($head->description())
             || ! is_null($head->openGraphImage());
-    }
-
-    public static function fromAttributeValue(string $key, mixed $value): ?self
-    {
-        return match ($key) {
-            'twitter' => is_array($value) ? self::fromAttributes($value) : null,
-            'twitterImage' => self::fromImageAttributes($value),
-            default => null,
-        };
     }
 
     public static function make(
@@ -74,6 +65,15 @@ class Twitter extends GroupedSection
         }
 
         return $twitter;
+    }
+
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
+    {
+        return match ($key) {
+            'twitter' => is_array($value) ? self::fromAttributes($value) : null,
+            'twitterImage' => self::fromImageAttributes($value),
+            default => null,
+        };
     }
 
     /**
@@ -116,7 +116,7 @@ class Twitter extends GroupedSection
         return $this;
     }
 
-    public function overlayOn(?Section $base): static
+    public function overlayOn(?TagBuilder $base): static
     {
         if (! $base instanceof self) {
             return $this;
@@ -126,6 +126,11 @@ class Twitter extends GroupedSection
             array_replace($base->properties, $this->properties),
             $this->image ?? $base->image,
         );
+    }
+
+    public function isEmpty(): bool
+    {
+        return $this->properties === [] && is_null($this->image);
     }
 
     /**
@@ -144,27 +149,6 @@ class Twitter extends GroupedSection
         }
 
         return $properties;
-    }
-
-    /**
-     * @param  ImageAttributes|null  $fallback
-     * @return ImageAttributes|null
-     */
-    protected function headArrayImage(?array $fallback = null): ?array
-    {
-        return $this->image ?? $fallback;
-    }
-
-    /**
-     * @param  ImageAttributes|null  $fallbackImage
-     * @return array<string, mixed>
-     */
-    protected function headArray(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
-    {
-        return array_filter([
-            ...$this->render($title, $description),
-            'image' => $this->headArrayImage($fallbackImage),
-        ]);
     }
 
     /**
@@ -197,9 +181,25 @@ class Twitter extends GroupedSection
         return $rendered;
     }
 
-    public function isEmpty(): bool
+    /**
+     * @param  ImageAttributes|null  $fallback
+     * @return ImageAttributes|null
+     */
+    protected function headArrayImage(?array $fallback = null): ?array
     {
-        return $this->properties === [] && is_null($this->image);
+        return $this->image ?? $fallback;
+    }
+
+    /**
+     * @param  ImageAttributes|null  $fallbackImage
+     * @return array<string, mixed>
+     */
+    protected function headArray(?string $title = null, ?string $description = null, ?array $fallbackImage = null): array
+    {
+        return array_filter([
+            ...$this->render($title, $description),
+            'image' => $this->headArrayImage($fallbackImage),
+        ]);
     }
 
     /**

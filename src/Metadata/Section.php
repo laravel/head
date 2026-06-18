@@ -37,12 +37,12 @@ abstract class Section
     /**
      * @return array<int, string>
      */
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return [static::key()];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return null;
     }

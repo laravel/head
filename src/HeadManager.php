@@ -14,7 +14,7 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Support\Traits\Macroable;
 use Laravel\Head\Metadata\Section;
 use Laravel\Head\Rendering\HeadRenderer;
-use Laravel\Head\Routing\AttributeParser;
+use Laravel\Head\Routing\RouteAttributeParser;
 use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaObject;
@@ -338,13 +338,13 @@ class HeadManager implements Arrayable, Htmlable
 
         if ($route = $this->route()) {
             foreach ($this->routes->groups($route) as $attributes) {
-                $data = AttributeParser::apply($data, $attributes, $this->registry, $route);
+                $data = RouteAttributeParser::apply($data, $attributes, $this->registry, $route);
             }
 
             $attributes = $this->routes->get($route);
 
             if (! is_null($attributes)) {
-                $data = AttributeParser::apply($data, $attributes, $this->registry, $route);
+                $data = RouteAttributeParser::apply($data, $attributes, $this->registry, $route);
             }
         }
 

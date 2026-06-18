@@ -29,24 +29,20 @@ class FeedLinks extends GroupedSection
         return 'links.feeds';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['feed'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'feed' && is_array($value) ? self::fromAttributes($value) : null;
-    }
+        if ($key !== 'feed' || ! is_array($value)) {
+            return null;
+        }
 
-    /**
-     * @param  array<mixed, mixed>  $feeds
-     */
-    public static function fromAttributes(array $feeds): self
-    {
         $links = new self;
 
-        foreach ($feeds as $href => $feed) {
+        foreach ($value as $href => $feed) {
             if (is_string($href) && is_string($feed)) {
                 $links->feed($href, $feed);
             }

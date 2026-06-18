@@ -13,7 +13,7 @@ use Laravel\Head\MetadataRegistry;
 /**
  * @phpstan-type HeadAttributeArray array<mixed, mixed>
  */
-class AttributeParser
+class RouteAttributeParser
 {
     /**
      * @param  array<int|string, mixed>  $arguments
@@ -59,18 +59,20 @@ class AttributeParser
     {
         $head = clone $head;
 
-        $attributeKeys = $registry->attributeKeys();
+        $routeAttributeKeys = $registry->routeAttributeKeys();
 
         foreach ($attributes as $key => $value) {
-            if (! isset($attributeKeys[$key])) {
+            if (! isset($routeAttributeKeys[$key])) {
                 throw new InvalidArgumentException(sprintf(
                     'Unknown route head attribute [%s]. Supported attributes are: %s.',
                     $key,
-                    implode(', ', array_keys($attributeKeys)),
+                    implode(', ', array_keys($routeAttributeKeys)),
                 ));
             }
 
-            $section = $attributeKeys[$key]::fromAttributeValue($key, $value);
+            $sectionClass = $routeAttributeKeys[$key];
+
+            $section = $sectionClass::fromRouteAttribute($key, $value);
 
             if (! is_null($section)) {
                 $head->overlaySection($section);

@@ -30,7 +30,7 @@ class Twitter extends GroupedSection
         return 'twitter';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['twitter', 'twitterImage'];
     }
@@ -42,7 +42,7 @@ class Twitter extends GroupedSection
             || ! is_null($head->openGraphImage());
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return match ($key) {
             'twitter' => is_array($value) ? self::fromAttributes($value) : null,

@@ -47,12 +47,12 @@ class PerformanceLinks extends GroupedSection
         ];
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['preload', 'prefetch', 'preconnect', 'dnsPrefetch'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return match ($key) {
             'preload' => is_array($value) ? self::fromPreloadAttributes($value) : null,

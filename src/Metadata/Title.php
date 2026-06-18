@@ -24,18 +24,19 @@ class Title extends Section
         return 'title';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
-    {
-        return $key === 'title' ? self::fromAttributes($value) : null;
-    }
-
     public static function make(string $value, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): self
     {
         return new self($value, $bare ?? false, $prefix, $suffix);
     }
 
-    public static function fromAttributes(mixed $title): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
+        if ($key !== 'title') {
+            return null;
+        }
+
+        $title = $value;
+
         if (is_string($title)) {
             return self::make($title);
         }

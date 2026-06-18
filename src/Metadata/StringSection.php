@@ -18,7 +18,7 @@ abstract class StringSection extends Section
         return new static($value);
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return $key === static::key() && is_string($value)
             ? static::make($value)

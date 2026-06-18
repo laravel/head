@@ -25,30 +25,24 @@ class Schemas extends GroupedSection
         return 'schemas';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['schema'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'schema' && ($value instanceof SchemaObject || is_array($value))
-            ? self::fromAttributes($value)
-            : null;
-    }
-
-    /**
-     * @param  SchemaObject|SchemaData|array<int, SchemaObject|SchemaData>  $schemas
-     */
-    public static function fromAttributes(SchemaObject|array $schemas): self
-    {
-        $metadata = new self;
-
-        if ($schemas instanceof SchemaObject || ! array_is_list($schemas)) {
-            return $metadata->schema($schemas instanceof SchemaObject ? $schemas : self::named($schemas));
+        if ($key !== 'schema' || (! $value instanceof SchemaObject && ! is_array($value))) {
+            return null;
         }
 
-        foreach ($schemas as $schema) {
+        $metadata = new self;
+
+        if ($value instanceof SchemaObject || ! array_is_list($value)) {
+            return $metadata->schema($value instanceof SchemaObject ? $value : self::named($value));
+        }
+
+        foreach ($value as $schema) {
             if ($schema instanceof SchemaObject || is_array($schema)) {
                 $metadata->schema($schema instanceof SchemaObject ? $schema : self::named($schema));
             }

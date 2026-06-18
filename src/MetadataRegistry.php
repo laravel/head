@@ -60,12 +60,12 @@ class MetadataRegistry
     /**
      * @return array<string, class-string<Section>>
      */
-    public function attributeKeys(): array
+    public function routeAttributeKeys(): array
     {
         $keys = [];
 
         foreach ($this->sections() as $section) {
-            foreach ($section::attributeKeys() as $key) {
+            foreach ($section::routeAttributeKeys() as $key) {
                 $keys[$key] = $section;
             }
         }

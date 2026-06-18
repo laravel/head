@@ -25,7 +25,7 @@ class ReadingTime extends Section
         return new self($minutes);
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return $key === 'readingTime' && is_int($value) ? self::make($value) : null;
     }

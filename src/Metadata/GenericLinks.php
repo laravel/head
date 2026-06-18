@@ -29,32 +29,28 @@ class GenericLinks extends GroupedSection
         return 'links.generic';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['link'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'link' && is_array($value) ? self::fromAttributes($value) : null;
-    }
+        if ($key !== 'link' || ! is_array($value)) {
+            return null;
+        }
 
-    /**
-     * @param  array<mixed, mixed>  $values
-     */
-    public static function fromAttributes(array $values): self
-    {
         $links = new self;
 
-        foreach (self::items($values) as $value) {
-            if (! is_array($value) || ! is_string($value['rel'] ?? null) || ! is_string($value['href'] ?? null)) {
+        foreach (self::items($value) as $link) {
+            if (! is_array($link) || ! is_string($link['rel'] ?? null) || ! is_string($link['href'] ?? null)) {
                 continue;
             }
 
-            $attributes = self::named($value);
+            $attributes = self::named($link);
             unset($attributes['rel'], $attributes['href']);
 
-            $links->link($value['rel'], $value['href'], self::attributes($attributes));
+            $links->link($link['rel'], $link['href'], self::attributes($attributes));
         }
 
         return $links;

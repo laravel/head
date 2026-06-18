@@ -25,25 +25,21 @@ class MetaTags extends GroupedSection
         return 'meta';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        return $key === 'meta' && is_array($value) ? self::fromAttributes($value) : null;
-    }
+        if ($key !== 'meta' || ! is_array($value)) {
+            return null;
+        }
 
-    /**
-     * @param  array<mixed, mixed>  $values
-     */
-    public static function fromAttributes(array $values): self
-    {
         $tags = new self;
 
-        foreach ($values as $key => $value) {
-            if (is_string($key) && is_string($value)) {
-                $tags->tag($key, $value);
+        foreach ($value as $metaKey => $meta) {
+            if (is_string($metaKey) && is_string($meta)) {
+                $tags->tag($metaKey, $meta);
             }
 
-            if (is_array($value) && is_string($value['key'] ?? null) && is_string($value['content'] ?? null)) {
-                $tags->tag($value['key'], $value['content'], self::bool($value['property'] ?? null));
+            if (is_array($meta) && is_string($meta['key'] ?? null) && is_string($meta['content'] ?? null)) {
+                $tags->tag($meta['key'], $meta['content'], self::bool($meta['property'] ?? null));
             }
         }
 

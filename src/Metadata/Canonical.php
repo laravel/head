@@ -25,11 +25,6 @@ class Canonical extends Section
         return 'canonical';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
-    {
-        return $key === 'canonical' ? self::fromAttributes($value) : null;
-    }
-
     public static function make(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): self
     {
         return $url === false
@@ -37,8 +32,14 @@ class Canonical extends Section
             : new self(is_null($url) ? 'auto' : 'url', $url, $forceHttps, $trailingSlash);
     }
 
-    public static function fromAttributes(mixed $canonical): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
+        if ($key !== 'canonical') {
+            return null;
+        }
+
+        $canonical = $value;
+
         if (is_array($canonical)) {
             if (self::bool($canonical['none'] ?? null) === true) {
                 return self::make(false);

@@ -27,7 +27,7 @@ class AlternateLinks extends GroupedSection
         return 'links.alternates';
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return $key === 'alternates' && is_array($value) ? self::fromAttributes($value) : null;
     }

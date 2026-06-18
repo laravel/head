@@ -33,12 +33,12 @@ class OpenGraph extends GroupedSection
         return 'openGraph';
     }
 
-    public static function attributeKeys(): array
+    public static function routeAttributeKeys(): array
     {
         return ['og', 'ogImage', 'ogVideo', 'ogAudio'];
     }
 
-    public static function fromAttributeValue(string $key, mixed $value): ?self
+    public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return match ($key) {
             'og' => is_array($value) ? self::fromAttributes($value) : null,

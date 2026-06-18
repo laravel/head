@@ -23,6 +23,7 @@
     },
     "require-dev": {
         "inertiajs/inertia-laravel": "^3.1",
+        "laravel/framework": "dev-feat/route-metadata as 13.16.1",
         "laravel/pint": "^1.28.0",
         "livewire/livewire": "^4.3",
         "orchestra/testbench": "^10.0|^11.0",

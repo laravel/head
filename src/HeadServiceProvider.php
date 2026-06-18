@@ -6,14 +6,12 @@ namespace Laravel\Head;
 
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Http\Request;
-use Illuminate\Routing\ResourceRegistrar as BaseResourceRegistrar;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\RegistersHeadRoutes;
-use Laravel\Head\Routing\ResourceRegistrar;
 use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaValidator;
@@ -47,7 +45,6 @@ class HeadServiceProvider extends ServiceProvider
         ));
         $this->app->alias(HeadManager::class, 'head');
 
-        $this->app->bind(BaseResourceRegistrar::class, fn ($app): ResourceRegistrar => new ResourceRegistrar($app['router'], $app->make(RouteHeadRepository::class)));
     }
 
     /**

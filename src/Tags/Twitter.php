@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Laravel\Head\Tags;
 
 use Illuminate\Support\Arr;
+use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
-use Laravel\Head\TwitterCard;
 
 /**
  * @phpstan-consistent-constructor

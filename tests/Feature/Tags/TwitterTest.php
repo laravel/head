@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
-use Laravel\Head\TwitterCard;
 
 it('renders twitter image tags', function (): void {
     Head::twitter(card: TwitterCard::SummaryLargeImage, image: 'https://example.com/twitter.jpg')

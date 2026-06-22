@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Traits\Macroable;
+use Laravel\Head\Enums\OgType;
+use Laravel\Head\Enums\RobotsRule;
+use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\RouteAttributeParser;
 use Laravel\Head\Routing\RouteHeadRepository;
@@ -77,9 +80,12 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
-    public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): static
+    /**
+     * Use $exact to render the title without inherited prefix or suffix.
+     */
+    public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $exact = null): static
     {
-        $this->data()->title($title, prefix: $prefix, suffix: $suffix, bare: $bare);
+        $this->data()->title($title, prefix: $prefix, suffix: $suffix, exact: $exact);
 
         return $this;
     }
@@ -98,7 +104,10 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
-    public function robots(string $directives): static
+    /**
+     * @param  string|RobotsRule|array<int, string|RobotsRule>  $directives
+     */
+    public function robots(string|RobotsRule|array $directives): static
     {
         $this->data()->robots($directives);
 

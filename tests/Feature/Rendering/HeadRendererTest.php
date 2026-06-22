@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Pagination\LengthAwarePaginator;
+use Laravel\Head\Enums\OgType;
+use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
 use Laravel\Head\HeadManager;
-use Laravel\Head\OgType;
-use Laravel\Head\TwitterCard;
 
 it('renders resolved head tags in builder order', function (): void {
     Head::defaults(function (HeadManager $head): void {

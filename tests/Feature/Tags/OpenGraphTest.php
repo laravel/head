@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Laravel\Head\Enums\OgType;
 use Laravel\Head\Facades\Head;
-use Laravel\Head\OgType;
 
 it('renders open graph media tags', function (): void {
     Head::og(type: OgType::Article, image: 'https://example.com/hero.jpg')

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Laravel\Head\Enums\OfferAvailability;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
 use Laravel\Head\Tests\Fixtures\JobPosting;
@@ -44,4 +45,25 @@ it('registers custom schema types as first class factory methods', function (): 
         ->toContain('"@type":"JobPosting"')
         ->toContain('"title":"Senior Laravel Developer"')
         ->toContain('"datePosted":"2026-05-13"');
+});
+
+it('sets offer availability from schema org enum values', function (): void {
+    Head::schema(
+        Schema::product()
+            ->name('Desk')
+            ->offers(
+                Schema::offer()
+                    ->price(125)
+                    ->priceCurrency('USD')
+                    ->availability(OfferAvailability::InStock)
+            )
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"availability":"https://schema.org/InStock"');
+});
+
+it('includes all schema org item availability values', function (): void {
+    expect(OfferAvailability::MadeToOrder->url())->toBe('https://schema.org/MadeToOrder')
+        ->and(OfferAvailability::Reserved->url())->toBe('https://schema.org/Reserved');
 });

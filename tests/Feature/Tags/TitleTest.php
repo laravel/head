@@ -11,10 +11,10 @@ it('renders the default title without applying its inherited suffix', function (
     expect(Head::toHtml())->toContain('<title>Acme</title>');
 });
 
-it('can render a bare title without the configured suffix', function (): void {
+it('can render an exact title without the configured suffix', function (): void {
     Head::defaults(fn (HeadManager $head): HeadManager => $head->title('Acme', suffix: ' - Acme'));
 
-    Head::title('Checkout', bare: true);
+    Head::title('Checkout', exact: true);
 
     expect(Head::toHtml())->toContain('<title>Checkout</title>');
 });

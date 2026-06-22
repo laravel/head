@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tags;
 
-use Laravel\Head\OgType;
+use Laravel\Head\Enums\OgType;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 

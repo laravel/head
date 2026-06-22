@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Laravel\Head\Enums\OgType;
+use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
-use Laravel\Head\OgType;
-use Laravel\Head\TwitterCard;
 
 it('cascades defaults route groups routes and controller mutations', function (): void {
     Head::defaults(function (HeadManager $head): void {

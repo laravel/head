@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Schema;
 
+use Laravel\Head\Enums\OfferAvailability;
 use Laravel\Head\SchemaType;
 
 #[SchemaType('Offer')]
@@ -19,10 +20,8 @@ class Offer extends SchemaObject
         return $this->set('priceCurrency', $currency);
     }
 
-    public function availability(string $availability): static
+    public function availability(OfferAvailability $availability): static
     {
-        return $this->set('availability', str_starts_with($availability, 'https://schema.org/')
-            ? $availability
-            : 'https://schema.org/'.$availability);
+        return $this->set('availability', $availability->url());
     }
 }

@@ -34,8 +34,9 @@ Register global defaults in a service provider:
 ```php
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
-use Laravel\Head\OgType;
-use Laravel\Head\TwitterCard;
+use Laravel\Head\Enums\OgType;
+use Laravel\Head\Enums\RobotsRule;
+use Laravel\Head\Enums\TwitterCard;
 
 Head::defaults(function (HeadManager $head) {
     $head
@@ -44,14 +45,16 @@ Head::defaults(function (HeadManager $head) {
         ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
         ->twitter(card: TwitterCard::SummaryLargeImage)
-        ->robots('index, follow')
+        ->robots(RobotsRule::All)
         ->preconnect('https://fonts.example.com');
 });
 ```
 
-The defaults layer is the lowest-priority layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `bare: true` for titles that should ignore the inherited prefix or suffix.
+The defaults layer is the lowest-priority layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `exact: true` for titles that should ignore the inherited prefix or suffix.
 
 Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string `Head::canonical('/about')`. A later layer can remove an inherited canonical URL with `Head::canonical(false)`.
+
+Robots directives may be passed as a raw string, as `RobotsRule` enum cases, or as a list mixing both forms. Lists are rendered as comma-separated directives, so `Head::robots([RobotsRule::NoIndex, RobotsRule::NoFollow])` renders `noindex, nofollow`.
 
 ## Route Metadata
 
@@ -151,8 +154,8 @@ When a response is rendered for a registered error status, that metadata beats e
 Open Graph and Twitter card properties are set with `og()` and `twitter()`. Repeatable media is added through top-level methods that take named arguments directly:
 
 ```php
-use Laravel\Head\OgType;
-use Laravel\Head\TwitterCard;
+use Laravel\Head\Enums\OgType;
+use Laravel\Head\Enums\TwitterCard;
 
 Head::og(type: OgType::Article, title: $post->title)
     ->ogImage($post->hero_image_url)
@@ -222,6 +225,7 @@ Head::meta('theme-color', '#000000')
 Built-in schema builders cover the common JSON-LD types:
 
 ```php
+use Laravel\Head\Enums\OfferAvailability;
 use Laravel\Head\Facades\Schema;
 
 Head::schema(
@@ -231,7 +235,7 @@ Head::schema(
             Schema::offer()
                 ->price($product->price)
                 ->priceCurrency('USD')
-                ->availability('InStock')
+                ->availability(OfferAvailability::InStock)
         )
 );
 ```

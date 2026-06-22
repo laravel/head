@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Laravel\Head;
 
 use Illuminate\Contracts\Pagination\Paginator;
+use Laravel\Head\Enums\OgType;
+use Laravel\Head\Enums\RobotsRule;
+use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Schema\SchemaObject;
 use Laravel\Head\Tags\AlternateLinks;
 use Laravel\Head\Tags\Canonical;
@@ -86,9 +89,9 @@ class HeadData
         return $defaults;
     }
 
-    public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): static
+    public function title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $exact = null): static
     {
-        return $this->overlayBuilder(Title::make($title, prefix: $prefix, suffix: $suffix, bare: $bare));
+        return $this->overlayBuilder(Title::make($title, prefix: $prefix, suffix: $suffix, exact: $exact));
     }
 
     public function description(string $description): static
@@ -101,7 +104,10 @@ class HeadData
         return $this->overlayBuilder(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
     }
 
-    public function robots(string $directives): static
+    /**
+     * @param  string|RobotsRule|array<int, string|RobotsRule>  $directives
+     */
+    public function robots(string|RobotsRule|array $directives): static
     {
         return $this->overlayBuilder(Robots::make($directives));
     }

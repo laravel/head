@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Laravel\Head;
+namespace Laravel\Head\Enums;
 
 enum OgType: string
 {

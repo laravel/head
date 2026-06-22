@@ -14,7 +14,7 @@ class Title extends TagBuilder
 {
     public function __construct(
         protected ?string $value = null,
-        protected ?bool $bare = null,
+        protected ?bool $exact = null,
         protected ?string $prefix = null,
         protected ?string $suffix = null,
     ) {}
@@ -24,9 +24,9 @@ class Title extends TagBuilder
         return 'title';
     }
 
-    public static function make(string $value, ?string $prefix = null, ?string $suffix = null, ?bool $bare = null): self
+    public static function make(string $value, ?string $prefix = null, ?string $suffix = null, ?bool $exact = null): self
     {
-        return new self($value, $bare ?? false, $prefix, $suffix);
+        return new self($value, $exact ?? false, $prefix, $suffix);
     }
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
@@ -49,7 +49,7 @@ class Title extends TagBuilder
             $title['value'],
             prefix: self::string($title['prefix'] ?? null),
             suffix: self::string($title['suffix'] ?? null),
-            bare: self::bool($title['bare'] ?? null),
+            exact: self::bool($title['exact'] ?? null),
         );
     }
 
@@ -61,7 +61,7 @@ class Title extends TagBuilder
 
         return new static(
             $this->value ?? $base->value,
-            $this->bare ?? $base->bare,
+            $this->exact ?? $base->exact,
             $this->prefix ?? $base->prefix,
             $this->suffix ?? $base->suffix,
         );
@@ -77,7 +77,7 @@ class Title extends TagBuilder
     public function isEmpty(): bool
     {
         return is_null($this->value)
-            && is_null($this->bare)
+            && is_null($this->exact)
             && is_null($this->prefix)
             && is_null($this->suffix);
     }
@@ -88,7 +88,7 @@ class Title extends TagBuilder
             return null;
         }
 
-        if ($this->bare === true) {
+        if ($this->exact === true) {
             return $this->value;
         }
 

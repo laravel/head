@@ -24,7 +24,17 @@ class TagRenderer
     {
         $inertiaKey ??= $key;
 
-        return '<meta'.$this->inertiaAttribute($inertiaKey).' '.$attribute.'="'.e($key).'" content="'.e((string) $content).'">';
+        return $this->metaWithAttributes($attribute, $key, ['content' => (string) $content], $inertiaKey);
+    }
+
+    /**
+     * @param  array<string, bool|float|int|string|null>  $attributes
+     */
+    public function metaWithAttributes(string $attribute, string $key, array $attributes, ?string $inertiaKey = null): string
+    {
+        $inertiaKey ??= $key;
+
+        return '<meta'.$this->inertiaAttribute($inertiaKey).' '.$attribute.'="'.e($key).'" '.$this->attributes($attributes).'>';
     }
 
     public function link(string $rel, string $href, ?string $inertiaKey = null): string

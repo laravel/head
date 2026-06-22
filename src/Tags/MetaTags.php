@@ -11,7 +11,7 @@ use Laravel\Head\Rendering\TagRenderer;
 /**
  * @phpstan-consistent-constructor
  *
- * @phpstan-type MetaAttributes array{key: string, content: string, property?: bool|null}
+ * @phpstan-type MetaAttributes array{key: string, content: string, property?: bool|null, media?: string|null}
  */
 class MetaTags extends GroupedTagBuilder
 {
@@ -27,6 +27,10 @@ class MetaTags extends GroupedTagBuilder
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
+        if ($key === 'themeColor' && is_string($value)) {
+            return (new self)->tag('theme-color', $value);
+        }
+
         if ($key !== 'meta' || ! is_array($value)) {
             return null;
         }
@@ -39,19 +43,30 @@ class MetaTags extends GroupedTagBuilder
             }
 
             if (is_array($meta) && is_string($meta['key'] ?? null) && is_string($meta['content'] ?? null)) {
-                $tags->tag($meta['key'], $meta['content'], self::bool($meta['property'] ?? null));
+                $tags->tag(
+                    $meta['key'],
+                    $meta['content'],
+                    property: self::bool($meta['property'] ?? null),
+                    media: self::string($meta['media'] ?? null),
+                );
             }
         }
 
         return $tags;
     }
 
-    public function tag(string $key, string $content, ?bool $property = null): static
+    public static function routeAttributeKeys(): array
     {
-        $this->tags[$key] = array_filter([
+        return ['meta', 'themeColor'];
+    }
+
+    public function tag(string $key, string $content, ?bool $property = null, ?string $media = null): static
+    {
+        $this->tags[$this->tagKey($key, $property, $media)] = array_filter([
             'key' => $key,
             'content' => $content,
             'property' => $property,
+            'media' => $media,
         ], fn ($value) => ! is_null($value));
 
         return $this;
@@ -82,9 +97,12 @@ class MetaTags extends GroupedTagBuilder
     public function toTags(ResolvedHead $head, TagRenderer $tags): array
     {
         return array_map(function (array $meta) use ($tags): string {
-            $attribute = ($meta['property'] ?? $this->isRdfaProperty($meta['key'])) ? 'property' : 'name';
+            $attribute = $this->resolveAttribute($meta['key'], $meta['property'] ?? null);
 
-            return $tags->meta($attribute, $meta['key'], $meta['content'], $meta['key']);
+            return $tags->metaWithAttributes($attribute, $meta['key'], [
+                'content' => $meta['content'],
+                'media' => $meta['media'] ?? null,
+            ], $this->inertiaKey($meta));
         }, $this->headArray());
     }
 
@@ -99,5 +117,39 @@ class MetaTags extends GroupedTagBuilder
     protected function isRdfaProperty(string $key): bool
     {
         return Str::startsWith($key, ['og:', 'article:', 'book:', 'profile:', 'music:', 'video:', 'fb:', 'product:']);
+    }
+
+    /**
+     * Resolve the HTML attribute a meta tag is keyed under, honoring an explicit
+     * property flag and falling back to RDFa namespace detection.
+     */
+    protected function resolveAttribute(string $key, ?bool $property): string
+    {
+        return ($property ?? $this->isRdfaProperty($key)) ? 'property' : 'name';
+    }
+
+    protected function tagKey(string $key, ?bool $property, ?string $media): string
+    {
+        return implode('|', [
+            $this->resolveAttribute($key, $property),
+            $key,
+            $media ?? '',
+        ]);
+    }
+
+    /**
+     * @param  MetaAttributes  $meta
+     */
+    protected function inertiaKey(array $meta): string
+    {
+        if (! isset($meta['media'])) {
+            if ($meta['key'] === 'theme-color') {
+                return 'themeColor';
+            }
+
+            return $meta['key'];
+        }
+
+        return 'meta:'.substr(md5($this->tagKey($meta['key'], $meta['property'] ?? null, $meta['media'])), 0, 16);
     }
 }

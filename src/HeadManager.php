@@ -97,6 +97,13 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
+    public function themeColor(string $color, ?string $media = null): static
+    {
+        $this->data()->themeColor($color, media: $media);
+
+        return $this;
+    }
+
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
         $this->data()->canonical($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash);
@@ -277,9 +284,9 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
-    public function meta(string $key, string $content, ?bool $property = null): static
+    public function meta(string $key, string $content, ?bool $property = null, ?string $media = null): static
     {
-        $this->data()->meta($key, $content, $property);
+        $this->data()->meta($key, $content, $property, $media);
 
         return $this;
     }

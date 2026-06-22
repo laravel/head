@@ -42,6 +42,7 @@ Head::defaults(function (HeadManager $head) {
     $head
         ->title('Acme', suffix: ' - Acme')
         ->description('Build something great.')
+        ->themeColor('#0f172a')
         ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
         ->twitter(card: TwitterCard::SummaryLargeImage)
@@ -94,7 +95,7 @@ Route::singleton('profile', ProfileController::class)->withHead(
 );
 ```
 
-The keys you pass to `->withHead()` match the fluent builder methods: `title`, `description`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Nested option names use the same camel-case names as the fluent API, such as `forceHttps`, `siteName`, and `secureUrl`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, ...) accept either a single value or a list.
+The keys you pass to `->withHead()` match the fluent builder methods: `title`, `description`, `themeColor`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Nested option names use the same camel-case names as the fluent API, such as `forceHttps`, `siteName`, and `secureUrl`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, ...) accept either a single value or a list.
 
 When a value isn't known until a request arrives, such as the title of the post being viewed, you may pass a closure instead of named arguments:
 
@@ -188,6 +189,29 @@ Head::og(
 
 `og(image: ...)` and `ogImage(...)` write to the same underlying image list, so pick whichever reads better at the call site. Use [`meta()`](#custom-tags) for custom Open Graph extensions such as product or article properties.
 
+## Theme Colors
+
+Theme colors can be set globally, per route, or at runtime:
+
+```php
+Head::themeColor('#0f172a');
+```
+
+This renders a `<meta name="theme-color">` tag. If you need media-specific theme colors, use `meta()` directly:
+
+```php
+Head::meta('theme-color', '#ffffff', media: '(prefers-color-scheme: light)')
+    ->meta('theme-color', '#111827', media: '(prefers-color-scheme: dark)');
+```
+
+Route metadata supports simple theme colors through the same camel-case key:
+
+```php
+Route::view('/dashboard', 'dashboard')->withHead(
+    themeColor: '#0f172a',
+);
+```
+
 ## Performance & Discovery
 
 Laravel Head renders performance hints, pagination links, locale alternates, and feed discovery:
@@ -216,6 +240,13 @@ Head::meta('theme-color', '#000000')
     ->meta('article:author', $post->author->name)
     ->link('manifest', '/manifest.json')
     ->link('apple-touch-icon', '/apple-touch-icon.png', ['sizes' => '180x180']);
+```
+
+Meta tags may include a media query when the browser should only apply the tag under matching conditions:
+
+```php
+Head::meta('theme-color', '#ffffff', media: '(prefers-color-scheme: light)')
+    ->meta('theme-color', '#111827', media: '(prefers-color-scheme: dark)');
 ```
 
 `meta()` emits `name=` by default and automatically uses `property=` for known RDFa namespaces such as `og:`, `article:`, `book:`, `profile:`, `music:`, `video:`, `fb:`, and `product:`. You may override detection with `property: true` or `property: false`.

@@ -99,6 +99,11 @@ class HeadData
         return $this->overlayBuilder(Description::make($description));
     }
 
+    public function themeColor(string $color, ?string $media = null): static
+    {
+        return $this->meta('theme-color', $color, media: $media);
+    }
+
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
         return $this->overlayBuilder(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
@@ -247,9 +252,9 @@ class HeadData
         return $this;
     }
 
-    public function meta(string $key, string $content, ?bool $property = null): static
+    public function meta(string $key, string $content, ?bool $property = null, ?string $media = null): static
     {
-        $this->builder(MetaTags::class)->tag($key, $content, $property);
+        $this->builder(MetaTags::class)->tag($key, $content, $property, $media);
 
         return $this;
     }

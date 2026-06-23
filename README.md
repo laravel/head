@@ -42,7 +42,9 @@ Head::defaults(function (HeadManager $head) {
     $head
         ->title('Acme', suffix: ' - Acme')
         ->description('Build something great.')
+        ->applicationName('Acme')
         ->themeColor('#0f172a')
+        ->colorScheme('light dark')
         ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
         ->twitter(card: TwitterCard::SummaryLargeImage)
@@ -60,6 +62,8 @@ Robots directives may be passed as a raw string, as `RobotsRule` enum cases, or 
 ## Route Metadata
 
 Many pages can define their metadata directly on the route, especially semi-static pages whose metadata is known ahead of time.
+
+### Routes & Groups
 
 ```php
 Route::view('/contact', 'contact')
@@ -95,7 +99,25 @@ Route::singleton('profile', ProfileController::class)->withHead(
 );
 ```
 
-The keys you pass to `->withHead()` match the fluent builder methods: `title`, `description`, `themeColor`, `canonical`, `robots`, `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage`, `preload`, `prefetch`, `preconnect`, `dnsPrefetch`, `alternates`, `feed`, `schema`, `meta`, and `link`. Nested option names use the same camel-case names as the fluent API, such as `forceHttps`, `siteName`, and `secureUrl`. Keys for repeatable tags (`ogImage`, `preload`, `feed`, `schema`, ...) accept either a single value or a list.
+### Supported Properties
+
+The properties you pass to `->withHead()` match the fluent builder methods:
+
+| Category | Properties |
+| --- | --- |
+| Document | `title`, `description`, `canonical`, `robots` |
+| App metadata | `themeColor`, `applicationName`, `colorScheme`, `referrer`, `viewport` |
+| Social | `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage` |
+| Performance | `preload`, `prefetch`, `preconnect`, `dnsPrefetch` |
+| Discovery | `alternates`, `feed`, `icon`, `appleTouchIcon`, `maskIcon`, `manifest` |
+| Structured data | `schema` |
+| Custom tags | `meta`, `link` |
+
+Nested option names use the same camel-case names as the fluent API, such as `forceHttps`, `siteName`, and `secureUrl`.
+
+Repeatable properties, such as `ogImage`, `preload`, `feed`, `schema`, and `icon`, accept either a single value or a list.
+
+### Dynamic Metadata
 
 When a value isn't known until a request arrives, such as the title of the post being viewed, you may pass a closure instead of named arguments:
 
@@ -212,6 +234,37 @@ Route::view('/dashboard', 'dashboard')->withHead(
 );
 ```
 
+## App Metadata & Icons
+
+Laravel Head includes helpers for common browser and application metadata:
+
+```php
+Head::applicationName('Acme')
+    ->colorScheme('light dark')
+    ->referrer('strict-origin-when-cross-origin')
+    ->viewport('width=device-width, initial-scale=1')
+    ->icon('/favicon.svg', type: 'image/svg+xml')
+    ->icon('/favicon-32x32.png', type: 'image/png', sizes: '32x32')
+    ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
+    ->maskIcon('/safari-pinned-tab.svg', color: '#111827')
+    ->manifest('/site.webmanifest');
+```
+
+Route metadata uses the same names:
+
+```php
+Route::view('/dashboard', 'dashboard')->withHead(
+    applicationName: 'Acme',
+    colorScheme: 'light dark',
+    icon: [
+        ['href' => '/favicon.svg', 'type' => 'image/svg+xml'],
+        ['href' => '/favicon-32x32.png', 'type' => 'image/png', 'sizes' => '32x32'],
+    ],
+    appleTouchIcon: ['href' => '/apple-touch-icon.png', 'sizes' => '180x180'],
+    manifest: '/site.webmanifest',
+);
+```
+
 ## Performance & Discovery
 
 Laravel Head renders performance hints, pagination links, locale alternates, and feed discovery:
@@ -236,10 +289,13 @@ Head::preload(asset('fonts/inter.woff2'), as: 'font', crossorigin: true)
 For tags without a dedicated method, use `meta()` and `link()`:
 
 ```php
-Head::meta('theme-color', '#000000')
+Head::meta('format-detection', 'telephone=no')
     ->meta('article:author', $post->author->name)
-    ->link('manifest', '/manifest.json')
-    ->link('apple-touch-icon', '/apple-touch-icon.png', ['sizes' => '180x180']);
+    ->link('search', '/opensearch.xml', [
+        'type' => 'application/opensearchdescription+xml',
+        'title' => 'Acme Search',
+    ])
+    ->link('me', 'https://social.example.com/@acme');
 ```
 
 Meta tags may include a media query when the browser should only apply the tag under matching conditions:

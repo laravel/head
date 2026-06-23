@@ -6,14 +6,27 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Head\Facades\Head;
 
 it('renders generic meta tags', function (): void {
-    Head::meta('theme-color', '#000000')
+    Head::meta('format-detection', 'telephone=no')
         ->meta('article:author', 'Taylor Otwell')
         ->meta('weird:namespace', 'Value', property: true);
 
     expect(Head::toHtml())
-        ->toContain('<meta name="theme-color" content="#000000">')
+        ->toContain('<meta name="format-detection" content="telephone=no">')
         ->toContain('<meta property="article:author" content="Taylor Otwell">')
         ->toContain('<meta property="weird:namespace" content="Value">');
+});
+
+it('renders meta aliases', function (): void {
+    Head::applicationName('Acme')
+        ->colorScheme('light dark')
+        ->referrer('strict-origin-when-cross-origin')
+        ->viewport('width=device-width, initial-scale=1');
+
+    expect(Head::toHtml())
+        ->toContain('<meta name="application-name" content="Acme">')
+        ->toContain('<meta name="color-scheme" content="light dark">')
+        ->toContain('<meta name="referrer" content="strict-origin-when-cross-origin">')
+        ->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
 });
 
 it('renders media-specific meta tags', function (): void {
@@ -58,4 +71,20 @@ it('resolves media-specific meta tags from route attributes', function (): void 
         ->assertOk()
         ->assertSee('<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">', false)
         ->assertSee('<meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)">', false);
+});
+
+it('resolves meta aliases from route attributes', function (): void {
+    Route::get('/settings', fn (): string => Head::toHtml())->withHead(
+        applicationName: 'Acme',
+        colorScheme: 'light dark',
+        referrer: 'strict-origin',
+        viewport: 'width=device-width, initial-scale=1',
+    );
+
+    $this->get('/settings')
+        ->assertOk()
+        ->assertSee('<meta name="application-name" content="Acme">', false)
+        ->assertSee('<meta name="color-scheme" content="light dark">', false)
+        ->assertSee('<meta name="referrer" content="strict-origin">', false)
+        ->assertSee('<meta name="viewport" content="width=device-width, initial-scale=1">', false);
 });

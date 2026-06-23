@@ -99,9 +99,29 @@ class HeadData
         return $this->overlayBuilder(Description::make($description));
     }
 
-    public function themeColor(string $color, ?string $media = null): static
+    public function themeColor(string $color): static
     {
-        return $this->meta('theme-color', $color, media: $media);
+        return $this->meta('theme-color', $color);
+    }
+
+    public function applicationName(string $name): static
+    {
+        return $this->meta('application-name', $name);
+    }
+
+    public function colorScheme(string $scheme): static
+    {
+        return $this->meta('color-scheme', $scheme);
+    }
+
+    public function referrer(string $policy): static
+    {
+        return $this->meta('referrer', $policy);
+    }
+
+    public function viewport(string $content): static
+    {
+        return $this->meta('viewport', $content);
     }
 
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
@@ -269,6 +289,36 @@ class HeadData
         return $this;
     }
 
+    public function icon(string $href, ?string $type = null, ?string $sizes = null, ?string $media = null): static
+    {
+        return $this->link('icon', $href, self::attributes([
+            'type' => $type,
+            'sizes' => $sizes,
+            'media' => $media,
+        ]));
+    }
+
+    public function appleTouchIcon(string $href, ?string $sizes = null): static
+    {
+        return $this->link('apple-touch-icon', $href, self::attributes([
+            'sizes' => $sizes,
+        ]));
+    }
+
+    public function maskIcon(string $href, ?string $color = null): static
+    {
+        return $this->link('mask-icon', $href, self::attributes([
+            'color' => $color,
+        ]));
+    }
+
+    public function manifest(string $href = '/site.webmanifest', bool|string|null $crossorigin = null): static
+    {
+        return $this->link('manifest', $href, self::attributes([
+            'crossorigin' => $crossorigin,
+        ]));
+    }
+
     /**
      * @param  SchemaObject|SchemaData  $schema
      */
@@ -291,5 +341,14 @@ class HeadData
     {
         /** @var TBuilder */
         return $this->builders[$class] ??= new $class;
+    }
+
+    /**
+     * @param  array<string, bool|float|int|string|null>  $attributes
+     * @return array<string, bool|float|int|string|null>
+     */
+    protected static function attributes(array $attributes): array
+    {
+        return array_filter($attributes, fn ($value) => ! is_null($value));
     }
 }

@@ -27,8 +27,8 @@ class MetaTags extends GroupedTagBuilder
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        if ($key === 'themeColor' && is_string($value)) {
-            return (new self)->tag('theme-color', $value);
+        if (array_key_exists($key, self::aliases()) && is_string($value)) {
+            return (new self)->tag(self::aliases()[$key], $value);
         }
 
         if ($key !== 'meta' || ! is_array($value)) {
@@ -57,7 +57,7 @@ class MetaTags extends GroupedTagBuilder
 
     public static function routeAttributeKeys(): array
     {
-        return ['meta', 'themeColor'];
+        return ['meta', ...array_keys(self::aliases())];
     }
 
     public function tag(string $key, string $content, ?bool $property = null, ?string $media = null): static
@@ -143,13 +143,31 @@ class MetaTags extends GroupedTagBuilder
     protected function inertiaKey(array $meta): string
     {
         if (! isset($meta['media'])) {
-            if ($meta['key'] === 'theme-color') {
-                return 'themeColor';
-            }
-
-            return $meta['key'];
+            return self::inertiaAliases()[$meta['key']] ?? $meta['key'];
         }
 
         return 'meta:'.substr(md5($this->tagKey($meta['key'], $meta['property'] ?? null, $meta['media'])), 0, 16);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected static function aliases(): array
+    {
+        return [
+            'themeColor' => 'theme-color',
+            'applicationName' => 'application-name',
+            'colorScheme' => 'color-scheme',
+            'referrer' => 'referrer',
+            'viewport' => 'viewport',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected static function inertiaAliases(): array
+    {
+        return array_flip(self::aliases());
     }
 }

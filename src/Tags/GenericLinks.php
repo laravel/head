@@ -31,12 +31,16 @@ class GenericLinks extends GroupedTagBuilder
 
     public static function routeAttributeKeys(): array
     {
-        return ['link'];
+        return ['link', 'icon', 'appleTouchIcon', 'maskIcon', 'manifest'];
     }
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
-        if ($key !== 'link' || ! is_array($value)) {
+        if ($key !== 'link') {
+            return self::fromAliasRouteAttribute($key, $value);
+        }
+
+        if (! is_array($value)) {
             return null;
         }
 
@@ -44,6 +48,21 @@ class GenericLinks extends GroupedTagBuilder
 
         foreach (self::items($value) as $link) {
             $links->addRouteAttributeLink($link);
+        }
+
+        return $links;
+    }
+
+    protected static function fromAliasRouteAttribute(string $key, mixed $value): ?self
+    {
+        if (! in_array($key, ['icon', 'appleTouchIcon', 'maskIcon', 'manifest'], true)) {
+            return null;
+        }
+
+        $links = new self;
+
+        foreach (self::items($value) as $link) {
+            $links->addAliasRouteAttributeLink($key, $link);
         }
 
         return $links;
@@ -112,6 +131,54 @@ class GenericLinks extends GroupedTagBuilder
         unset($attributes['rel'], $attributes['href']);
 
         $this->link($link['rel'], $link['href'], self::attributes($attributes));
+    }
+
+    private function addAliasRouteAttributeLink(string $key, mixed $link): void
+    {
+        $attributes = is_array($link) ? self::named($link) : [];
+        $href = self::routeAttributeHref($link, $attributes, $key === 'manifest' ? '/site.webmanifest' : null);
+
+        if (is_null($href)) {
+            return;
+        }
+
+        match ($key) {
+            'icon' => $this->link('icon', $href, self::attributes([
+                'type' => $attributes['type'] ?? null,
+                'sizes' => $attributes['sizes'] ?? null,
+                'media' => $attributes['media'] ?? null,
+            ])),
+            'appleTouchIcon' => $this->link('apple-touch-icon', $href, self::attributes([
+                'sizes' => $attributes['sizes'] ?? null,
+            ])),
+            'maskIcon' => $this->link('mask-icon', $href, self::attributes([
+                'color' => $attributes['color'] ?? null,
+            ])),
+            'manifest' => $this->link('manifest', $href, self::attributes([
+                'crossorigin' => $attributes['crossorigin'] ?? null,
+            ])),
+            default => null,
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private static function routeAttributeHref(mixed $value, array $attributes, ?string $default = null): ?string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_string($attributes['href'] ?? null)) {
+            return $attributes['href'];
+        }
+
+        if ($value === true || is_array($value)) {
+            return $default;
+        }
+
+        return null;
     }
 
     /**

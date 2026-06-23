@@ -97,9 +97,37 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
-    public function themeColor(string $color, ?string $media = null): static
+    public function themeColor(string $color): static
     {
-        $this->data()->themeColor($color, media: $media);
+        $this->data()->themeColor($color);
+
+        return $this;
+    }
+
+    public function applicationName(string $name): static
+    {
+        $this->data()->applicationName($name);
+
+        return $this;
+    }
+
+    public function colorScheme(string $scheme): static
+    {
+        $this->data()->colorScheme($scheme);
+
+        return $this;
+    }
+
+    public function referrer(string $policy): static
+    {
+        $this->data()->referrer($policy);
+
+        return $this;
+    }
+
+    public function viewport(string $content): static
+    {
+        $this->data()->viewport($content);
 
         return $this;
     }
@@ -297,6 +325,34 @@ class HeadManager implements Arrayable, Htmlable
     public function link(string $rel, string $href, array $attributes = []): static
     {
         $this->data()->link($rel, $href, $attributes);
+
+        return $this;
+    }
+
+    public function icon(string $href, ?string $type = null, ?string $sizes = null, ?string $media = null): static
+    {
+        $this->data()->icon($href, type: $type, sizes: $sizes, media: $media);
+
+        return $this;
+    }
+
+    public function appleTouchIcon(string $href, ?string $sizes = null): static
+    {
+        $this->data()->appleTouchIcon($href, sizes: $sizes);
+
+        return $this;
+    }
+
+    public function maskIcon(string $href, ?string $color = null): static
+    {
+        $this->data()->maskIcon($href, color: $color);
+
+        return $this;
+    }
+
+    public function manifest(string $href = '/site.webmanifest', bool|string|null $crossorigin = null): static
+    {
+        $this->data()->manifest($href, crossorigin: $crossorigin);
 
         return $this;
     }

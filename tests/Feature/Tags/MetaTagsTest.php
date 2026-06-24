@@ -20,13 +20,19 @@ it('renders meta aliases', function (): void {
     Head::applicationName('Acme')
         ->colorScheme('light dark')
         ->referrer('strict-origin-when-cross-origin')
-        ->viewport('width=device-width, initial-scale=1');
+        ->viewport('width=device-width, initial-scale=1')
+        ->appleWebAppTitle('Acme')
+        ->webAppCapable()
+        ->appleWebAppStatusBarStyle('black');
 
     expect(Head::toHtml())
         ->toContain('<meta name="application-name" content="Acme">')
         ->toContain('<meta name="color-scheme" content="light dark">')
         ->toContain('<meta name="referrer" content="strict-origin-when-cross-origin">')
-        ->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
+        ->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">')
+        ->toContain('<meta name="apple-mobile-web-app-title" content="Acme">')
+        ->toContain('<meta name="mobile-web-app-capable" content="yes">')
+        ->toContain('<meta name="apple-mobile-web-app-status-bar-style" content="black">');
 });
 
 it('renders media-specific meta tags', function (): void {
@@ -79,6 +85,9 @@ it('resolves meta aliases from route attributes', function (): void {
         colorScheme: 'light dark',
         referrer: 'strict-origin',
         viewport: 'width=device-width, initial-scale=1',
+        appleWebAppTitle: 'Acme',
+        webAppCapable: true,
+        appleWebAppStatusBarStyle: 'black-translucent',
     );
 
     $this->get('/settings')
@@ -86,5 +95,8 @@ it('resolves meta aliases from route attributes', function (): void {
         ->assertSee('<meta name="application-name" content="Acme">', false)
         ->assertSee('<meta name="color-scheme" content="light dark">', false)
         ->assertSee('<meta name="referrer" content="strict-origin">', false)
-        ->assertSee('<meta name="viewport" content="width=device-width, initial-scale=1">', false);
+        ->assertSee('<meta name="viewport" content="width=device-width, initial-scale=1">', false)
+        ->assertSee('<meta name="apple-mobile-web-app-title" content="Acme">', false)
+        ->assertSee('<meta name="mobile-web-app-capable" content="yes">', false)
+        ->assertSee('<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">', false);
 });

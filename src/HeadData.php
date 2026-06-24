@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
+use BackedEnum;
 use Illuminate\Contracts\Pagination\Paginator;
+use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\RobotsRule;
 use Laravel\Head\Enums\TwitterCard;
@@ -124,6 +126,21 @@ class HeadData
         return $this->meta('viewport', $content);
     }
 
+    public function appleWebAppTitle(string $title): static
+    {
+        return $this->meta('apple-mobile-web-app-title', $title);
+    }
+
+    public function webAppCapable(bool $capable = true): static
+    {
+        return $this->meta('mobile-web-app-capable', $capable ? 'yes' : 'no');
+    }
+
+    public function appleWebAppStatusBarStyle(string $style): static
+    {
+        return $this->meta('apple-mobile-web-app-status-bar-style', $style);
+    }
+
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
         return $this->overlayBuilder(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
@@ -168,7 +185,7 @@ class HeadData
         ?string $alt = null,
         ?int $width = null,
         ?int $height = null,
-        ?string $type = null,
+        ImageType|string|null $type = null,
         ?string $secureUrl = null,
     ): static {
         $this->builder(OpenGraph::class)->image($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
@@ -221,7 +238,7 @@ class HeadData
         return $this;
     }
 
-    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ?string $type = null, ?string $media = null): static
+    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, ?string $media = null): static
     {
         $this->builder(PerformanceLinks::class)->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
 
@@ -280,7 +297,7 @@ class HeadData
     }
 
     /**
-     * @param  array<string, bool|float|int|string|null>  $attributes
+     * @param  array<string, BackedEnum|bool|float|int|string|null>  $attributes
      */
     public function link(string $rel, string $href, array $attributes = []): static
     {
@@ -289,10 +306,10 @@ class HeadData
         return $this;
     }
 
-    public function icon(string $href, ?string $type = null, ?string $sizes = null, ?string $media = null): static
+    public function icon(string $href, ImageType|string|null $type = null, ?string $sizes = null, ?string $media = null): static
     {
         return $this->link('icon', $href, self::attributes([
-            'type' => $type,
+            'type' => $type instanceof ImageType ? $type->value : $type,
             'sizes' => $sizes,
             'media' => $media,
         ]));
@@ -317,6 +334,41 @@ class HeadData
         return $this->link('manifest', $href, self::attributes([
             'crossorigin' => $crossorigin,
         ]));
+    }
+
+    public function appleTouchStartupImage(string $href, ?string $media = null): static
+    {
+        return $this->link('apple-touch-startup-image', $href, self::attributes([
+            'media' => $media,
+        ]));
+    }
+
+    public function pwa(
+        string $name,
+        string $manifest = '/site.webmanifest',
+        ?string $themeColor = null,
+        ?string $appleTouchIcon = null,
+        ?string $appleTouchIconSizes = '180x180',
+        ?string $appleWebAppStatusBarStyle = null,
+    ): static {
+        $this->applicationName($name)
+            ->appleWebAppTitle($name)
+            ->webAppCapable()
+            ->manifest($manifest);
+
+        if (! is_null($themeColor)) {
+            $this->themeColor($themeColor);
+        }
+
+        if (! is_null($appleTouchIcon)) {
+            $this->appleTouchIcon($appleTouchIcon, sizes: $appleTouchIconSizes);
+        }
+
+        if (! is_null($appleWebAppStatusBarStyle)) {
+            $this->appleWebAppStatusBarStyle($appleWebAppStatusBarStyle);
+        }
+
+        return $this;
     }
 
     /**

@@ -101,21 +101,21 @@ Route::singleton('profile', ProfileController::class)->withHead(
 
 ### Supported Properties
 
-The properties you pass to `->withHead()` match the fluent builder methods:
+The supported route properties map to the same names as the fluent builder methods:
 
 | Category | Properties |
 | --- | --- |
 | Document | `title`, `description`, `canonical`, `robots` |
-| App metadata | `themeColor`, `applicationName`, `colorScheme`, `referrer`, `viewport` |
+| App metadata | `themeColor`, `applicationName`, `colorScheme`, `referrer`, `viewport`, `appleWebAppTitle`, `webAppCapable`, `appleWebAppStatusBarStyle` |
 | Social | `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage` |
 | Performance | `preload`, `prefetch`, `preconnect`, `dnsPrefetch` |
-| Discovery | `alternates`, `feed`, `icon`, `appleTouchIcon`, `maskIcon`, `manifest` |
+| Discovery | `alternates`, `feed`, `icon`, `appleTouchIcon`, `appleTouchStartupImage`, `maskIcon`, `manifest` |
 | Structured data | `schema` |
 | Custom tags | `meta`, `link` |
 
 Nested option names use the same camel-case names as the fluent API, such as `forceHttps`, `siteName`, and `secureUrl`.
 
-Repeatable properties, such as `ogImage`, `preload`, `feed`, `schema`, and `icon`, accept either a single value or a list.
+Repeatable properties, such as `ogImage`, `preload`, `feed`, `schema`, `icon`, and `appleTouchStartupImage`, accept either a single value or a list.
 
 ### Dynamic Metadata
 
@@ -177,6 +177,7 @@ When a response is rendered for a registered error status, that metadata beats e
 Open Graph and Twitter card properties are set with `og()` and `twitter()`. Repeatable media is added through top-level methods that take named arguments directly:
 
 ```php
+use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\TwitterCard;
 
@@ -187,13 +188,15 @@ Head::og(type: OgType::Article, title: $post->title)
         alt: $post->gallery_image_alt,
         width: 1200,
         height: 630,
-        type: 'image/jpeg',
+        type: ImageType::Jpeg,
     )
     ->twitter(card: TwitterCard::SummaryLargeImage)
     ->twitterImage($post->twitter_image_url, alt: $post->title);
 ```
 
 `ogImage()`, `ogVideo()`, `ogAudio()`, and `twitterImage()` all accept the same shape: a URL as the first argument plus optional named args for `alt`, `width`, `height`, `type`, and `secureUrl` where the spec defines them.
+
+Image MIME types can be passed as `ImageType` enum cases anywhere the API accepts an image `type`, such as `ImageType::Svg`, `ImageType::Png`, `ImageType::Jpeg`, and `ImageType::Webp`.
 
 > [!NOTE]
 > Document `title` and `description` automatically fill missing `og:title`, `og:description`, `twitter:title`, and `twitter:description` values. If no Twitter image is set, the first Open Graph image is also used for `twitter:image`.
@@ -239,13 +242,19 @@ Route::view('/dashboard', 'dashboard')->withHead(
 Laravel Head includes helpers for common browser and application metadata:
 
 ```php
+use Laravel\Head\Enums\ImageType;
+
 Head::applicationName('Acme')
     ->colorScheme('light dark')
     ->referrer('strict-origin-when-cross-origin')
     ->viewport('width=device-width, initial-scale=1')
-    ->icon('/favicon.svg', type: 'image/svg+xml')
-    ->icon('/favicon-32x32.png', type: 'image/png', sizes: '32x32')
+    ->appleWebAppTitle('Acme')
+    ->webAppCapable()
+    ->appleWebAppStatusBarStyle('black')
+    ->icon('/favicon.svg', type: ImageType::Svg)
+    ->icon('/favicon-32x32.png', type: ImageType::Png, sizes: '32x32')
     ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
+    ->appleTouchStartupImage('/launch.png', media: '(orientation: portrait)')
     ->maskIcon('/safari-pinned-tab.svg', color: '#111827')
     ->manifest('/site.webmanifest');
 ```
@@ -253,17 +262,41 @@ Head::applicationName('Acme')
 Route metadata uses the same names:
 
 ```php
+use Laravel\Head\Enums\ImageType;
+
 Route::view('/dashboard', 'dashboard')->withHead(
     applicationName: 'Acme',
     colorScheme: 'light dark',
+    appleWebAppTitle: 'Acme',
+    webAppCapable: true,
+    appleWebAppStatusBarStyle: 'black',
     icon: [
-        ['href' => '/favicon.svg', 'type' => 'image/svg+xml'],
-        ['href' => '/favicon-32x32.png', 'type' => 'image/png', 'sizes' => '32x32'],
+        ['href' => '/favicon.svg', 'type' => ImageType::Svg],
+        ['href' => '/favicon-32x32.png', 'type' => ImageType::Png, 'sizes' => '32x32'],
     ],
     appleTouchIcon: ['href' => '/apple-touch-icon.png', 'sizes' => '180x180'],
+    appleTouchStartupImage: ['href' => '/launch.png', 'media' => '(orientation: portrait)'],
     manifest: '/site.webmanifest',
 );
 ```
+
+## Progressive Web Apps
+
+The `pwa()` helper configures the common document `<head>` tags needed for an installable web app:
+
+```php
+Head::pwa(
+    name: 'Acme',
+    manifest: '/site.webmanifest',
+    themeColor: '#0f172a',
+    appleTouchIcon: '/apple-touch-icon.png',
+    appleWebAppStatusBarStyle: 'black',
+);
+```
+
+This renders the application name, web app manifest link, optional theme color, iOS standalone metadata, optional Apple status bar style, and optional Apple touch icon. The manifest JSON itself and service worker registration still belong to your application.
+
+Use `pwa()` in global defaults or runtime metadata. Route metadata supports the individual properties shown above.
 
 ## Performance & Discovery
 

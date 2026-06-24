@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tags;
 
+use BackedEnum;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
@@ -78,6 +79,19 @@ abstract class TagBuilder
     protected static function string(mixed $value): ?string
     {
         return is_string($value) ? $value : null;
+    }
+
+    protected static function stringOrBackedEnum(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if ($value instanceof BackedEnum && is_string($value->value)) {
+            return $value->value;
+        }
+
+        return null;
     }
 
     protected static function bool(mixed $value): ?bool

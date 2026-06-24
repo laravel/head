@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
@@ -105,7 +106,7 @@ it('parses route head data using the fluent field shapes', function (): void {
         canonical: ['auto' => true, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
         ogImage: [
-            ['url' => 'https://example.com/structured.jpg', 'alt' => 'Structured image', 'width' => 1200],
+            ['url' => 'https://example.com/structured.jpg', 'alt' => 'Structured image', 'width' => 1200, 'type' => ImageType::Jpeg],
         ],
         twitter: ['card' => TwitterCard::SummaryLargeImage],
         twitterImage: ['url' => 'https://example.com/twitter.jpg', 'alt' => 'Twitter image'],
@@ -122,6 +123,7 @@ it('parses route head data using the fluent field shapes', function (): void {
         ->assertSee('<meta property="og:type" content="website">', false)
         ->assertSee('property="og:image" content="https://example.com/og.jpg">', false)
         ->assertSee('property="og:image:alt" content="Structured image">', false)
+        ->assertSee('property="og:image:type" content="image/jpeg">', false)
         ->assertSee('property="og:image:width" content="1200">', false)
         ->assertSee('<meta name="twitter:card" content="summary_large_image">', false)
         ->assertSee('<meta name="twitter:image:alt" content="Twitter image">', false)

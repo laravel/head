@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tags;
 
+use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
@@ -80,7 +81,7 @@ class PerformanceLinks extends GroupedTagBuilder
                     self::string($attributes['href'] ?? null) ?? self::string($href) ?? '',
                     as: self::string($attributes['as'] ?? null),
                     crossorigin: self::boolOrString($attributes['crossorigin'] ?? null),
-                    type: self::string($attributes['type'] ?? null),
+                    type: self::stringOrBackedEnum($attributes['type'] ?? null),
                     media: self::string($attributes['media'] ?? null),
                 );
             }
@@ -151,13 +152,13 @@ class PerformanceLinks extends GroupedTagBuilder
         return $links;
     }
 
-    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ?string $type = null, ?string $media = null): static
+    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, ?string $media = null): static
     {
         $this->preloads[$href] = array_filter([
             'href' => $href,
             'as' => $as,
             'crossorigin' => $crossorigin,
-            'type' => $type,
+            'type' => $type instanceof ImageType ? $type->value : $type,
             'media' => $media,
         ], fn ($value) => ! is_null($value));
 

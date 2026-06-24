@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
+use BackedEnum;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Contracts\Support\Arrayable;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Traits\Macroable;
+use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\RobotsRule;
 use Laravel\Head\Enums\TwitterCard;
@@ -132,6 +134,27 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
+    public function appleWebAppTitle(string $title): static
+    {
+        $this->data()->appleWebAppTitle($title);
+
+        return $this;
+    }
+
+    public function webAppCapable(bool $capable = true): static
+    {
+        $this->data()->webAppCapable($capable);
+
+        return $this;
+    }
+
+    public function appleWebAppStatusBarStyle(string $style): static
+    {
+        $this->data()->appleWebAppStatusBarStyle($style);
+
+        return $this;
+    }
+
     public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
         $this->data()->canonical($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash);
@@ -182,7 +205,7 @@ class HeadManager implements Arrayable, Htmlable
         ?string $alt = null,
         ?int $width = null,
         ?int $height = null,
-        ?string $type = null,
+        ImageType|string|null $type = null,
         ?string $secureUrl = null,
     ): static {
         $this->data()->ogImage($url, alt: $alt, width: $width, height: $height, type: $type, secureUrl: $secureUrl);
@@ -237,7 +260,7 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
-    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ?string $type = null, ?string $media = null): static
+    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, ?string $media = null): static
     {
         $this->data()->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
 
@@ -320,7 +343,7 @@ class HeadManager implements Arrayable, Htmlable
     }
 
     /**
-     * @param  array<string, bool|float|int|string|null>  $attributes
+     * @param  array<string, BackedEnum|bool|float|int|string|null>  $attributes
      */
     public function link(string $rel, string $href, array $attributes = []): static
     {
@@ -329,7 +352,7 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
-    public function icon(string $href, ?string $type = null, ?string $sizes = null, ?string $media = null): static
+    public function icon(string $href, ImageType|string|null $type = null, ?string $sizes = null, ?string $media = null): static
     {
         $this->data()->icon($href, type: $type, sizes: $sizes, media: $media);
 
@@ -353,6 +376,33 @@ class HeadManager implements Arrayable, Htmlable
     public function manifest(string $href = '/site.webmanifest', bool|string|null $crossorigin = null): static
     {
         $this->data()->manifest($href, crossorigin: $crossorigin);
+
+        return $this;
+    }
+
+    public function appleTouchStartupImage(string $href, ?string $media = null): static
+    {
+        $this->data()->appleTouchStartupImage($href, media: $media);
+
+        return $this;
+    }
+
+    public function pwa(
+        string $name,
+        string $manifest = '/site.webmanifest',
+        ?string $themeColor = null,
+        ?string $appleTouchIcon = null,
+        ?string $appleTouchIconSizes = '180x180',
+        ?string $appleWebAppStatusBarStyle = null,
+    ): static {
+        $this->data()->pwa(
+            name: $name,
+            manifest: $manifest,
+            themeColor: $themeColor,
+            appleTouchIcon: $appleTouchIcon,
+            appleTouchIconSizes: $appleTouchIconSizes,
+            appleWebAppStatusBarStyle: $appleWebAppStatusBarStyle,
+        );
 
         return $this;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tags;
 
+use BackedEnum;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
@@ -31,7 +32,7 @@ class GenericLinks extends GroupedTagBuilder
 
     public static function routeAttributeKeys(): array
     {
-        return ['link', 'icon', 'appleTouchIcon', 'maskIcon', 'manifest'];
+        return ['link', 'icon', 'appleTouchIcon', 'maskIcon', 'manifest', 'appleTouchStartupImage'];
     }
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
@@ -55,7 +56,7 @@ class GenericLinks extends GroupedTagBuilder
 
     protected static function fromAliasRouteAttribute(string $key, mixed $value): ?self
     {
-        if (! in_array($key, ['icon', 'appleTouchIcon', 'maskIcon', 'manifest'], true)) {
+        if (! in_array($key, ['icon', 'appleTouchIcon', 'maskIcon', 'manifest', 'appleTouchStartupImage'], true)) {
             return null;
         }
 
@@ -69,11 +70,12 @@ class GenericLinks extends GroupedTagBuilder
     }
 
     /**
-     * @param  array<string, bool|float|int|string|null>  $attributes
+     * @param  array<string, BackedEnum|bool|float|int|string|null>  $attributes
      */
     public function link(string $rel, string $href, array $attributes = []): static
     {
         unset($attributes['rel'], $attributes['href']);
+        $attributes = self::attributes($attributes);
 
         $this->links[$rel.' '.$href] = [
             'rel' => $rel,
@@ -144,7 +146,7 @@ class GenericLinks extends GroupedTagBuilder
 
         match ($key) {
             'icon' => $this->link('icon', $href, self::attributes([
-                'type' => $attributes['type'] ?? null,
+                'type' => self::stringOrBackedEnum($attributes['type'] ?? null),
                 'sizes' => $attributes['sizes'] ?? null,
                 'media' => $attributes['media'] ?? null,
             ])),
@@ -156,6 +158,9 @@ class GenericLinks extends GroupedTagBuilder
             ])),
             'manifest' => $this->link('manifest', $href, self::attributes([
                 'crossorigin' => $attributes['crossorigin'] ?? null,
+            ])),
+            'appleTouchStartupImage' => $this->link('apple-touch-startup-image', $href, self::attributes([
+                'media' => $attributes['media'] ?? null,
             ])),
             default => null,
         };
@@ -187,9 +192,18 @@ class GenericLinks extends GroupedTagBuilder
      */
     protected static function attributes(array $values): array
     {
-        return array_filter(
-            $values,
-            fn ($value) => is_null($value) || is_bool($value) || is_float($value) || is_int($value) || is_string($value)
-        );
+        $attributes = [];
+
+        foreach ($values as $key => $value) {
+            if ($value instanceof BackedEnum) {
+                $value = $value->value;
+            }
+
+            if (is_null($value) || is_bool($value) || is_float($value) || is_int($value) || is_string($value)) {
+                $attributes[$key] = $value;
+            }
+        }
+
+        return $attributes;
     }
 }

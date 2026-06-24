@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tags;
 
+use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
@@ -122,7 +123,7 @@ class OpenGraph extends GroupedTagBuilder
                     alt: self::string($image['alt'] ?? null),
                     width: self::int($image['width'] ?? null),
                     height: self::int($image['height'] ?? null),
-                    type: self::string($image['type'] ?? null),
+                    type: self::imageType($image['type'] ?? null),
                     secureUrl: self::string($image['secureUrl'] ?? null),
                 );
             }
@@ -181,10 +182,10 @@ class OpenGraph extends GroupedTagBuilder
         ?string $alt = null,
         ?int $width = null,
         ?int $height = null,
-        ?string $type = null,
+        ImageType|string|null $type = null,
         ?string $secureUrl = null,
     ): static {
-        $this->images[$url] = self::media($url, $alt, $width, $height, $type, $secureUrl);
+        $this->images[$url] = self::media($url, $alt, $width, $height, self::imageType($type), $secureUrl);
 
         return $this;
     }
@@ -331,6 +332,11 @@ class OpenGraph extends GroupedTagBuilder
     protected static function ogType(mixed $value): OgType|string|null
     {
         return $value instanceof OgType || is_string($value) ? $value : null;
+    }
+
+    protected static function imageType(mixed $value): ?string
+    {
+        return $value instanceof ImageType ? $value->value : self::string($value);
     }
 
     /**

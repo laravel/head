@@ -27,6 +27,10 @@ class MetaTags extends GroupedTagBuilder
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
+        if ($key === 'webAppCapable' && is_bool($value)) {
+            return (new self)->tag(self::aliases()[$key], $value ? 'yes' : 'no');
+        }
+
         if (array_key_exists($key, self::aliases()) && is_string($value)) {
             return (new self)->tag(self::aliases()[$key], $value);
         }
@@ -160,6 +164,9 @@ class MetaTags extends GroupedTagBuilder
             'colorScheme' => 'color-scheme',
             'referrer' => 'referrer',
             'viewport' => 'viewport',
+            'appleWebAppTitle' => 'apple-mobile-web-app-title',
+            'webAppCapable' => 'mobile-web-app-capable',
+            'appleWebAppStatusBarStyle' => 'apple-mobile-web-app-status-bar-style',
         ];
     }
 

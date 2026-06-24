@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Facades\Head;
 
@@ -12,7 +13,7 @@ it('renders open graph media tags', function (): void {
             alt: 'Gallery image',
             width: 1200,
             height: 630,
-            type: 'image/jpeg',
+            type: ImageType::Jpeg,
             secureUrl: 'https://secure.example.com/gallery.jpg',
         );
 

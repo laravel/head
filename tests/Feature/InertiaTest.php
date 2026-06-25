@@ -23,7 +23,7 @@ it('shares rendered head elements with inertia page objects', function (): void 
         ->assertJsonPath('component', 'Dashboard')
         ->assertJsonPath('props.user', 'Taylor');
 
-    $elements = $response->json('props.head');
+    $elements = $response->json('props.'.HeadManager::INERTIA_PROP);
 
     expect($elements)->toBeArray()
         ->toContain('<title data-inertia="title">Dashboard - Acme</title>')
@@ -42,8 +42,8 @@ it('shares stable semantic inertia keys for each head element', function (): voi
         ogImage: 'https://example.com/rich.jpg',
     );
 
-    $lean = $this->get('/lean', [Header::INERTIA => 'true'])->json('props.head');
-    $rich = $this->get('/rich', [Header::INERTIA => 'true'])->json('props.head');
+    $lean = $this->get('/lean', [Header::INERTIA => 'true'])->json('props.'.HeadManager::INERTIA_PROP);
+    $rich = $this->get('/rich', [Header::INERTIA => 'true'])->json('props.'.HeadManager::INERTIA_PROP);
 
     expect($lean)
         ->toContain('<meta data-inertia="description" name="description" content="Lean page.">')
@@ -67,5 +67,48 @@ it('keeps head elements off the wire during inertia partial reloads', function (
     ])
         ->assertOk()
         ->assertJsonPath('props.user', 'Taylor')
-        ->assertJsonMissingPath('props.head');
+        ->assertJsonMissingPath('props.'.HeadManager::INERTIA_PROP);
+});
+
+it('keeps global tags out of inertia page objects', function (): void {
+    Head::globals(fn (HeadManager $head) => $head
+        ->viewport('width=device-width, initial-scale=1')
+        ->icon('/favicon.svg', type: 'image/svg+xml'));
+
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+        title: 'Dashboard',
+        description: 'Dashboard overview.',
+    );
+
+    $elements = $this->get('/dashboard', [Header::INERTIA => 'true'])
+        ->assertOk()
+        ->json('props.'.HeadManager::INERTIA_PROP);
+
+    expect($elements)
+        ->toContain('<title data-inertia="title">Dashboard</title>')
+        ->toContain('<meta data-inertia="description" name="description" content="Dashboard overview.">');
+
+    expect(implode("\n", $elements))
+        ->not->toContain('data-inertia="viewport"')
+        ->not->toContain('data-inertia="link:icon');
+});
+
+it('renders globals as static tags and page tags as inertia-managed tags in the inertia root view', function (): void {
+    Head::globals(fn (HeadManager $head) => $head
+        ->viewport('width=device-width, initial-scale=1')
+        ->icon('/favicon.svg', type: 'image/svg+xml'));
+
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+        title: 'Dashboard',
+        description: 'Dashboard overview.',
+    );
+
+    $this->get('/dashboard')
+        ->assertOk()
+        ->assertSee('<meta name="viewport" content="width=device-width, initial-scale=1">', false)
+        ->assertSee('<link rel="icon" href="/favicon.svg" type="image/svg+xml">', false)
+        ->assertSee('<title data-inertia="title">Dashboard</title>', false)
+        ->assertSee('<meta data-inertia="description" name="description" content="Dashboard overview.">', false)
+        ->assertDontSee('<meta data-inertia="viewport"', false)
+        ->assertDontSee('<link data-inertia="link:icon', false);
 });

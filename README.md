@@ -17,9 +17,9 @@ composer require laravel/head
 
 ## Resolution Precedence
 
-Head data resolves from five layers, listed here from lowest to highest priority:
+Page head data resolves from five layers, listed here from lowest to highest priority:
 
-1. Global defaults
+1. Page defaults
 2. Route group metadata
 3. Route metadata
 4. Runtime metadata
@@ -29,7 +29,7 @@ Higher layers replace lower layers field by field. For example, a runtime title 
 
 ## Defaults
 
-Register global defaults in a service provider:
+Register page defaults in a service provider:
 
 ```php
 use Laravel\Head\Facades\Head;
@@ -42,9 +42,6 @@ Head::defaults(function (HeadManager $head) {
     $head
         ->title('Acme', suffix: ' - Acme')
         ->description('Build something great.')
-        ->applicationName('Acme')
-        ->themeColor('#0f172a')
-        ->colorScheme('light dark')
         ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
         ->twitter(card: TwitterCard::SummaryLargeImage)
@@ -53,7 +50,7 @@ Head::defaults(function (HeadManager $head) {
 });
 ```
 
-The defaults layer is the lowest-priority layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `exact: true` for titles that should ignore the inherited prefix or suffix.
+The defaults layer is the lowest-priority page layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `exact: true` for titles that should ignore the inherited prefix or suffix.
 
 Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string `Head::canonical('/about')`. A later layer can remove an inherited canonical URL with `Head::canonical(false)`.
 
@@ -296,7 +293,7 @@ Head::pwa(
 
 This renders the application name, web app manifest link, optional theme color, iOS standalone metadata, optional Apple status bar style, and optional Apple touch icon. The manifest JSON itself and service worker registration still belong to your application.
 
-Use `pwa()` in global defaults or runtime metadata. Route metadata supports the individual properties shown above.
+Use `pwa()` in defaults or runtime metadata. In Inertia applications, immutable PWA tags can also be placed in document globals. Route metadata supports the individual properties shown above.
 
 ## Performance & Discovery
 
@@ -399,7 +396,7 @@ Head::schema(
 
 ## Rendering
 
-Laravel Head resolves these layers into a single set of tags. Where that result is emitted depends on your stack.
+Laravel Head resolves the page layers into tags for the current response. Where those tags are emitted depends on your stack.
 
 The HTML renderer powers the `@head` directive and the rendered elements Laravel Head shares with Inertia as the `head` prop. The head array renderer powers `Head::toArray()` for applications that want the resolved head as structured data.
 
@@ -436,7 +433,19 @@ No Livewire-specific configuration is required. Head data is resolved per reques
 
 ### Inertia
 
-When Inertia is installed, Laravel Head automatically shares the resolved head as an array of rendered element strings under a `head` prop on every page object:
+Use the same `@head` directive in your Inertia root view:
+
+```blade
+<head>
+    <meta charset="utf-8">
+    @head
+
+    @viteReactRefresh
+    @vite(['resources/css/app.css', 'resources/js/app.tsx'])
+</head>
+```
+
+When Inertia is installed, Laravel Head automatically shares the page-managed head as an array of rendered element strings under a `head` prop on every page object:
 
 ```json
 {
@@ -458,7 +467,29 @@ createInertiaApp({
 })
 ```
 
-The elements are rendered during server-side rendering, hydrated on the client, and kept in sync on every Inertia visit. No client-side `<Head>` component or template is required.
+When adding Laravel Head to an existing Inertia application, remove any title suffix callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title.
+
+The initial document is rendered by `@head`, hydrated on the client, and kept in sync on every Inertia visit. No client-side `<Head>` component or template is required. Globals are rendered once as static tags and excluded from the `head` prop; page-managed tags receive stable `data-inertia` keys so Inertia can update them during navigation.
+
+#### Document Globals
+
+In Inertia applications, immutable document tags may be registered in a service provider with `Head::globals()`:
+
+```php
+use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
+
+Head::globals(function (HeadManager $head) {
+    $head
+        ->viewport('width=device-width, initial-scale=1')
+        ->colorScheme('light dark')
+        ->icon('/favicon.svg', type: 'image/svg+xml')
+        ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
+        ->manifest('/site.webmanifest');
+});
+```
+
+Globals are rendered by `@head` into the initial document, excluded from the Inertia `head` prop, and never updated after the first response. Put a tag in `globals` only when it should survive every Inertia navigation unchanged. If a page may override or replace a tag, put that tag in `defaults` instead.
 
 The prop is not sent during partial reloads; the client keeps the head from the last full visit. If your application already uses the `head` prop for something else, publish the configuration file and change the prop name:
 

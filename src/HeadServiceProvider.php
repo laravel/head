@@ -56,7 +56,10 @@ class HeadServiceProvider extends ServiceProvider
             __DIR__.'/../config/head.php' => config_path('head.php'),
         ], 'head-config');
 
-        Blade::directive('head', fn (): string => "<?php echo app('head')->render(); ?>");
+        Blade::directive('head', fn (string $expression): string => $expression === ''
+            ? "<?php echo app('head')->renderForView(get_defined_vars()); ?>"
+            : "<?php echo app('head')->renderForView(get_defined_vars(), {$expression}); ?>"
+        );
 
         $this->app->make(RegistersHeadRoutes::class)->register();
 

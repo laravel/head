@@ -31,6 +31,10 @@ class HeadManager implements Arrayable, Htmlable
 {
     use Macroable;
 
+    public const INERTIA_PROP = 'head';
+
+    protected HeadData $globals;
+
     protected HeadData $defaults;
 
     protected ErrorPages $errorPages;
@@ -43,8 +47,18 @@ class HeadManager implements Arrayable, Htmlable
         protected RouteHeadRepository $routes,
         protected TagRegistry $registry,
     ) {
+        $this->globals = new HeadData;
         $this->defaults = new HeadData;
         $this->errorPages = new ErrorPages($this->registry);
+    }
+
+    public function globals(callable $callback): static
+    {
+        $this->record($callback, function (HeadData $data): void {
+            $this->globals = $this->globals->merge($data);
+        });
+
+        return $this;
     }
 
     public function defaults(callable $callback): static
@@ -412,7 +426,7 @@ class HeadManager implements Arrayable, Htmlable
      */
     public function toArray(?int $status = null): array
     {
-        return $this->renderer->toArray($this->resolve($status), $this->request());
+        return $this->renderer->toArray($this->resolveDocument($status), $this->request());
     }
 
     /**
@@ -420,7 +434,7 @@ class HeadManager implements Arrayable, Htmlable
      */
     public function toElements(?int $status = null): array
     {
-        return $this->renderer->toElements($this->resolve($status), $this->request());
+        return $this->renderer->toElements($this->resolveDocument($status), $this->request());
     }
 
     /**
@@ -433,7 +447,26 @@ class HeadManager implements Arrayable, Htmlable
 
     public function render(?int $status = null): HtmlString
     {
-        return new HtmlString($this->renderer->render($this->resolve($status), $this->request()));
+        return new HtmlString($this->renderer->render($this->resolveDocument($status), $this->request()));
+    }
+
+    /**
+     * Render tags for a Blade view, adding Inertia ownership attributes when
+     * the directive is rendered from an Inertia root view.
+     *
+     * @param  array<string, mixed>  $variables
+     */
+    public function renderForView(array $variables = [], ?int $status = null): HtmlString
+    {
+        if ($this->isInertiaRootView($variables)) {
+            return new HtmlString($this->renderer->renderInertiaDocument(
+                $this->globals,
+                $this->resolve($status),
+                $this->request(),
+            ));
+        }
+
+        return $this->render($status);
     }
 
     public function toHtml(?int $status = null): string
@@ -479,6 +512,26 @@ class HeadManager implements Arrayable, Htmlable
         }
 
         return $data;
+    }
+
+    protected function resolveDocument(?int $status = null): HeadData
+    {
+        return (new HeadData)
+            ->merge($this->globals)
+            ->merge($this->resolve($status));
+    }
+
+    /**
+     * @param  array<string, mixed>  $variables
+     */
+    protected function isInertiaRootView(array $variables): bool
+    {
+        $page = $variables['page'] ?? null;
+
+        return is_array($page)
+            && array_key_exists('component', $page)
+            && array_key_exists('props', $page)
+            && array_key_exists('url', $page);
     }
 
     protected function data(): HeadData

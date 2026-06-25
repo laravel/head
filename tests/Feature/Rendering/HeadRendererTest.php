@@ -60,6 +60,20 @@ it('does not render inertia keys in blade html output', function (): void {
         ->not->toContain('data-inertia');
 });
 
+it('renders global tags in blade html output', function (): void {
+    Head::globals(fn (HeadManager $head) => $head
+        ->viewport('width=device-width, initial-scale=1')
+        ->icon('/favicon.svg', type: 'image/svg+xml'));
+
+    Head::title('Dashboard');
+
+    expect(Head::toHtml())
+        ->toContain('<title>Dashboard</title>')
+        ->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">')
+        ->toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">')
+        ->not->toContain('data-inertia');
+});
+
 it('groups link builders under the links key when serialized to an array', function (): void {
     Head::title('About')
         ->preload('/fonts/inter.woff2', as: 'font')

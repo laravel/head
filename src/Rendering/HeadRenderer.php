@@ -28,6 +28,11 @@ class HeadRenderer
         return implode(PHP_EOL, $this->toElements($head, $request));
     }
 
+    public function renderInertiaDocument(HeadData $globals, HeadData $head, ?Request $request = null): string
+    {
+        return implode(PHP_EOL, $this->toInertiaDocumentElements($globals, $head, $request));
+    }
+
     /**
      * Render the resolved head as individual HTML element strings.
      *
@@ -50,6 +55,32 @@ class HeadRenderer
     }
 
     /**
+     * Render the initial Inertia document head. Global tags are emitted as
+     * plain, server-owned tags while page tags receive Inertia ownership keys.
+     *
+     * @return array<int, string>
+     */
+    public function toInertiaDocumentElements(HeadData $globals, HeadData $head, ?Request $request = null): array
+    {
+        $globalHead = new ResolvedHead($globals, $this->registry, $request, $this->schemas);
+        $pageHead = new ResolvedHead($head, $this->registry, $request, $this->schemas);
+        $pageTags = $this->tags->withInertiaAttributes();
+        $elements = [];
+
+        foreach ($this->registry->builders() as $builder) {
+            if ($globalBuilder = $this->builder($globalHead, $builder)) {
+                array_push($elements, ...$globalBuilder->toTags($globalHead, $this->tags));
+            }
+
+            if ($pageBuilder = $this->builder($pageHead, $builder)) {
+                array_push($elements, ...$pageBuilder->toTags($pageHead, $pageTags));
+            }
+        }
+
+        return array_values(array_filter($elements));
+    }
+
+    /**
      * @return array<int, string>
      */
     protected function elements(HeadData $head, ?Request $request, TagRenderer $tags): array
@@ -61,6 +92,20 @@ class HeadRenderer
             ->filter()
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  class-string<TagBuilder>  $builder
+     */
+    protected function builder(ResolvedHead $head, string $builder): ?TagBuilder
+    {
+        $value = $head->builder($builder);
+
+        if (! $value instanceof TagBuilder && $builder::rendersWhenEmpty($head)) {
+            $value = new $builder;
+        }
+
+        return $value instanceof TagBuilder ? $value : null;
     }
 
     /**

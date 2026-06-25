@@ -11,6 +11,7 @@ use Laravel\Head\HeadManager;
  * @method static \Laravel\Head\HeadManager globals(callable $callback)
  * @method static \Laravel\Head\HeadManager defaults(callable $callback)
  * @method static \Laravel\Head\HeadManager errors(callable $callback)
+ * @method static \Laravel\Head\HeadManager inertia(string $prop = 'head')
  * @method static \Laravel\Head\HeadManager extend(class-string<\Laravel\Head\Tags\TagBuilder> $builder)
  * @method static \Laravel\Head\HeadManager status(int $status)
  * @method static \Laravel\Head\HeadManager title(string $title, ?string $prefix = null, ?string $suffix = null, ?bool $exact = null)

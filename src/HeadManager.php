@@ -37,6 +37,8 @@ class HeadManager implements Arrayable, Htmlable
 
     protected HeadData $defaults;
 
+    protected string $inertiaProp = self::INERTIA_PROP;
+
     protected ErrorPages $errorPages;
 
     protected ?HeadData $recording = null;
@@ -75,6 +77,18 @@ class HeadManager implements Arrayable, Htmlable
         $callback($this->errorPages);
 
         return $this;
+    }
+
+    public function inertia(string $prop = self::INERTIA_PROP): static
+    {
+        $this->inertiaProp = $prop;
+
+        return $this;
+    }
+
+    public function inertiaProp(): string
+    {
+        return $this->inertiaProp;
     }
 
     /**

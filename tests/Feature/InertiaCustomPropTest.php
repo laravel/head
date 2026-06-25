@@ -7,6 +7,7 @@ namespace Laravel\Head\Tests\Feature;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Support\Header;
+use Laravel\Head\Facades\Head;
 use Laravel\Head\Tests\TestCase;
 
 class InertiaCustomPropTest extends TestCase
@@ -15,7 +16,7 @@ class InertiaCustomPropTest extends TestCase
     {
         parent::defineEnvironment($app);
 
-        $app['config']->set('head.inertia.prop', '_head');
+        $app->booting(fn () => Head::inertia(prop: '_head'));
     }
 
     public function test_head_elements_are_shared_under_the_configured_prop(): void

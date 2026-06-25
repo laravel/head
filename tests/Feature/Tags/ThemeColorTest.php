@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Support\Header;
 use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
 
 it('renders theme color tags', function (): void {
     Head::themeColor('#0f172a');
@@ -30,5 +31,5 @@ it('shares stable inertia keys for theme colors', function (): void {
 
     $this->get('/dashboard', [Header::INERTIA => 'true'])
         ->assertOk()
-        ->assertJsonPath('props.head.0', '<meta data-inertia="themeColor" name="theme-color" content="#0f172a">');
+        ->assertJsonPath('props.'.HeadManager::INERTIA_PROP.'.0', '<meta data-inertia="themeColor" name="theme-color" content="#0f172a">');
 });

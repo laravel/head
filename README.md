@@ -491,16 +491,15 @@ Head::globals(function (HeadManager $head) {
 
 Globals are rendered by `@head` into the initial document, excluded from the Inertia `head` prop, and never updated after the first response. Put a tag in `globals` only when it should survive every Inertia navigation unchanged. If a page may override or replace a tag, put that tag in `defaults` instead.
 
-The prop is not sent during partial reloads; the client keeps the head from the last full visit. If your application already uses the `head` prop for something else, publish the configuration file and change the prop name:
-
-```shell
-php artisan vendor:publish --tag=head-config
-```
+The prop is not sent during partial reloads; the client keeps the head from the last full visit. If your application already uses the `head` prop for something else, change the prop name in a service provider:
 
 ```php
-'inertia' => [
-    'prop' => '_head',
-],
+use Laravel\Head\Facades\Head;
+
+public function boot(): void
+{
+    Head::inertia(prop: '_head');
+}
 ```
 
 Then point Inertia at the same prop with `serverHead: '_head'`.

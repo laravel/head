@@ -154,6 +154,16 @@ class HeadData
         return $this->overlayBuilder(Robots::make($directives));
     }
 
+    public function robotsSearchable(): static
+    {
+        return $this->robots(RobotsRule::All);
+    }
+
+    public function robotsHidden(): static
+    {
+        return $this->robots(RobotsRule::None);
+    }
+
     public function og(
         OgType|string|null $type = null,
         ?string $title = null,

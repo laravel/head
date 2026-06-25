@@ -26,6 +26,8 @@ use Laravel\Head\HeadManager;
  * @method static \Laravel\Head\HeadManager appleWebAppStatusBarStyle(string $style)
  * @method static \Laravel\Head\HeadManager canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null)
  * @method static \Laravel\Head\HeadManager robots(string|\Laravel\Head\Enums\RobotsRule|array<int, string|\Laravel\Head\Enums\RobotsRule> $directives)
+ * @method static \Laravel\Head\HeadManager robotsSearchable()
+ * @method static \Laravel\Head\HeadManager robotsHidden()
  * @method static \Laravel\Head\HeadManager og(\Laravel\Head\Enums\OgType|string|null $type = null, ?string $title = null, ?string $description = null, ?string $url = null, ?string $image = null, ?string $video = null, ?string $audio = null, ?string $siteName = null, ?string $locale = null, ?string $determiner = null)
  * @method static \Laravel\Head\HeadManager ogImage(string $url, ?string $alt = null, ?int $width = null, ?int $height = null, \Laravel\Head\Enums\ImageType|string|null $type = null, ?string $secureUrl = null)
  * @method static \Laravel\Head\HeadManager ogVideo(string $url, ?string $alt = null, ?int $width = null, ?int $height = null, ?string $type = null, ?string $secureUrl = null)

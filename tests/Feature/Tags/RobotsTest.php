@@ -28,6 +28,18 @@ it('renders robots tags from a single rule', function (): void {
     expect(Head::toHtml())->toContain('<meta name="robots" content="noindex">');
 });
 
+it('renders searchable robots tags', function (): void {
+    Head::robotsSearchable();
+
+    expect(Head::toHtml())->toContain('<meta name="robots" content="all">');
+});
+
+it('renders hidden robots tags', function (): void {
+    Head::robotsHidden();
+
+    expect(Head::toHtml())->toContain('<meta name="robots" content="none">');
+});
+
 it('renders robots tags from mixed string and enum rules', function (): void {
     Head::robots(['noindex', RobotsRule::NoFollow]);
 

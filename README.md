@@ -35,7 +35,6 @@ Register page defaults in a service provider:
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
 use Laravel\Head\Enums\OgType;
-use Laravel\Head\Enums\RobotsRule;
 use Laravel\Head\Enums\TwitterCard;
 
 Head::defaults(function (HeadManager $head) {
@@ -45,7 +44,7 @@ Head::defaults(function (HeadManager $head) {
         ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
         ->twitter(card: TwitterCard::SummaryLargeImage)
-        ->robots(RobotsRule::All)
+        ->robotsSearchable()
         ->preconnect('https://fonts.example.com');
 });
 ```
@@ -55,6 +54,8 @@ The defaults layer is the lowest-priority page layer. If no route, runtime, or e
 Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string `Head::canonical('/about')`. A later layer can remove an inherited canonical URL with `Head::canonical(false)`.
 
 Robots directives may be passed as a raw string, as `RobotsRule` enum cases, or as a list mixing both forms. Lists are rendered as comma-separated directives, so `Head::robots([RobotsRule::NoIndex, RobotsRule::NoFollow])` renders `noindex, nofollow`.
+
+For the two common intents, `Head::robotsSearchable()` renders `all`, and `Head::robotsHidden()` renders `none`.
 
 ## Route Metadata
 

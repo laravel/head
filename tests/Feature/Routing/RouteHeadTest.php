@@ -62,10 +62,10 @@ it('stores head attributes on view and controller routes', function (): void {
         title: 'About',
     );
 
-    expect($view->getAction('metadata.head'))->toBe([
+    expect($view->getMetadata('head'))->toBe([
         'title' => 'Contact',
         'description' => 'Get in touch.',
-    ])->and($controller->getAction('metadata.head'))->toBe([
+    ])->and($controller->getMetadata('head'))->toBe([
         'title' => 'About',
     ]);
 });
@@ -93,9 +93,9 @@ it('stores head attributes on resource and singleton routes', function (): void 
     $posts = Route::getRoutes()->getByName('posts.index');
     $profile = Route::getRoutes()->getByName('profile.show');
 
-    expect($posts?->getAction('metadata.head'))->toBe([
+    expect($posts?->getMetadata('head'))->toBe([
         'robots' => 'index, follow',
-    ])->and($profile?->getAction('metadata.head'))->toBe([
+    ])->and($profile?->getMetadata('head'))->toBe([
         'title' => 'Your Profile',
     ]);
 });

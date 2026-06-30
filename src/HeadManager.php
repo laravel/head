@@ -200,11 +200,17 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
+    /**
+     * Add a robots meta tag with the "all" directive, allowing search engines to index the page.
+     */
     public function robotsSearchable(): static
     {
         return $this->robots(RobotsRule::All);
     }
 
+    /**
+     * Add a robots meta tag with the "none" directive, preventing search engines from indexing the page.
+     */
     public function robotsHidden(): static
     {
         return $this->robots(RobotsRule::None);

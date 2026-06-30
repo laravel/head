@@ -18,7 +18,10 @@ class MetaTags extends GroupedTagBuilder
     /**
      * @param  array<string, MetaAttributes>  $tags
      */
-    public function __construct(protected array $tags = []) {}
+    public function __construct(protected array $tags = [])
+    {
+        //
+    }
 
     public static function key(): string
     {

@@ -18,7 +18,10 @@ class Schemas extends GroupedTagBuilder
     /**
      * @param  array<string, SchemaObject|SchemaData>  $schemas
      */
-    public function __construct(protected array $schemas = []) {}
+    public function __construct(protected array $schemas = [])
+    {
+        //
+    }
 
     public static function key(): string
     {

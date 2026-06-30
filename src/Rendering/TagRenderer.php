@@ -6,7 +6,10 @@ namespace Laravel\Head\Rendering;
 
 class TagRenderer
 {
-    public function __construct(protected bool $withInertiaAttributes = false) {}
+    public function __construct(protected bool $withInertiaAttributes = false)
+    {
+        //
+    }
 
     public function withInertiaAttributes(): self
     {

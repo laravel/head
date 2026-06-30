@@ -17,7 +17,9 @@ class Title extends TagBuilder
         protected ?bool $exact = null,
         protected ?string $prefix = null,
         protected ?string $suffix = null,
-    ) {}
+    ) {
+        //
+    }
 
     public static function key(): string
     {

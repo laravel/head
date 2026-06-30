@@ -26,7 +26,9 @@ class PerformanceLinks extends GroupedTagBuilder
         protected array $prefetches = [],
         protected array $preconnects = [],
         protected array $dnsPrefetches = [],
-    ) {}
+    ) {
+        //
+    }
 
     public static function key(): string
     {

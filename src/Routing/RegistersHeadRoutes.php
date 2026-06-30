@@ -13,7 +13,10 @@ use Illuminate\Routing\RouteRegistrar;
 
 class RegistersHeadRoutes
 {
-    public function __construct(protected RouteHeadRepository $repository) {}
+    public function __construct(protected RouteHeadRepository $repository)
+    {
+        //
+    }
 
     public function register(): void
     {

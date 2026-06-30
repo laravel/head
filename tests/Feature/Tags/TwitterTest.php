@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
 
 it('renders twitter image tags', function (): void {
     Head::twitter(card: TwitterCard::SummaryLargeImage, image: 'https://example.com/twitter.jpg')
@@ -15,7 +16,22 @@ it('renders twitter image tags', function (): void {
         ->toContain('<meta name="twitter:image:alt" content="Twitter alt">');
 });
 
-it('falls back from document tags to social tags', function (): void {
+it('does not render twitter fallback tags by default', function (): void {
+    Head::title('Gallery')
+        ->description('Gallery description.')
+        ->ogImage('https://example.com/gallery.jpg', alt: 'Gallery image');
+
+    expect(Head::toHtml())
+        ->not->toContain('name="twitter:title"')
+        ->not->toContain('name="twitter:description"')
+        ->not->toContain('name="twitter:image"');
+
+    expect(Head::toArray()['twitter'])->toBe([]);
+});
+
+it('falls back from document tags to twitter tags when configured', function (): void {
+    Head::defaults(fn (HeadManager $head): HeadManager => $head->twitter());
+
     Head::title('Gallery')
         ->description('Gallery description.')
         ->ogImage('https://example.com/gallery.jpg', alt: 'Gallery image');

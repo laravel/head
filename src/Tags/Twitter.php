@@ -35,13 +35,6 @@ class Twitter extends GroupedTagBuilder
         return ['twitter', 'twitterImage'];
     }
 
-    public static function rendersWhenEmpty(ResolvedHead $head): bool
-    {
-        return ! is_null($head->title())
-            || ! is_null($head->description())
-            || ! is_null($head->openGraphImage());
-    }
-
     public static function make(
         TwitterCard|string|null $card = null,
         ?string $site = null,

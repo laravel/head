@@ -7,7 +7,7 @@
 
 ## Introduction
 
-Laravel Head provides a fluent API for managing your application's document `<head>`, with support for title and meta tags, Open Graph and Twitter cards, canonical URLs, robots directives, performance hints, and structured data. It works across Blade, Livewire, and Inertia.
+Laravel Head provides a fluent API for managing your application's document `<head>`, with support for title and meta tags, Open Graph, canonical URLs, robots directives, performance hints, and structured data. It works across Blade, Livewire, and Inertia.
 
 ## Installation
 
@@ -35,7 +35,6 @@ Register page defaults in a service provider:
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
 use Laravel\Head\Enums\OgType;
-use Laravel\Head\Enums\TwitterCard;
 
 Head::defaults(function (HeadManager $head) {
     $head
@@ -43,7 +42,6 @@ Head::defaults(function (HeadManager $head) {
         ->description('Build something great.')
         ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
-        ->twitter(card: TwitterCard::SummaryLargeImage)
         ->robotsSearchable()
         ->preconnect('https://fonts.example.com');
 });
@@ -105,7 +103,7 @@ The supported route properties map to the same names as the fluent builder metho
 | --- | --- |
 | Document | `title`, `description`, `canonical`, `robots` |
 | App metadata | `themeColor`, `applicationName`, `colorScheme`, `referrer`, `viewport`, `appleWebAppTitle`, `webAppCapable`, `appleWebAppStatusBarStyle` |
-| Social | `og`, `ogImage`, `ogVideo`, `ogAudio`, `twitter`, `twitterImage` |
+| Social | `og`, `ogImage`, `ogVideo`, `ogAudio` |
 | Performance | `preload`, `prefetch`, `preconnect`, `dnsPrefetch` |
 | Discovery | `alternates`, `feed`, `icon`, `appleTouchIcon`, `appleTouchStartupImage`, `maskIcon`, `manifest` |
 | Structured data | `schema` |
@@ -185,14 +183,13 @@ Head::errors(function (ErrorPages $errors) {
 
 When a response is rendered for a registered error status, that metadata beats every other layer.
 
-## Open Graph & Twitter
+## Open Graph
 
-Open Graph and Twitter card properties are set with `og()` and `twitter()`. Repeatable media is added through top-level methods that take named arguments directly:
+Open Graph properties are set with `og()`. Repeatable media is added through top-level methods that take named arguments directly:
 
 ```php
 use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
-use Laravel\Head\Enums\TwitterCard;
 
 Head::og(type: OgType::Article, title: $post->title)
     ->ogImage($post->hero_image_url)
@@ -202,19 +199,17 @@ Head::og(type: OgType::Article, title: $post->title)
         width: 1200,
         height: 630,
         type: ImageType::Jpeg,
-    )
-    ->twitter(card: TwitterCard::SummaryLargeImage)
-    ->twitterImage($post->twitter_image_url, alt: $post->title);
+    );
 ```
 
-`ogImage()`, `ogVideo()`, `ogAudio()`, and `twitterImage()` all accept the same shape: a URL as the first argument plus optional named args for `alt`, `width`, `height`, `type`, and `secureUrl` where the spec defines them.
+`ogImage()`, `ogVideo()`, and `ogAudio()` all accept the same shape: a URL as the first argument plus optional named args for `alt`, `width`, `height`, `type`, and `secureUrl` where the spec defines them.
 
 Image MIME types can be passed as `ImageType` enum cases anywhere the API accepts an image `type`, such as `ImageType::Svg`, `ImageType::Png`, `ImageType::Jpeg`, and `ImageType::Webp`.
 
 > [!NOTE]
-> Document `title` and `description` automatically fill missing `og:title`, `og:description`, `twitter:title`, and `twitter:description` values. If no Twitter image is set, the first Open Graph image is also used for `twitter:image`.
+> Document `title` and `description` automatically fill missing `og:title` and `og:description` values.
 
-For a single OG image with no other attributes, pass the `image:` shorthand to `og()` or `twitter()`:
+For a single OG image with no other attributes, pass the `image:` shorthand to `og()`:
 
 ```php
 Head::og(
@@ -226,6 +221,47 @@ Head::og(
 ```
 
 `og(image: ...)` and `ogImage(...)` write to the same underlying image list, so pick whichever reads better at the call site. Use [`meta()`](#custom-tags) for custom Open Graph extensions such as product or article properties.
+
+### Twitter Cards
+
+To render X/Twitter cards from the same title, description, and image used by Open Graph, register `twitter()` in your defaults:
+
+```php
+use Laravel\Head\Enums\TwitterCard;
+use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
+
+Head::defaults(fn (HeadManager $head) => $head->twitter(
+    card: TwitterCard::SummaryLargeImage,
+));
+```
+
+Then page level metadata like this:
+
+```php
+Head::title('Introducing Laravel Head')
+    ->description('A fluent API for Laravel document head metadata.')
+    ->ogImage('https://example.com/social.jpg', alt: 'Introducing Laravel Head');
+```
+
+Will render matching Twitter tags:
+
+```html
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Introducing Laravel Head">
+<meta name="twitter:description" content="A fluent API for Laravel document head metadata.">
+<meta name="twitter:image" content="https://example.com/social.jpg">
+<meta name="twitter:image:alt" content="Introducing Laravel Head">
+```
+
+You may customize individual pages with explicit Twitter values:
+
+```php
+Head::twitter(title: $post->social_title)
+    ->twitterImage($post->social_image_url, alt: $post->title);
+```
+
+Route metadata accepts `twitter` and `twitterImage`.
 
 ## Theme Colors
 

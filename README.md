@@ -148,7 +148,22 @@ public function show(Post $post)
 }
 ```
 
-Multiple runtime calls are merged in the order they run. For single-value fields like title, description, canonical URL, and robots directives, the later call wins. Repeatable fields like images, performance links, feeds, schemas, generic meta tags, and generic links accumulate or replace existing entries by their internal key.
+Multiple runtime calls are merged in the order they run. For single-value fields like title, description, canonical URL, and robots directives, the later call wins. Repeatable fields keep multiple entries, but adding the same key again updates the earlier entry. For `ogImage()`, the URL is the key:
+
+```php
+Head::ogImage('/images/cover.jpg', alt: 'Draft cover')
+    ->ogImage('/images/gallery.jpg', alt: 'Gallery image')
+    ->ogImage('/images/cover.jpg', alt: 'Final cover', width: 1200, height: 630);
+```
+
+```html
+<meta property="og:image" content="/images/cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Final cover">
+<meta property="og:image" content="/images/gallery.jpg">
+<meta property="og:image:alt" content="Gallery image">
+```
 
 ## Error Pages
 
@@ -336,7 +351,19 @@ Head::meta('theme-color', '#ffffff', media: '(prefers-color-scheme: light)')
     ->meta('theme-color', '#111827', media: '(prefers-color-scheme: dark)');
 ```
 
-`meta()` emits `name=` by default and automatically uses `property=` for known RDFa namespaces such as `og:`, `article:`, `book:`, `profile:`, `music:`, `video:`, `fb:`, and `product:`. You may override detection with `property: true` or `property: false`.
+`meta()` uses `name=` for regular meta tags. For keys that normally use `property=`, such as Open Graph (`og:`) or article metadata (`article:`), it switches automatically:
+
+```php
+Head::meta('description', 'About Acme')
+    ->meta('og:title', 'About Acme');
+```
+
+```html
+<meta name="description" content="About Acme">
+<meta property="og:title" content="About Acme">
+```
+
+Pass `property: true` or `property: false` if you need to force one or the other.
 
 ## Schemas
 
@@ -459,7 +486,7 @@ When Inertia is installed, Laravel Head automatically shares the page-managed he
 }
 ```
 
-Inertia renders these elements into the document head for you — enable it with the `serverHead` option in your application's entry point:
+Inertia renders these elements into the document head for you. Enable it with the `serverHead` option in your application's entry point:
 
 ```js
 createInertiaApp({
@@ -468,7 +495,8 @@ createInertiaApp({
 })
 ```
 
-When adding Laravel Head to an existing Inertia application, remove any title suffix callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title.
+> [!NOTE]
+> When adding Laravel Head to an existing Inertia application, remove any title suffix callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title.
 
 The initial document is rendered by `@head`, hydrated on the client, and kept in sync on every Inertia visit. No client-side `<Head>` component or template is required. Globals are rendered once as static tags and excluded from the `head` prop; page-managed tags receive stable `data-inertia` keys so Inertia can update them during navigation.
 

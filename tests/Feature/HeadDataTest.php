@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
 use Laravel\Head\Tags\Title;
+use Laravel\Head\Tests\Fixtures\ConflictingRouteAttribute;
 use Laravel\Head\Tests\Fixtures\ReadingTime;
 
 afterEach(function (): void {
@@ -49,4 +50,9 @@ it('rejects tag extensions that do not extend tag builders', function (): void {
 it('rejects built in tag builders', function (): void {
     expect(fn (): HeadManager => Head::extend(Title::class))
         ->toThrow(InvalidArgumentException::class, 'Built-in head tag builders are already registered.');
+});
+
+it('rejects tag extensions that register duplicate route attribute keys', function (): void {
+    expect(fn (): HeadManager => Head::extend(ConflictingRouteAttribute::class))
+        ->toThrow(InvalidArgumentException::class, 'Head tag extensions may not register route attributes already registered by another builder: title.');
 });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Laravel\Head;
 
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Foundation\Exceptions\Handler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -62,13 +63,10 @@ class HeadServiceProvider extends ServiceProvider
 
     protected function registerExceptionStatusResolver(): void
     {
-        $this->app->afterResolving(ExceptionHandler::class, function (ExceptionHandler $handler): void {
-            if (! method_exists($handler, 'renderable')) {
-                return;
-            }
-
+        $this->app->afterResolving(ExceptionHandler::class, function (object $handler): void {
             $app = $this->app;
 
+            /** @var Handler $handler */
             $handler->renderable(function (Throwable $exception, Request $request) use ($app): void {
                 $app->make(HeadManager::class)->status(
                     $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500

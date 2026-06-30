@@ -29,9 +29,17 @@ class Robots extends StringTagBuilder
             return null;
         }
 
-        return is_string($value) || $value instanceof RobotsRule || is_array($value)
-            ? static::make($value)
-            : null;
+        if (is_array($value)) {
+            if ($value === []) {
+                return new static;
+            }
+
+            $directives = static::renderDirectives($value);
+
+            return $directives === '' ? null : new static($directives);
+        }
+
+        return is_string($value) || $value instanceof RobotsRule ? static::make($value) : null;
     }
 
     public function toTags(ResolvedHead $head, TagRenderer $tags): array

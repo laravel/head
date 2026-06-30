@@ -42,8 +42,10 @@ class FeedLinks extends GroupedTagBuilder
 
         $links = new self;
 
-        foreach ($value as $href => $feed) {
-            $links->addRouteAttributeFeed($href, $feed);
+        foreach (self::feedAttributes($value) as $href => $feed) {
+            if (! $links->addRouteAttributeFeed($href, $feed)) {
+                return null;
+            }
         }
 
         return $links;
@@ -103,26 +105,45 @@ class FeedLinks extends GroupedTagBuilder
         return array_values($this->feeds);
     }
 
-    private function addRouteAttributeFeed(mixed $href, mixed $feed): void
+    private function addRouteAttributeFeed(mixed $href, mixed $feed): bool
     {
         if (is_string($href) && is_string($feed)) {
             $this->feed($href, $feed);
+
+            return true;
         }
 
-        if (is_array($feed) && is_string($feed['title'] ?? null)) {
-            $this->feed(
-                self::routeAttributeHref($href, $feed),
-                $feed['title'],
-                self::string($feed['type'] ?? null) ?? 'rss',
-            );
+        if (! is_array($feed) || ! is_string($feed['title'] ?? null) || is_null($url = self::routeAttributeHref($href, $feed))) {
+            return false;
         }
+
+        $this->feed($url, $feed['title'], self::string($feed['type'] ?? null) ?? 'rss');
+
+        return true;
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $value
+     * @return array<mixed, mixed>
+     */
+    private static function feedAttributes(array $value): array
+    {
+        if (array_is_list($value)) {
+            return $value;
+        }
+
+        if (array_key_exists('href', $value) || array_key_exists('title', $value) || array_key_exists('type', $value)) {
+            return [$value];
+        }
+
+        return $value;
     }
 
     /**
      * @param  array<mixed, mixed>  $feed
      */
-    private static function routeAttributeHref(mixed $href, array $feed): string
+    private static function routeAttributeHref(mixed $href, array $feed): ?string
     {
-        return self::string($feed['href'] ?? null) ?? self::string($href) ?? '';
+        return self::string($feed['href'] ?? null) ?? self::string($href);
     }
 }

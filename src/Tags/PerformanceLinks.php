@@ -56,34 +56,24 @@ class PerformanceLinks extends GroupedTagBuilder
     public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return match ($key) {
-            'preload' => is_array($value) ? self::fromPreloadAttributes($value) : null,
-            'prefetch' => is_array($value) ? self::fromPrefetchAttributes($value) : null,
-            'preconnect' => is_array($value) ? self::fromPreconnectAttributes($value) : null,
-            'dnsPrefetch' => is_array($value) ? self::fromDnsPrefetchAttributes($value) : null,
+            'preload' => is_string($value) || is_array($value) ? self::fromPreloadAttributes($value) : null,
+            'prefetch' => is_string($value) || is_array($value) ? self::fromPrefetchAttributes($value) : null,
+            'preconnect' => is_string($value) || is_array($value) ? self::fromPreconnectAttributes($value) : null,
+            'dnsPrefetch' => is_string($value) || is_array($value) ? self::fromDnsPrefetchAttributes($value) : null,
             default => null,
         };
     }
 
     /**
-     * @param  array<mixed, mixed>  $preloads
+     * @param  string|array<mixed, mixed>  $preloads
      */
-    public static function fromPreloadAttributes(array $preloads): self
+    public static function fromPreloadAttributes(string|array $preloads): ?self
     {
         $links = new self;
 
-        foreach ($preloads as $href => $attributes) {
-            if (is_string($attributes)) {
-                $links->preload($attributes);
-            }
-
-            if (is_array($attributes)) {
-                $links->preload(
-                    self::string($attributes['href'] ?? null) ?? self::string($href) ?? '',
-                    as: self::string($attributes['as'] ?? null),
-                    crossorigin: self::boolOrString($attributes['crossorigin'] ?? null),
-                    type: self::stringOrBackedEnum($attributes['type'] ?? null),
-                    media: self::string($attributes['media'] ?? null),
-                );
+        foreach (self::repeatableLinkAttributes($preloads, ['href', 'as', 'crossorigin', 'type', 'media']) as $href => $attributes) {
+            if (! $links->addPreloadRouteAttribute($href, $attributes)) {
+                return null;
             }
         }
 
@@ -91,22 +81,15 @@ class PerformanceLinks extends GroupedTagBuilder
     }
 
     /**
-     * @param  array<mixed, mixed>  $prefetches
+     * @param  string|array<mixed, mixed>  $prefetches
      */
-    public static function fromPrefetchAttributes(array $prefetches): self
+    public static function fromPrefetchAttributes(string|array $prefetches): ?self
     {
         $links = new self;
 
-        foreach ($prefetches as $href => $attributes) {
-            if (is_string($attributes)) {
-                $links->prefetch($attributes);
-            }
-
-            if (is_array($attributes)) {
-                $links->prefetch(
-                    self::string($attributes['href'] ?? null) ?? self::string($href) ?? '',
-                    as: self::string($attributes['as'] ?? null),
-                );
+        foreach (self::repeatableLinkAttributes($prefetches, ['href', 'as']) as $href => $attributes) {
+            if (! $links->addPrefetchRouteAttribute($href, $attributes)) {
+                return null;
             }
         }
 
@@ -114,22 +97,15 @@ class PerformanceLinks extends GroupedTagBuilder
     }
 
     /**
-     * @param  array<mixed, mixed>  $preconnects
+     * @param  string|array<mixed, mixed>  $preconnects
      */
-    public static function fromPreconnectAttributes(array $preconnects): self
+    public static function fromPreconnectAttributes(string|array $preconnects): ?self
     {
         $links = new self;
 
-        foreach ($preconnects as $href => $attributes) {
-            if (is_string($attributes)) {
-                $links->preconnect($attributes);
-            }
-
-            if (is_array($attributes)) {
-                $links->preconnect(
-                    self::string($attributes['href'] ?? null) ?? self::string($href) ?? '',
-                    crossorigin: self::boolOrString($attributes['crossorigin'] ?? null),
-                );
+        foreach (self::repeatableLinkAttributes($preconnects, ['href', 'crossorigin']) as $href => $attributes) {
+            if (! $links->addPreconnectRouteAttribute($href, $attributes)) {
+                return null;
             }
         }
 
@@ -137,16 +113,18 @@ class PerformanceLinks extends GroupedTagBuilder
     }
 
     /**
-     * @param  array<mixed>  $dnsPrefetches
+     * @param  string|array<mixed>  $dnsPrefetches
      */
-    public static function fromDnsPrefetchAttributes(array $dnsPrefetches): self
+    public static function fromDnsPrefetchAttributes(string|array $dnsPrefetches): ?self
     {
         $links = new self;
 
-        foreach ($dnsPrefetches as $href) {
-            if (is_string($href)) {
-                $links->dnsPrefetch($href);
+        foreach (self::items($dnsPrefetches) as $href) {
+            if (! is_string($href)) {
+                return null;
             }
+
+            $links->dnsPrefetch($href);
         }
 
         return $links;
@@ -248,5 +226,94 @@ class PerformanceLinks extends GroupedTagBuilder
     protected static function boolOrString(mixed $value): bool|string|null
     {
         return is_bool($value) || is_string($value) ? $value : null;
+    }
+
+    private function addPreloadRouteAttribute(mixed $href, mixed $attributes): bool
+    {
+        if (is_string($attributes)) {
+            $this->preload($attributes);
+
+            return true;
+        }
+
+        if (! is_array($attributes) || is_null($url = self::routeAttributeHref($href, $attributes))) {
+            return false;
+        }
+
+        $this->preload(
+            $url,
+            as: self::string($attributes['as'] ?? null),
+            crossorigin: self::boolOrString($attributes['crossorigin'] ?? null),
+            type: self::stringOrBackedEnum($attributes['type'] ?? null),
+            media: self::string($attributes['media'] ?? null),
+        );
+
+        return true;
+    }
+
+    private function addPrefetchRouteAttribute(mixed $href, mixed $attributes): bool
+    {
+        if (is_string($attributes)) {
+            $this->prefetch($attributes);
+
+            return true;
+        }
+
+        if (! is_array($attributes) || is_null($url = self::routeAttributeHref($href, $attributes))) {
+            return false;
+        }
+
+        $this->prefetch($url, as: self::string($attributes['as'] ?? null));
+
+        return true;
+    }
+
+    private function addPreconnectRouteAttribute(mixed $href, mixed $attributes): bool
+    {
+        if (is_string($attributes)) {
+            $this->preconnect($attributes);
+
+            return true;
+        }
+
+        if (! is_array($attributes) || is_null($url = self::routeAttributeHref($href, $attributes))) {
+            return false;
+        }
+
+        $this->preconnect($url, crossorigin: self::boolOrString($attributes['crossorigin'] ?? null));
+
+        return true;
+    }
+
+    /**
+     * @param  string|array<mixed, mixed>  $value
+     * @param  array<int, string>  $singleAttributeKeys
+     * @return array<mixed, mixed>
+     */
+    private static function repeatableLinkAttributes(string|array $value, array $singleAttributeKeys): array
+    {
+        if (is_string($value)) {
+            return [$value];
+        }
+
+        if (array_is_list($value)) {
+            return $value;
+        }
+
+        foreach ($singleAttributeKeys as $key) {
+            if (array_key_exists($key, $value)) {
+                return [$value];
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $attributes
+     */
+    private static function routeAttributeHref(mixed $href, array $attributes): ?string
+    {
+        return self::string($attributes['href'] ?? null) ?? self::string($href);
     }
 }

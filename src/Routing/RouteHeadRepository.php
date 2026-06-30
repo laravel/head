@@ -34,9 +34,10 @@ class RouteHeadRepository
      */
     public function get(Route $route): array|Closure|null
     {
+        /** @var array<mixed, mixed>|Closure|null $attributes */
         $attributes = $route->getMetadata(static::HEAD);
 
-        return is_array($attributes) || $attributes instanceof Closure ? $attributes : null;
+        return $attributes;
     }
 
     /**
@@ -52,7 +53,10 @@ class RouteHeadRepository
      */
     public function groups(Route $route): array
     {
-        return $this->groupsArray($route->getMetadata(static::GROUPS, []));
+        /** @var array<int|string, array<mixed, mixed>|Closure> $groups */
+        $groups = $route->getMetadata(static::GROUPS, []);
+
+        return array_values($groups);
     }
 
     /**
@@ -61,20 +65,5 @@ class RouteHeadRepository
     public function putPending(PendingResourceRegistration|PendingSingletonResourceRegistration $registration, array|Closure $attributes): void
     {
         $registration->metadata([static::HEAD => $attributes]);
-    }
-
-    /**
-     * @return array<int, array<mixed, mixed>|Closure>
-     */
-    protected function groupsArray(mixed $groups): array
-    {
-        if (! is_array($groups)) {
-            return [];
-        }
-
-        return array_values(array_filter(
-            $groups,
-            fn (mixed $group): bool => is_array($group) || $group instanceof Closure
-        ));
     }
 }

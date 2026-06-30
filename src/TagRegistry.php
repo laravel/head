@@ -50,6 +50,15 @@ class TagRegistry
             throw new InvalidArgumentException('Built-in head tag builders are already registered.');
         }
 
+        $duplicates = array_values(array_intersect($builder::routeAttributeKeys(), array_keys($this->routeAttributeKeys())));
+
+        if ($duplicates !== []) {
+            throw new InvalidArgumentException(sprintf(
+                'Head tag extensions may not register route attributes already registered by another builder: %s.',
+                implode(', ', $duplicates),
+            ));
+        }
+
         if (! in_array($builder, $this->extensions, true)) {
             $this->extensions[] = $builder;
         }

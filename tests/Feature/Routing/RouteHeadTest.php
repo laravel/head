@@ -134,7 +134,7 @@ it('parses route head data using the fluent field shapes', function (): void {
 it('does not accept snake case route head data aliases', function (): void {
     Route::get('/legacy-inputs', fn (): string => Head::toHtml())->withHead(
         canonical: ['auto' => true, 'force_https' => false],
-        og: ['site_name' => 'Legacy'],
+        og: ['title' => 'Legacy', 'site_name' => 'Legacy'],
         ogImage: [
             ['url' => 'https://example.com/image.jpg', 'secure_url' => 'https://secure.example.com/image.jpg'],
         ],
@@ -146,6 +146,24 @@ it('does not accept snake case route head data aliases', function (): void {
         ->assertSee('property="og:image" content="https://example.com/image.jpg">', false)
         ->assertDontSee('<meta property="og:site_name" content="Legacy">', false)
         ->assertDontSee('property="og:image:secure_url" content="https://secure.example.com/image.jpg">', false);
+});
+
+it('parses single repeatable route head data values', function (): void {
+    Route::get('/assets', fn (): string => Head::toHtml())->withHead(
+        preload: ['href' => '/fonts/inter.woff2', 'as' => 'font', 'crossorigin' => true],
+        prefetch: '/images/next.webp',
+        preconnect: ['href' => 'https://fonts.example.com', 'crossorigin' => true],
+        dnsPrefetch: 'https://analytics.example.com',
+        feed: ['href' => '/feed.atom', 'title' => 'Acme Atom', 'type' => 'atom'],
+    );
+
+    $this->get('/assets')
+        ->assertOk()
+        ->assertSee('rel="preload" href="/fonts/inter.woff2" as="font" crossorigin>', false)
+        ->assertSee('rel="prefetch" href="/images/next.webp">', false)
+        ->assertSee('rel="preconnect" href="https://fonts.example.com" crossorigin>', false)
+        ->assertSee('rel="dns-prefetch" href="https://analytics.example.com">', false)
+        ->assertSee('rel="alternate" type="application/atom+xml" title="Acme Atom" href="/feed.atom">', false);
 });
 
 it('throws for unknown route head data keys', function (): void {
@@ -161,3 +179,11 @@ it('throws for positional route head data values', function (): void {
 
     $this->withoutExceptionHandling()->get('/positional-head-key');
 })->throws(InvalidArgumentException::class, 'Route head attributes must be named.');
+
+it('throws for invalid values on known route head data keys', function (): void {
+    Route::get('/invalid-head-value', fn (): string => Head::toHtml())->withHead(
+        ogImage: ['alt' => 'Missing URL'],
+    );
+
+    $this->withoutExceptionHandling()->get('/invalid-head-value');
+})->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [ogImage].');

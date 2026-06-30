@@ -74,12 +74,22 @@ class RouteAttributeParser
 
             $builder = $builderClass::fromRouteAttribute($key, $value);
 
-            if (! is_null($builder)) {
-                $head->overlayBuilder($builder);
+            if (is_null($builder) || ($builder->isEmpty() && ! static::isEmptyRouteAttributeValue($value))) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid value for route head attribute [%s].',
+                    $key,
+                ));
             }
+
+            $head->overlayBuilder($builder);
         }
 
         return $head;
+    }
+
+    protected static function isEmptyRouteAttributeValue(mixed $value): bool
+    {
+        return $value === [];
     }
 
     /**

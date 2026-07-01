@@ -10,7 +10,10 @@ use Psr\Log\LoggerInterface;
 
 class SchemaValidator
 {
-    public function __construct(protected Application $app) {}
+    public function __construct(protected Application $app)
+    {
+        //
+    }
 
     /**
      * @param  array<string, mixed>  $schema

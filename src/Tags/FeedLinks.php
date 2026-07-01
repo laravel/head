@@ -17,7 +17,10 @@ class FeedLinks extends GroupedTagBuilder
     /**
      * @param  array<string, FeedAttributes>  $feeds
      */
-    public function __construct(protected array $feeds = []) {}
+    public function __construct(protected array $feeds = [])
+    {
+        //
+    }
 
     public static function key(): string
     {

@@ -18,7 +18,10 @@ class GenericLinks extends GroupedTagBuilder
     /**
      * @param  array<string, LinkAttributes>  $links
      */
-    public function __construct(protected array $links = []) {}
+    public function __construct(protected array $links = [])
+    {
+        //
+    }
 
     public static function key(): string
     {

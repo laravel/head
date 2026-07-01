@@ -62,38 +62,46 @@ Many pages can define their metadata directly on the route, especially semi-stat
 ### Routes & Groups
 
 ```php
+use Laravel\Head\Facades\Head;
+
 Route::view('/contact', 'contact')
     ->name('contact')
-    ->withHead(
+    ->metadata(Head::route(
         title: 'Contact Us',
         description: 'Get in touch.',
-    );
+    ));
 ```
 
 Shared route metadata can be applied to a group:
 
 ```php
-Route::withHead(robots: 'noindex, nofollow')
+use Laravel\Head\Facades\Head;
+
+Route::metadata(Head::route(robots: 'noindex, nofollow'))
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)
             ->name('dashboard')
-            ->withHead(title: 'Dashboard');
+            ->metadata(Head::route(title: 'Dashboard'));
     });
 ```
 
 Resource and singleton routes can define metadata too:
 
 ```php
-Route::resource('posts', PostController::class)->withHead(
-    robots: 'index, follow',
-);
+use Laravel\Head\Facades\Head;
 
-Route::singleton('profile', ProfileController::class)->withHead(
+Route::resource('posts', PostController::class)->metadata(Head::route(
+    robots: 'index, follow',
+));
+
+Route::singleton('profile', ProfileController::class)->metadata(Head::route(
     title: 'Your Profile',
-);
+));
 ```
+
+`Head::route()` returns a plain array for Laravel's native route metadata API, so route metadata remains compatible with cached routes.
 
 ### Supported Properties
 
@@ -113,21 +121,20 @@ Nested option names use the same camel-case names as the fluent API, such as `fo
 
 Repeatable properties, such as `ogImage`, `preload`, `feed`, `schema`, `icon`, and `appleTouchStartupImage`, accept either a single value or a list.
 
-### Dynamic Metadata
+### Request Metadata
 
-When a value isn't known until a request arrives, such as the title of the post being viewed, you may pass a closure instead of named arguments:
+When a value isn't known until a request arrives, such as the title of the post being viewed, set it at runtime instead:
 
 ```php
-use Illuminate\Routing\Route;
+use Laravel\Head\Facades\Head;
 
-Route::get('/posts/{post}', ShowPostController::class)
-    ->withHead(fn (Route $route) => [
-        'title' => $route->parameter('post')->title,
-    ]);
+public function __invoke(Post $post): Response
+{
+    Head::title($post->title);
+
+    // ...
+}
 ```
-
-> [!NOTE]
-> Route metadata closures are not compatible with cached routes. If you cache your routes, set request-dependent metadata at runtime instead.
 
 ## Runtime Metadata
 
@@ -281,9 +288,11 @@ Head::meta('theme-color', '#ffffff', media: '(prefers-color-scheme: light)')
 Route metadata supports simple theme colors through the same camel-case key:
 
 ```php
-Route::view('/dashboard', 'dashboard')->withHead(
+use Laravel\Head\Facades\Head;
+
+Route::view('/dashboard', 'dashboard')->metadata(Head::route(
     themeColor: '#0f172a',
-);
+));
 ```
 
 ## App Metadata & Icons
@@ -312,8 +321,9 @@ Route metadata uses the same names:
 
 ```php
 use Laravel\Head\Enums\ImageType;
+use Laravel\Head\Facades\Head;
 
-Route::view('/dashboard', 'dashboard')->withHead(
+Route::view('/dashboard', 'dashboard')->metadata(Head::route(
     applicationName: 'Acme',
     colorScheme: 'light dark',
     appleWebAppTitle: 'Acme',
@@ -326,7 +336,7 @@ Route::view('/dashboard', 'dashboard')->withHead(
     appleTouchIcon: ['href' => '/apple-touch-icon.png', 'sizes' => '180x180'],
     appleTouchStartupImage: ['href' => '/launch.png', 'media' => '(orientation: portrait)'],
     manifest: '/site.webmanifest',
-);
+));
 ```
 
 ## Progressive Web Apps

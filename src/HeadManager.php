@@ -19,7 +19,6 @@ use Laravel\Head\Enums\RobotsRule;
 use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\RouteAttributeParser;
-use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaObject;
 use Laravel\Head\Tags\TagBuilder;
@@ -46,7 +45,6 @@ class HeadManager implements Arrayable, Htmlable
     public function __construct(
         protected Container $app,
         protected HeadRenderer $renderer,
-        protected RouteHeadRepository $routes,
         protected TagRegistry $registry,
     ) {
         $this->globals = new HeadData;
@@ -516,14 +514,8 @@ class HeadManager implements Arrayable, Htmlable
         $data = (new HeadData)->merge($this->defaults);
 
         if ($route = $this->route()) {
-            foreach ($this->routes->groups($route) as $attributes) {
-                $data = RouteAttributeParser::apply($data, $attributes, $this->registry, $route);
-            }
-
-            $attributes = $this->routes->get($route);
-
-            if (! is_null($attributes)) {
-                $data = RouteAttributeParser::apply($data, $attributes, $this->registry, $route);
+            foreach (RouteAttributeParser::routeMetadata($route) as $attributes) {
+                $data = RouteAttributeParser::apply($data, $attributes, $this->registry);
             }
         }
 

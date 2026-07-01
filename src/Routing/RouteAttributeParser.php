@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Routing;
 
-use Closure;
 use Illuminate\Routing\Route;
 use InvalidArgumentException;
 use Laravel\Head\HeadData;
@@ -15,16 +14,16 @@ use Laravel\Head\TagRegistry;
  */
 class RouteAttributeParser
 {
+    public const HEAD = 'head';
+
+    protected static int $metadataLayer = 0;
+
     /**
      * @param  array<int|string, mixed>  $arguments
-     * @return array<mixed, mixed>|Closure
+     * @return array<mixed, mixed>
      */
-    public static function arguments(array $arguments): array|Closure
+    public static function arguments(array $arguments): array
     {
-        if (array_key_exists(0, $arguments) && $arguments[0] instanceof Closure) {
-            return $arguments[0];
-        }
-
         if (array_key_exists(0, $arguments) && is_array($arguments[0]) && count($arguments) === 1) {
             return $arguments[0];
         }
@@ -33,23 +32,58 @@ class RouteAttributeParser
     }
 
     /**
-     * @param  array<mixed, mixed>|Closure|null  $attributes
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, array<string, array<string, mixed>>>
      */
-    public static function apply(HeadData $head, array|Closure|null $attributes, TagRegistry $registry, ?Route $route = null): HeadData
+    public static function metadata(array $attributes): array
+    {
+        if ($attributes === []) {
+            return [];
+        }
+
+        return [
+            static::HEAD => [
+                'layer-'.static::$metadataLayer++ => $attributes,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array<mixed, mixed>>
+     */
+    public static function routeMetadata(Route $route): array
+    {
+        $metadata = $route->getMetadata(static::HEAD, []);
+
+        if (! is_array($metadata)) {
+            return [];
+        }
+
+        $layers = [];
+
+        foreach ($metadata as $attributes) {
+            if (is_array($attributes)) {
+                $layers[] = $attributes;
+            }
+        }
+
+        return $layers;
+    }
+
+    /**
+     * @param  HeadData|array<mixed, mixed>|null  $attributes
+     */
+    public static function apply(HeadData $head, HeadData|array|null $attributes, TagRegistry $registry): HeadData
     {
         if (is_null($attributes)) {
             return $head;
-        }
-
-        if ($attributes instanceof Closure) {
-            $attributes = $attributes($route);
         }
 
         if ($attributes instanceof HeadData) {
             return $head->merge($attributes);
         }
 
-        return is_array($attributes) ? static::fill($head, static::named($attributes), $registry) : $head;
+        return static::fill($head, static::named($attributes), $registry);
     }
 
     /**

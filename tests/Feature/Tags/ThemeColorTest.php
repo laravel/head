@@ -15,9 +15,9 @@ it('renders theme color tags', function (): void {
 });
 
 it('resolves theme colors from route attributes', function (): void {
-    Route::get('/product', fn (): string => Head::toHtml())->withHead(
+    Route::get('/product', fn (): string => Head::toHtml())->metadata(Head::route(
         themeColor: '#0f172a',
-    );
+    ));
 
     $this->get('/product')
         ->assertOk()
@@ -25,9 +25,9 @@ it('resolves theme colors from route attributes', function (): void {
 });
 
 it('shares stable inertia keys for theme colors', function (): void {
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->metadata(Head::route(
         themeColor: '#0f172a',
-    );
+    ));
 
     $this->get('/dashboard', [Header::INERTIA => 'true'])
         ->assertOk()

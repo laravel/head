@@ -13,10 +13,10 @@ it('shares rendered head elements with inertia page objects', function (): void 
 
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
         'user' => 'Taylor',
-    ]))->withHead(
+    ]))->metadata(Head::route(
         title: 'Dashboard',
         description: 'Your application overview.',
-    );
+    ));
 
     $response = $this->get('/dashboard', [Header::INERTIA => 'true'])
         ->assertOk()
@@ -31,16 +31,16 @@ it('shares rendered head elements with inertia page objects', function (): void 
 });
 
 it('shares stable semantic inertia keys for each head element', function (): void {
-    Route::get('/lean', fn () => Inertia::render('Page'))->withHead(
+    Route::get('/lean', fn () => Inertia::render('Page'))->metadata(Head::route(
         description: 'Lean page.',
-    );
+    ));
 
-    Route::get('/rich', fn () => Inertia::render('Page'))->withHead(
+    Route::get('/rich', fn () => Inertia::render('Page'))->metadata(Head::route(
         title: 'Rich page',
         description: 'Rich page.',
         preload: [['href' => '/fonts/inter.woff2', 'as' => 'font']],
         ogImage: 'https://example.com/rich.jpg',
-    );
+    ));
 
     $lean = $this->get('/lean', [Header::INERTIA => 'true'])->json('props.'.HeadManager::INERTIA_PROP);
     $rich = $this->get('/rich', [Header::INERTIA => 'true'])->json('props.'.HeadManager::INERTIA_PROP);
@@ -58,7 +58,7 @@ it('shares stable semantic inertia keys for each head element', function (): voi
 it('keeps head elements off the wire during inertia partial reloads', function (): void {
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
         'user' => 'Taylor',
-    ]))->withHead(title: 'Dashboard');
+    ]))->metadata(Head::route(title: 'Dashboard'));
 
     $this->get('/dashboard', [
         Header::INERTIA => 'true',
@@ -75,10 +75,10 @@ it('keeps global tags out of inertia page objects', function (): void {
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->metadata(Head::route(
         title: 'Dashboard',
         description: 'Dashboard overview.',
-    );
+    ));
 
     $elements = $this->get('/dashboard', [Header::INERTIA => 'true'])
         ->assertOk()
@@ -98,10 +98,10 @@ it('renders globals as static tags and page tags as inertia-managed tags in the 
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->metadata(Head::route(
         title: 'Dashboard',
         description: 'Dashboard overview.',
-    );
+    ));
 
     $this->get('/dashboard')
         ->assertOk()

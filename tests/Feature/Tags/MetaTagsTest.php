@@ -66,12 +66,12 @@ it('serializes media-specific meta tags to the head array', function (): void {
 });
 
 it('resolves media-specific meta tags from route attributes', function (): void {
-    Route::get('/dashboard', fn (): string => Head::toHtml())->withHead(
+    Route::get('/dashboard', fn (): string => Head::toHtml())->metadata(Head::route(
         meta: [
             ['key' => 'theme-color', 'content' => '#ffffff', 'media' => '(prefers-color-scheme: light)'],
             ['key' => 'theme-color', 'content' => '#111827', 'media' => '(prefers-color-scheme: dark)'],
         ],
-    );
+    ));
 
     $this->get('/dashboard')
         ->assertOk()
@@ -80,7 +80,7 @@ it('resolves media-specific meta tags from route attributes', function (): void 
 });
 
 it('resolves meta aliases from route attributes', function (): void {
-    Route::get('/settings', fn (): string => Head::toHtml())->withHead(
+    Route::get('/settings', fn (): string => Head::toHtml())->metadata(Head::route(
         applicationName: 'Acme',
         colorScheme: 'light dark',
         referrer: 'strict-origin',
@@ -88,7 +88,7 @@ it('resolves meta aliases from route attributes', function (): void {
         appleWebAppTitle: 'Acme',
         webAppCapable: true,
         appleWebAppStatusBarStyle: 'black-translucent',
-    );
+    ));
 
     $this->get('/settings')
         ->assertOk()

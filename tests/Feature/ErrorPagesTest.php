@@ -19,10 +19,10 @@ it('lets error head beat the resolved page head', function (): void {
         );
     });
 
-    Route::get('/missing', fn (): string => Head::toHtml(404))->withHead(
+    Route::get('/missing', fn (): string => Head::toHtml(404))->metadata(Head::route(
         title: 'Original Page',
         description: 'Original description.',
-    );
+    ));
 
     $this->get('/missing')
         ->assertOk()

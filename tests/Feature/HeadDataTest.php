@@ -35,7 +35,7 @@ it('resolves custom builder values from route attributes', function (): void {
     Head::extend(ReadingTime::class);
 
     Route::get('/article', fn (): string => Head::toHtml())
-        ->withHead(readingTime: 4);
+        ->metadata(Head::route(readingTime: 4));
 
     $this->get('/article')
         ->assertOk()

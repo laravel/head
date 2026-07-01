@@ -8,6 +8,7 @@ use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadManager;
+use Laravel\Head\Routing\RouteAttributeParser;
 
 it('cascades defaults route groups routes and controller mutations', function (): void {
     Head::defaults(function (HeadManager $head): void {
@@ -16,14 +17,14 @@ it('cascades defaults route groups routes and controller mutations', function ()
             ->description('Default description.');
     });
 
-    Route::withHead(description: 'Admin description.', robots: 'noindex, nofollow')
+    Route::metadata(Head::route(description: 'Admin description.', robots: 'noindex, nofollow'))
         ->prefix('admin')
         ->group(function (): void {
             Route::get('/dashboard', function (): string {
                 Head::title('Runtime dashboard');
 
                 return Head::toHtml();
-            })->withHead(title: 'Dashboard');
+            })->metadata(Head::route(title: 'Dashboard'));
         });
 
     $this->get('/admin/dashboard')
@@ -33,18 +34,18 @@ it('cascades defaults route groups routes and controller mutations', function ()
         ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
 });
 
-it('keeps route group head closures as a separate cascade layer', function (): void {
-    Route::withHead(fn (Illuminate\Routing\Route $route): array => [
-        'description' => 'Admin '.$route->parameter('section'),
-        'og' => ['siteName' => 'Acme'],
-    ])
-        ->prefix('admin/{section}')
+it('keeps route group head metadata as a separate cascade layer', function (): void {
+    Route::metadata(Head::route(
+        description: 'Admin reports',
+        og: ['siteName' => 'Acme'],
+    ))
+        ->prefix('admin')
         ->group(function (): void {
             Route::get('/dashboard', fn (): string => Head::toHtml())
-                ->withHead(title: 'Dashboard', og: ['title' => 'Dashboard']);
+                ->metadata(Head::route(title: 'Dashboard', og: ['title' => 'Dashboard']));
         });
 
-    $this->get('/admin/reports/dashboard')
+    $this->get('/admin/dashboard')
         ->assertOk()
         ->assertSee('<title>Dashboard</title>', false)
         ->assertSee('<meta name="description" content="Admin reports">', false)
@@ -52,56 +53,45 @@ it('keeps route group head closures as a separate cascade layer', function (): v
         ->assertSee('<meta property="og:title" content="Dashboard">', false);
 });
 
-it('stores head attributes on view and controller routes', function (): void {
-    $view = Route::view('/contact', 'contact')->withHead(
+it('stores cache friendly head metadata on view and controller routes', function (): void {
+    $view = Route::view('/contact', 'contact')->metadata(Head::route(
         title: 'Contact',
         description: 'Get in touch.',
-    );
+    ));
 
-    $controller = Route::get('/about', fn (): string => 'About')->withHead(
+    $controller = Route::get('/about', fn (): string => 'About')->metadata(Head::route(
         title: 'About',
-    );
+    ));
 
-    expect($view->getMetadata('head'))->toBe([
+    expect(array_values($view->getMetadata(RouteAttributeParser::HEAD)))->toBe([[
         'title' => 'Contact',
         'description' => 'Get in touch.',
-    ])->and($controller->getMetadata('head'))->toBe([
+    ]])->and(array_values($controller->getMetadata(RouteAttributeParser::HEAD)))->toBe([[
         'title' => 'About',
-    ]);
+    ]]);
 });
 
-it('resolves route head closures at request time', function (): void {
-    Route::get('/posts/{post}', fn (): string => Head::toHtml())
-        ->withHead(fn (Illuminate\Routing\Route $route): array => [
-            'title' => 'Post '.$route->parameter('post'),
-        ]);
-
-    $this->get('/posts/laravel-head')
-        ->assertOk()
-        ->assertSee('<title>Post laravel-head</title>', false);
-});
-
-it('stores head attributes on resource and singleton routes', function (): void {
-    Route::resource('posts', 'PostController')->withHead(
+it('stores head metadata on resource and singleton routes', function (): void {
+    Route::resource('posts', 'PostController')->metadata(Head::route(
         robots: 'index, follow',
-    );
+    ));
 
-    Route::singleton('profile', 'ProfileController')->withHead(
+    Route::singleton('profile', 'ProfileController')->metadata(Head::route(
         title: 'Your Profile',
-    );
+    ));
 
     $posts = Route::getRoutes()->getByName('posts.index');
     $profile = Route::getRoutes()->getByName('profile.show');
 
-    expect($posts?->getMetadata('head'))->toBe([
+    expect(array_values($posts?->getMetadata(RouteAttributeParser::HEAD)))->toBe([[
         'robots' => 'index, follow',
-    ])->and($profile?->getMetadata('head'))->toBe([
+    ]])->and(array_values($profile?->getMetadata(RouteAttributeParser::HEAD)))->toBe([[
         'title' => 'Your Profile',
-    ]);
+    ]]);
 });
 
 it('parses route head data using the fluent field shapes', function (): void {
-    Route::get('/product', fn (): string => Head::toHtml())->withHead(
+    Route::get('/product', fn (): string => Head::toHtml())->metadata(Head::route(
         title: ['value' => 'Product', 'suffix' => ' - Store'],
         canonical: ['auto' => true, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
@@ -114,7 +104,7 @@ it('parses route head data using the fluent field shapes', function (): void {
         link: [
             ['rel' => 'manifest', 'href' => '/manifest.json'],
         ],
-    );
+    ));
 
     $this->get('/product')
         ->assertOk()
@@ -132,13 +122,13 @@ it('parses route head data using the fluent field shapes', function (): void {
 });
 
 it('does not accept snake case route head data aliases', function (): void {
-    Route::get('/legacy-inputs', fn (): string => Head::toHtml())->withHead(
+    Route::get('/legacy-inputs', fn (): string => Head::toHtml())->metadata(Head::route(
         canonical: ['auto' => true, 'force_https' => false],
         og: ['title' => 'Legacy', 'site_name' => 'Legacy'],
         ogImage: [
             ['url' => 'https://example.com/image.jpg', 'secure_url' => 'https://secure.example.com/image.jpg'],
         ],
-    );
+    ));
 
     $this->get('/legacy-inputs')
         ->assertOk()
@@ -149,13 +139,13 @@ it('does not accept snake case route head data aliases', function (): void {
 });
 
 it('parses single repeatable route head data values', function (): void {
-    Route::get('/assets', fn (): string => Head::toHtml())->withHead(
+    Route::get('/assets', fn (): string => Head::toHtml())->metadata(Head::route(
         preload: ['href' => '/fonts/inter.woff2', 'as' => 'font', 'crossorigin' => true],
         prefetch: '/images/next.webp',
         preconnect: ['href' => 'https://fonts.example.com', 'crossorigin' => true],
         dnsPrefetch: 'https://analytics.example.com',
         feed: ['href' => '/feed.atom', 'title' => 'Acme Atom', 'type' => 'atom'],
-    );
+    ));
 
     $this->get('/assets')
         ->assertOk()
@@ -167,23 +157,19 @@ it('parses single repeatable route head data values', function (): void {
 });
 
 it('throws for unknown route head data keys', function (): void {
-    Route::get('/unknown-head-key', fn (): string => Head::toHtml())->withHead(
-        heading: 'Dashboard',
-    );
+    Route::get('/unknown-head-key', fn (): string => Head::toHtml())->metadata([
+        RouteAttributeParser::HEAD => [
+            'layer' => ['heading' => 'Dashboard'],
+        ],
+    ]);
 
     $this->withoutExceptionHandling()->get('/unknown-head-key');
 })->throws(InvalidArgumentException::class, 'Unknown route head attribute [heading].');
 
-it('throws for positional route head data values', function (): void {
-    Route::get('/positional-head-key', fn (): string => Head::toHtml())->withHead('Dashboard');
-
-    $this->withoutExceptionHandling()->get('/positional-head-key');
-})->throws(InvalidArgumentException::class, 'Route head attributes must be named.');
-
 it('throws for invalid values on known route head data keys', function (): void {
-    Route::get('/invalid-head-value', fn (): string => Head::toHtml())->withHead(
+    Route::get('/invalid-head-value', fn (): string => Head::toHtml())->metadata(Head::route(
         ogImage: ['alt' => 'Missing URL'],
-    );
+    ));
 
     $this->withoutExceptionHandling()->get('/invalid-head-value');
 })->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [ogImage].');

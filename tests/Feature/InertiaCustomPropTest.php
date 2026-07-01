@@ -23,7 +23,7 @@ class InertiaCustomPropTest extends TestCase
     {
         Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
             'head' => 'An unrelated app prop',
-        ]))->withHead(title: 'Dashboard');
+        ]))->metadata(Head::route(title: 'Dashboard'));
 
         $this->get('/dashboard', [Header::INERTIA => 'true'])
             ->assertOk()

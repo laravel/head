@@ -22,7 +22,7 @@ it('carries inherited canonical options into later canonical URLs', function ():
     Head::defaults(fn (HeadManager $head): HeadManager => $head->canonical(forceHttps: false, trailingSlash: true));
 
     Route::get('/about', fn (): string => Head::toHtml())
-        ->withHead(canonical: '/about');
+        ->metadata(Head::route(canonical: '/about'));
 
     $this->get('/about')
         ->assertOk()

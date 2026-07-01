@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Head\Rendering\HeadRenderer;
-use Laravel\Head\Routing\RegistersHeadRoutes;
-use Laravel\Head\Routing\RouteHeadRepository;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaValidator;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -33,16 +31,13 @@ class HeadServiceProvider extends ServiceProvider
         $this->app->singleton(TagRegistry::class);
         $this->app->singleton(HeadRenderer::class);
         $this->app->singleton(SchemaValidator::class);
-        $this->app->singleton(RouteHeadRepository::class);
 
         $this->app->singleton(HeadManager::class, fn ($app): HeadManager => new HeadManager(
             $app,
             $app->make(HeadRenderer::class),
-            $app->make(RouteHeadRepository::class),
             $app->make(TagRegistry::class),
         ));
         $this->app->alias(HeadManager::class, 'head');
-
     }
 
     /**
@@ -54,8 +49,6 @@ class HeadServiceProvider extends ServiceProvider
             ? "<?php echo app('head')->renderForView(get_defined_vars()); ?>"
             : "<?php echo app('head')->renderForView(get_defined_vars(), {$expression}); ?>"
         );
-
-        $this->app->make(RegistersHeadRoutes::class)->register();
 
         $this->registerExceptionStatusResolver();
         $this->shareWithInertia();

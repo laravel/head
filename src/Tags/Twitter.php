@@ -23,7 +23,9 @@ class Twitter extends GroupedTagBuilder
     public function __construct(
         protected array $properties = [],
         protected ?array $image = null,
-    ) {}
+    ) {
+        //
+    }
 
     public static function key(): string
     {

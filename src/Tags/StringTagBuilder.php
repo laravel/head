@@ -11,7 +11,10 @@ use Laravel\Head\Rendering\ResolvedHead;
  */
 abstract class StringTagBuilder extends TagBuilder
 {
-    public function __construct(protected ?string $value = null) {}
+    public function __construct(protected ?string $value = null)
+    {
+        //
+    }
 
     public static function make(string $value): static
     {

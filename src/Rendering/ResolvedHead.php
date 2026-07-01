@@ -23,7 +23,9 @@ class ResolvedHead
         protected TagRegistry $registry,
         protected ?Request $request = null,
         protected ?SchemaValidator $schemas = null,
-    ) {}
+    ) {
+        //
+    }
 
     public function data(): HeadData
     {

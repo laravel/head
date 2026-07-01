@@ -18,7 +18,9 @@ class Canonical extends TagBuilder
         protected ?string $url = null,
         protected ?bool $forceHttps = null,
         protected ?bool $trailingSlash = null,
-    ) {}
+    ) {
+        //
+    }
 
     public static function key(): string
     {

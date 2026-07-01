@@ -15,7 +15,10 @@ class AlternateLinks extends GroupedTagBuilder
     /**
      * @param  array<string, string>  $links
      */
-    public function __construct(protected array $links = []) {}
+    public function __construct(protected array $links = [])
+    {
+        //
+    }
 
     public static function key(): string
     {

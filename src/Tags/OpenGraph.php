@@ -27,7 +27,9 @@ class OpenGraph extends GroupedTagBuilder
         protected array $images = [],
         protected array $videos = [],
         protected array $audios = [],
-    ) {}
+    ) {
+        //
+    }
 
     public static function key(): string
     {

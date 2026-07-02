@@ -35,7 +35,7 @@ it('renders link aliases', function (): void {
 });
 
 it('resolves link aliases from route attributes', function (): void {
-    Route::get('/app', fn (): string => Head::toHtml())->metadata(Head::route(
+    Route::get('/app', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
         icon: [
             ['href' => '/favicon.svg', 'type' => ImageType::Svg],
             ['href' => '/favicon-32x32.png', 'type' => ImageType::Png, 'sizes' => '32x32'],

@@ -96,7 +96,7 @@ class Head extends Facade
      * @param  array<mixed, mixed>|null  $link
      * @return array<string, array<string, array<string, mixed>>>
      */
-    public static function route(
+    public static function forMetadata(
         string|array|null $title = null,
         ?string $description = null,
         string|array|true|null $canonical = null,

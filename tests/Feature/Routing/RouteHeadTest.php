@@ -17,14 +17,14 @@ it('cascades defaults route groups routes and controller mutations', function ()
             ->description('Default description.');
     });
 
-    Route::metadata(Head::route(description: 'Admin description.', robots: 'noindex, nofollow'))
+    Route::metadata(Head::forMetadata(description: 'Admin description.', robots: 'noindex, nofollow'))
         ->prefix('admin')
         ->group(function (): void {
             Route::get('/dashboard', function (): string {
                 Head::title('Runtime dashboard');
 
                 return Head::toHtml();
-            })->metadata(Head::route(title: 'Dashboard'));
+            })->metadata(Head::forMetadata(title: 'Dashboard'));
         });
 
     $this->get('/admin/dashboard')
@@ -35,14 +35,14 @@ it('cascades defaults route groups routes and controller mutations', function ()
 });
 
 it('keeps route group head metadata as a separate cascade layer', function (): void {
-    Route::metadata(Head::route(
+    Route::metadata(Head::forMetadata(
         description: 'Admin reports',
         og: ['siteName' => 'Acme'],
     ))
         ->prefix('admin')
         ->group(function (): void {
             Route::get('/dashboard', fn (): string => Head::toHtml())
-                ->metadata(Head::route(title: 'Dashboard', og: ['title' => 'Dashboard']));
+                ->metadata(Head::forMetadata(title: 'Dashboard', og: ['title' => 'Dashboard']));
         });
 
     $this->get('/admin/dashboard')
@@ -54,12 +54,12 @@ it('keeps route group head metadata as a separate cascade layer', function (): v
 });
 
 it('stores cache friendly head metadata on view and controller routes', function (): void {
-    $view = Route::view('/contact', 'contact')->metadata(Head::route(
+    $view = Route::view('/contact', 'contact')->metadata(Head::forMetadata(
         title: 'Contact',
         description: 'Get in touch.',
     ));
 
-    $controller = Route::get('/about', fn (): string => 'About')->metadata(Head::route(
+    $controller = Route::get('/about', fn (): string => 'About')->metadata(Head::forMetadata(
         title: 'About',
     ));
 
@@ -72,11 +72,11 @@ it('stores cache friendly head metadata on view and controller routes', function
 });
 
 it('stores head metadata on resource and singleton routes', function (): void {
-    Route::resource('posts', 'PostController')->metadata(Head::route(
+    Route::resource('posts', 'PostController')->metadata(Head::forMetadata(
         robots: 'index, follow',
     ));
 
-    Route::singleton('profile', 'ProfileController')->metadata(Head::route(
+    Route::singleton('profile', 'ProfileController')->metadata(Head::forMetadata(
         title: 'Your Profile',
     ));
 
@@ -91,7 +91,7 @@ it('stores head metadata on resource and singleton routes', function (): void {
 });
 
 it('parses route head data using the fluent field shapes', function (): void {
-    Route::get('/product', fn (): string => Head::toHtml())->metadata(Head::route(
+    Route::get('/product', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
         title: ['value' => 'Product', 'suffix' => ' - Store'],
         canonical: ['auto' => true, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
@@ -122,7 +122,7 @@ it('parses route head data using the fluent field shapes', function (): void {
 });
 
 it('does not accept snake case route head data aliases', function (): void {
-    Route::get('/legacy-inputs', fn (): string => Head::toHtml())->metadata(Head::route(
+    Route::get('/legacy-inputs', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
         canonical: ['auto' => true, 'force_https' => false],
         og: ['title' => 'Legacy', 'site_name' => 'Legacy'],
         ogImage: [
@@ -139,7 +139,7 @@ it('does not accept snake case route head data aliases', function (): void {
 });
 
 it('parses single repeatable route head data values', function (): void {
-    Route::get('/assets', fn (): string => Head::toHtml())->metadata(Head::route(
+    Route::get('/assets', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
         preload: ['href' => '/fonts/inter.woff2', 'as' => 'font', 'crossorigin' => true],
         prefetch: '/images/next.webp',
         preconnect: ['href' => 'https://fonts.example.com', 'crossorigin' => true],
@@ -167,7 +167,7 @@ it('throws for unknown route head data keys', function (): void {
 })->throws(InvalidArgumentException::class, 'Unknown route head attribute [heading].');
 
 it('throws for invalid values on known route head data keys', function (): void {
-    Route::get('/invalid-head-value', fn (): string => Head::toHtml())->metadata(Head::route(
+    Route::get('/invalid-head-value', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
         ogImage: ['alt' => 'Missing URL'],
     ));
 
@@ -185,7 +185,7 @@ it('throws when route head data tries to suppress canonical URLs', function (): 
 })->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [canonical].');
 
 it('throws when route canonical data uses the removed none option', function (): void {
-    Route::get('/invalid-canonical-none', fn (): string => Head::toHtml())->metadata(Head::route(
+    Route::get('/invalid-canonical-none', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
         canonical: ['none' => true],
     ));
 

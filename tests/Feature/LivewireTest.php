@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Head\Facades\Head;
 
 it('renders fresh route head data in livewire navigate documents', function (): void {
-    Route::get('/first', fn () => view('livewire-layout', ['href' => '/second']))->metadata(Head::route(
+    Route::get('/first', fn () => view('livewire-layout', ['href' => '/second']))->metadata(Head::forMetadata(
         title: 'First Page',
         description: 'The first page.',
     ));
 
-    Route::get('/second', fn () => view('livewire-layout', ['href' => '/first']))->metadata(Head::route(
+    Route::get('/second', fn () => view('livewire-layout', ['href' => '/first']))->metadata(Head::forMetadata(
         title: 'Second Page',
         description: 'The second page.',
     ));

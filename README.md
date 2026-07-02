@@ -66,7 +66,7 @@ use Laravel\Head\Facades\Head;
 
 Route::view('/contact', 'contact')
     ->name('contact')
-    ->metadata(Head::route(
+    ->metadata(Head::forMetadata(
         title: 'Contact Us',
         description: 'Get in touch.',
     ));
@@ -77,13 +77,13 @@ Shared route metadata can be applied to a group:
 ```php
 use Laravel\Head\Facades\Head;
 
-Route::metadata(Head::route(robots: 'noindex, nofollow'))
+Route::metadata(Head::forMetadata(robots: 'noindex, nofollow'))
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)
             ->name('dashboard')
-            ->metadata(Head::route(title: 'Dashboard'));
+            ->metadata(Head::forMetadata(title: 'Dashboard'));
     });
 ```
 
@@ -92,16 +92,16 @@ Resource and singleton routes can define metadata too:
 ```php
 use Laravel\Head\Facades\Head;
 
-Route::resource('posts', PostController::class)->metadata(Head::route(
+Route::resource('posts', PostController::class)->metadata(Head::forMetadata(
     robots: 'index, follow',
 ));
 
-Route::singleton('profile', ProfileController::class)->metadata(Head::route(
+Route::singleton('profile', ProfileController::class)->metadata(Head::forMetadata(
     title: 'Your Profile',
 ));
 ```
 
-`Head::route()` returns a plain array for Laravel's native route metadata API, so route metadata remains compatible with cached routes.
+`Head::forMetadata()` returns a plain array for Laravel's native route metadata API, so route metadata remains compatible with cached routes.
 
 ### Supported Properties
 
@@ -290,7 +290,7 @@ Route metadata supports simple theme colors through the same camel-case key:
 ```php
 use Laravel\Head\Facades\Head;
 
-Route::view('/dashboard', 'dashboard')->metadata(Head::route(
+Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
     themeColor: '#0f172a',
 ));
 ```
@@ -323,7 +323,7 @@ Route metadata uses the same names:
 use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Facades\Head;
 
-Route::view('/dashboard', 'dashboard')->metadata(Head::route(
+Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
     applicationName: 'Acme',
     colorScheme: 'light dark',
     appleWebAppTitle: 'Acme',

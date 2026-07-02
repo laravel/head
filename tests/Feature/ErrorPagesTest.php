@@ -19,7 +19,7 @@ it('lets error head beat the resolved page head', function (): void {
         );
     });
 
-    Route::get('/missing', fn (): string => Head::toHtml(404))->metadata(Head::route(
+    Route::get('/missing', fn (): string => Head::toHtml(404))->metadata(Head::forMetadata(
         title: 'Original Page',
         description: 'Original description.',
     ));

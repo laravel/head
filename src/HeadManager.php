@@ -32,7 +32,7 @@ class HeadManager implements Arrayable, Htmlable
 
     public const INERTIA_PROP = 'head';
 
-    protected HeadData $globals;
+    protected HeadData $inertiaGlobals;
 
     protected HeadData $defaults;
 
@@ -47,15 +47,15 @@ class HeadManager implements Arrayable, Htmlable
         protected HeadRenderer $renderer,
         protected TagRegistry $registry,
     ) {
-        $this->globals = new HeadData;
+        $this->inertiaGlobals = new HeadData;
         $this->defaults = new HeadData;
         $this->errorPages = new ErrorPages($this->registry);
     }
 
-    public function globals(callable $callback): static
+    public function inertiaGlobals(callable $callback): static
     {
         $this->record($callback, function (HeadData $data): void {
-            $this->globals = $this->globals->merge($data);
+            $this->inertiaGlobals = $this->inertiaGlobals->merge($data);
         });
 
         return $this;
@@ -488,7 +488,7 @@ class HeadManager implements Arrayable, Htmlable
     {
         if ($this->isInertiaRootView($variables)) {
             return new HtmlString($this->renderer->renderInertiaDocument(
-                $this->globals,
+                $this->inertiaGlobals,
                 $this->resolve($status),
                 $this->request(),
             ));
@@ -539,7 +539,7 @@ class HeadManager implements Arrayable, Htmlable
     protected function resolveDocument(?int $status = null): HeadData
     {
         return (new HeadData)
-            ->merge($this->globals)
+            ->merge($this->inertiaGlobals)
             ->merge($this->resolve($status));
     }
 

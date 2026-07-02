@@ -60,8 +60,8 @@ it('does not render inertia keys in blade html output', function (): void {
         ->not->toContain('data-inertia');
 });
 
-it('renders global tags in blade html output', function (): void {
-    Head::globals(fn (HeadManager $head) => $head
+it('renders inertia globals in blade html output', function (): void {
+    Head::inertiaGlobals(fn (HeadManager $head) => $head
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 

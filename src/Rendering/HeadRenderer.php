@@ -28,9 +28,9 @@ class HeadRenderer
         return implode(PHP_EOL, $this->toElements($head, $request));
     }
 
-    public function renderInertiaDocument(HeadData $globals, HeadData $head, ?Request $request = null): string
+    public function renderInertiaDocument(HeadData $inertiaGlobals, HeadData $head, ?Request $request = null): string
     {
-        return implode(PHP_EOL, $this->toInertiaDocumentElements($globals, $head, $request));
+        return implode(PHP_EOL, $this->toInertiaDocumentElements($inertiaGlobals, $head, $request));
     }
 
     /**
@@ -55,14 +55,14 @@ class HeadRenderer
     }
 
     /**
-     * Render the initial Inertia document head. Global tags are emitted as
+     * Render the initial Inertia document head. Inertia globals are emitted as
      * plain, server-owned tags while page tags receive Inertia ownership keys.
      *
      * @return array<int, string>
      */
-    public function toInertiaDocumentElements(HeadData $globals, HeadData $head, ?Request $request = null): array
+    public function toInertiaDocumentElements(HeadData $inertiaGlobals, HeadData $head, ?Request $request = null): array
     {
-        $globalHead = new ResolvedHead($globals, $this->registry, $request, $this->schemas);
+        $globalHead = new ResolvedHead($inertiaGlobals, $this->registry, $request, $this->schemas);
         $pageHead = new ResolvedHead($head, $this->registry, $request, $this->schemas);
         $pageTags = $this->tags->withInertiaAttributes();
         $elements = [];

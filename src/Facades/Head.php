@@ -10,7 +10,7 @@ use Laravel\Head\HeadManager;
 use Laravel\Head\Routing\RouteAttributeParser;
 
 /**
- * @method static \Laravel\Head\HeadManager globals(callable $callback)
+ * @method static \Laravel\Head\HeadManager inertiaGlobals(callable $callback)
  * @method static \Laravel\Head\HeadManager defaults(callable $callback)
  * @method static \Laravel\Head\HeadManager errors(callable $callback)
  * @method static \Laravel\Head\HeadManager inertia(string $prop = 'head')

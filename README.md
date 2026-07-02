@@ -355,7 +355,7 @@ Head::pwa(
 
 This renders the application name, web app manifest link, optional theme color, iOS standalone metadata, optional Apple status bar style, and optional Apple touch icon. The manifest JSON itself and service worker registration still belong to your application.
 
-Use `pwa()` in defaults or runtime metadata. In Inertia applications, immutable PWA tags can also be placed in document globals. Route metadata supports the individual properties shown above.
+Use `pwa()` in defaults or runtime metadata. Route metadata supports the individual properties shown above.
 
 ## Performance & Discovery
 
@@ -544,27 +544,7 @@ createInertiaApp({
 > [!NOTE]
 > When adding Laravel Head to an existing Inertia application, remove any title suffix callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title.
 
-The initial document is rendered by `@head`, hydrated on the client, and kept in sync on every Inertia visit. No client-side `<Head>` component or template is required. Globals are rendered once as static tags and excluded from the `head` prop; page-managed tags receive stable `data-inertia` keys so Inertia can update them during navigation.
-
-#### Document Globals
-
-In Inertia applications, immutable document tags may be registered in a service provider with `Head::globals()`:
-
-```php
-use Laravel\Head\Facades\Head;
-use Laravel\Head\HeadManager;
-
-Head::globals(function (HeadManager $head) {
-    $head
-        ->viewport('width=device-width, initial-scale=1')
-        ->colorScheme('light dark')
-        ->icon('/favicon.svg', type: 'image/svg+xml')
-        ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
-        ->manifest('/site.webmanifest');
-});
-```
-
-Globals are rendered by `@head` into the initial document, excluded from the Inertia `head` prop, and never updated after the first response. Put a tag in `globals` only when it should survive every Inertia navigation unchanged. If a page may override or replace a tag, put that tag in `defaults` instead.
+The initial document is rendered by `@head`, hydrated on the client, and kept in sync on every Inertia visit. No client-side `<Head>` component or template is required. Page-managed tags receive stable `data-inertia` keys so Inertia can update or replace them during navigation.
 
 The prop is not sent during partial reloads; the client keeps the head from the last full visit. If your application already uses the `head` prop for something else, change the prop name in a service provider:
 
@@ -578,6 +558,28 @@ public function boot(): void
 ```
 
 Then point Inertia at the same prop with `serverHead: '_head'`.
+
+#### Static Inertia Tags
+
+Most tags should live in defaults, route metadata, or runtime metadata so Laravel Head can resolve the right value for each page. Inertia globals are only for document tags that should be rendered into the first HTML response and then left alone by Inertia for the rest of the session.
+
+Register them in a service provider with `Head::inertiaGlobals()`:
+
+```php
+use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadManager;
+
+Head::inertiaGlobals(function (HeadManager $head) {
+    $head
+        ->viewport('width=device-width, initial-scale=1')
+        ->colorScheme('light dark')
+        ->icon('/favicon.svg', type: 'image/svg+xml')
+        ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
+        ->manifest('/site.webmanifest');
+});
+```
+
+Inertia globals are excluded from the `head` prop, rendered without `data-inertia` ownership attributes, and never updated after the first response. They are a good fit for stable browser hints like viewport, color scheme, favicons, touch icons, and manifests. If a tag is page-specific, SEO-relevant, or might be overridden later, put it in `defaults`, route metadata, or runtime metadata instead.
 
 Applications that want the resolved head as structured data (titles, Open Graph values, JSON-LD schemas, etc.) rather than rendered tags can still call `Head::toArray()`.
 

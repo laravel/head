@@ -70,8 +70,8 @@ it('keeps head elements off the wire during inertia partial reloads', function (
         ->assertJsonMissingPath('props.'.HeadManager::INERTIA_PROP);
 });
 
-it('keeps global tags out of inertia page objects', function (): void {
-    Head::globals(fn (HeadManager $head) => $head
+it('keeps inertia globals out of inertia page objects', function (): void {
+    Head::inertiaGlobals(fn (HeadManager $head) => $head
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 
@@ -93,8 +93,8 @@ it('keeps global tags out of inertia page objects', function (): void {
         ->not->toContain('data-inertia="link:icon');
 });
 
-it('renders globals as static tags and page tags as inertia-managed tags in the inertia root view', function (): void {
-    Head::globals(fn (HeadManager $head) => $head
+it('renders inertia globals as static tags and page tags as inertia-managed tags in the inertia root view', function (): void {
+    Head::inertiaGlobals(fn (HeadManager $head) => $head
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 

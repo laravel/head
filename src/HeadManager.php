@@ -181,7 +181,7 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
-    public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
+    public function canonical(?string $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
         $this->data()->canonical($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash);
 

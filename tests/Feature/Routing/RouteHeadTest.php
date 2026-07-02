@@ -173,3 +173,21 @@ it('throws for invalid values on known route head data keys', function (): void 
 
     $this->withoutExceptionHandling()->get('/invalid-head-value');
 })->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [ogImage].');
+
+it('throws when route head data tries to suppress canonical URLs', function (): void {
+    Route::get('/invalid-canonical', fn (): string => Head::toHtml())->metadata([
+        RouteAttributeParser::HEAD => [
+            'layer' => ['canonical' => false],
+        ],
+    ]);
+
+    $this->withoutExceptionHandling()->get('/invalid-canonical');
+})->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [canonical].');
+
+it('throws when route canonical data uses the removed none option', function (): void {
+    Route::get('/invalid-canonical-none', fn (): string => Head::toHtml())->metadata(Head::route(
+        canonical: ['none' => true],
+    ));
+
+    $this->withoutExceptionHandling()->get('/invalid-canonical-none');
+})->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [canonical].');

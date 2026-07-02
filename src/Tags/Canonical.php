@@ -27,11 +27,9 @@ class Canonical extends TagBuilder
         return 'canonical';
     }
 
-    public static function make(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): self
+    public static function make(?string $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): self
     {
-        return $url === false
-            ? new self('none')
-            : new self(is_null($url) ? 'auto' : 'url', $url, $forceHttps, $trailingSlash);
+        return new self(is_null($url) ? 'auto' : 'url', $url, $forceHttps, $trailingSlash);
     }
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
@@ -44,7 +42,6 @@ class Canonical extends TagBuilder
             is_array($value) => self::fromRouteAttributeArray($value),
             is_string($value) => self::make($value),
             $value === true || is_null($value) => self::make(),
-            $value === false => self::make(false),
             default => null,
         };
     }
@@ -101,8 +98,8 @@ class Canonical extends TagBuilder
      */
     private static function fromRouteAttributeArray(array $attributes): ?self
     {
-        if (self::suppressesCanonical($attributes)) {
-            return self::make(false);
+        if (array_key_exists('none', $attributes) || ($attributes['value'] ?? null) === false) {
+            return null;
         }
 
         $value = self::routeAttributeUrl($attributes);
@@ -114,15 +111,6 @@ class Canonical extends TagBuilder
                 trailingSlash: self::bool($attributes['trailingSlash'] ?? null),
             )
             : null;
-    }
-
-    /**
-     * @param  array<mixed, mixed>  $attributes
-     */
-    private static function suppressesCanonical(array $attributes): bool
-    {
-        return self::bool($attributes['none'] ?? null) === true
-            || ($attributes['value'] ?? null) === false;
     }
 
     /**

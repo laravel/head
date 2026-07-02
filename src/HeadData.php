@@ -141,7 +141,7 @@ class HeadData
         return $this->meta('apple-mobile-web-app-status-bar-style', $style);
     }
 
-    public function canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
+    public function canonical(?string $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): static
     {
         return $this->overlayBuilder(Canonical::make($url, forceHttps: $forceHttps, trailingSlash: $trailingSlash));
     }

@@ -26,7 +26,7 @@ use Laravel\Head\Routing\RouteAttributeParser;
  * @method static \Laravel\Head\HeadManager appleWebAppTitle(string $title)
  * @method static \Laravel\Head\HeadManager webAppCapable(bool $capable = true)
  * @method static \Laravel\Head\HeadManager appleWebAppStatusBarStyle(string $style)
- * @method static \Laravel\Head\HeadManager canonical(string|false|null $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null)
+ * @method static \Laravel\Head\HeadManager canonical(?string $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null)
  * @method static \Laravel\Head\HeadManager robots(string|\Laravel\Head\Enums\RobotsRule|array<int, string|\Laravel\Head\Enums\RobotsRule> $directives)
  * @method static \Laravel\Head\HeadManager robotsSearchable()
  * @method static \Laravel\Head\HeadManager robotsHidden()
@@ -72,7 +72,7 @@ class Head extends Facade
      * Create cache-friendly Laravel route metadata for document head data.
      *
      * @param  array<mixed, mixed>|string|null  $title
-     * @param  array<mixed, mixed>|string|bool|null  $canonical
+     * @param  array<mixed, mixed>|string|true|null  $canonical
      * @param  array<int, string|RobotsRule>|string|RobotsRule|null  $robots
      * @param  array<string, mixed>|null  $og
      * @param  array<mixed, mixed>|string|null  $ogImage
@@ -99,7 +99,7 @@ class Head extends Facade
     public static function route(
         string|array|null $title = null,
         ?string $description = null,
-        string|array|bool|null $canonical = null,
+        string|array|true|null $canonical = null,
         string|RobotsRule|array|null $robots = null,
         ?string $themeColor = null,
         ?string $applicationName = null,

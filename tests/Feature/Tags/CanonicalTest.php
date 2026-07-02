@@ -10,14 +10,6 @@ it('does not render a canonical URL by default', function (): void {
     expect(Head::toHtml())->not->toContain('rel="canonical"');
 });
 
-it('can suppress an inherited canonical URL', function (): void {
-    Head::defaults(fn (HeadManager $head): HeadManager => $head->canonical());
-
-    Head::canonical(false);
-
-    expect(Head::toHtml())->not->toContain('rel="canonical"');
-});
-
 it('carries inherited canonical options into later canonical URLs', function (): void {
     Head::defaults(fn (HeadManager $head): HeadManager => $head->canonical(forceHttps: false, trailingSlash: true));
 

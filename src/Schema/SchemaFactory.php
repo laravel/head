@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Laravel\Head\Schema;
 
 use Illuminate\Support\Str;
-use Laravel\Head\SchemaType;
 use ReflectionClass;
 
 class SchemaFactory
@@ -34,7 +33,7 @@ class SchemaFactory
      */
     public function register(string $class): static
     {
-        $this->types[Str::camel($this->typeFor($class))] = $class;
+        $this->types[Str::camel((new ReflectionClass($class))->getShortName())] = $class;
 
         return $this;
     }
@@ -52,18 +51,5 @@ class SchemaFactory
     public function __call(string $method, array $parameters): SchemaObject
     {
         return $this->make($method);
-    }
-
-    /**
-     * @param  class-string<SchemaObject>  $class
-     */
-    protected function typeFor(string $class): string
-    {
-        $reflection = new ReflectionClass($class);
-        $attributes = $reflection->getAttributes(SchemaType::class);
-
-        return $attributes === []
-            ? $reflection->getShortName()
-            : $attributes[0]->newInstance()->name;
     }
 }

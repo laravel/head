@@ -11,6 +11,7 @@ it('renders built in schema objects as JSON LD', function (): void {
     Head::schema(
         Schema::article()
             ->headline('Introducing Laravel Head')
+            ->description('A fluent API for the document head.')
             ->author(Schema::person()->name('Taylor Otwell'))
             ->datePublished('2026-05-13')
     );
@@ -19,6 +20,7 @@ it('renders built in schema objects as JSON LD', function (): void {
         ->toContain('<script type="application/ld+json">')
         ->toContain('"@context":"https://schema.org"')
         ->toContain('"@type":"Article"')
+        ->toContain('"description":"A fluent API for the document head."')
         ->toContain('"@type":"Person"');
 });
 
@@ -30,6 +32,24 @@ it('escapes html sensitive characters in JSON LD to prevent script breakout', fu
     expect(Head::toHtml())
         ->not->toContain('</script><script>alert(1)</script>')
         ->toContain('\\u003C/script\\u003E\\u003Cscript\\u003Ealert(1)\\u003C/script\\u003E');
+});
+
+it('resolves factory methods for classes whose schema type differs from the class name', function (): void {
+    Head::schema(
+        Schema::breadcrumbs()
+            ->item('Home', 'https://example.com')
+            ->item('Shop', 'https://example.com/shop')
+    )->schema(
+        Schema::faq()->question('Is the decaf real coffee?', 'Yes, and we roast it with the same care.')
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"@type":"BreadcrumbList"')
+        ->toContain('"itemListElement"')
+        ->toContain('"item":"https://example.com/shop"')
+        ->toContain('"@type":"FAQPage"')
+        ->toContain('"@type":"Question"')
+        ->toContain('"@type":"Answer"');
 });
 
 it('registers custom schema types as first class factory methods', function (): void {

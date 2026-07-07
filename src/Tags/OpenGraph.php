@@ -31,6 +31,8 @@ class OpenGraph extends GroupedTagBuilder
         //
     }
 
+    protected bool $defaults = false;
+
     public static function key(): string
     {
         return 'openGraph';
@@ -218,12 +220,46 @@ class OpenGraph extends GroupedTagBuilder
             return $this;
         }
 
-        return new static(
+        $overlaid = new static(
             array_replace($base->properties, $this->properties),
-            array_replace($base->images, $this->images),
-            array_replace($base->videos, $this->videos),
-            array_replace($base->audios, $this->audios),
+            $this->overlayMedia($base->images, $this->images, $base->defaults),
+            $this->overlayMedia($base->videos, $this->videos, $base->defaults),
+            $this->overlayMedia($base->audios, $this->audios, $base->defaults),
         );
+
+        $overlaid->defaults = $base->defaults && ! $this->hasMedia();
+
+        return $overlaid;
+    }
+
+    public function asDefaults(): static
+    {
+        $defaults = clone $this;
+        $defaults->defaults = true;
+
+        return $defaults;
+    }
+
+    /**
+     * Media inherited from the defaults layer is a fallback, so media defined
+     * by a higher layer replaces it rather than merging with it.
+     *
+     * @param  array<string, MediaAttributes>  $base
+     * @param  array<string, MediaAttributes>  $overlay
+     * @return array<string, MediaAttributes>
+     */
+    protected function overlayMedia(array $base, array $overlay, bool $baseIsDefaults): array
+    {
+        if ($overlay === []) {
+            return $base;
+        }
+
+        return $baseIsDefaults ? $overlay : array_replace($base, $overlay);
+    }
+
+    protected function hasMedia(): bool
+    {
+        return $this->images !== [] || $this->videos !== [] || $this->audios !== [];
     }
 
     public function isEmpty(): bool

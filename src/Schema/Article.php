@@ -15,6 +15,11 @@ class Article extends SchemaObject
         return $this->set('headline', $headline);
     }
 
+    public function description(string $description): static
+    {
+        return $this->set('description', $description);
+    }
+
     public function author(SchemaObject|string $author): static
     {
         return $this->set('author', $author);

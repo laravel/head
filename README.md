@@ -49,7 +49,7 @@ Head::defaults(function (HeadManager $head) {
 
 The defaults layer is the lowest-priority page layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `exact: true` for titles that should ignore the inherited prefix or suffix.
 
-Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string, such as `Head::canonical('/about')`.
+Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string, such as `Head::canonical('/about')`. Canonical URLs are normalized to `https` by default; pass `forceHttps: false` to preserve the request scheme.
 
 Robots directives may be passed as a raw string, as `RobotsRule` enum cases, or as a list mixing both forms. Lists are rendered as comma-separated directives, so `Head::robots([RobotsRule::NoIndex, RobotsRule::NoFollow])` renders `noindex, nofollow`.
 
@@ -180,6 +180,8 @@ Head::ogImage('/images/cover.jpg', alt: 'Draft cover')
 <meta property="og:image:alt" content="Gallery image">
 ```
 
+Open Graph media inherited from your defaults acts as a fallback. When route, runtime, or error metadata defines its own media of the same type, the default media is replaced instead of merged, so a page's `og:image` always wins over a site-wide default image.
+
 ## Error Pages
 
 Error metadata can be registered for status-code-specific pages:
@@ -199,6 +201,8 @@ Head::errors(function (ErrorPages $errors) {
 ```
 
 When a response is rendered for a registered error status, that metadata beats every other layer.
+
+Status detection is automatic when Laravel renders an error view and for respond-phase hooks such as Inertia's `handleExceptionsUsing()`. If you render an error response inside an `$exceptions->render()` callback, call `Head::status(404)` before rendering so the error metadata is applied.
 
 ## Open Graph
 

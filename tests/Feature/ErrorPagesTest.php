@@ -30,3 +30,20 @@ it('lets error head beat the resolved page head', function (): void {
         ->assertSee('<meta name="description" content="The page could not be found.">', false)
         ->assertSee('<meta name="robots" content="noindex, follow">', false);
 });
+
+it('applies error head when an aborted request renders an error view', function (): void {
+    config()->set('view.paths', [__DIR__.'/../Fixtures/views', ...config('view.paths')]);
+
+    Head::defaults(fn (HeadManager $head) => $head->title('Acme', suffix: ' - Acme'));
+
+    Head::errors(function (ErrorPages $errors): void {
+        $errors->defaults(robots: 'noindex, follow');
+
+        $errors->status(404, title: 'Page Not Found');
+    });
+
+    $this->get('/definitely-missing')
+        ->assertNotFound()
+        ->assertSee('<title>Page Not Found - Acme</title>', false)
+        ->assertSee('<meta name="robots" content="noindex, follow">', false);
+});

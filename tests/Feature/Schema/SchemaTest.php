@@ -40,7 +40,7 @@ it('resolves factory methods for classes whose schema type differs from the clas
             ->item('Home', 'https://example.com')
             ->item('Shop', 'https://example.com/shop')
     )->schema(
-        Schema::faq()->question('Is the decaf real coffee?', 'Yes, and we roast it with the same care.')
+        Schema::faq()->question('What is Laravel Head?', 'A fluent API for managing the document head.')
     );
 
     expect(Head::toHtml())
@@ -87,3 +87,10 @@ it('includes all schema org item availability values', function (): void {
     expect(OfferAvailability::MadeToOrder->url())->toBe('https://schema.org/MadeToOrder')
         ->and(OfferAvailability::Reserved->url())->toBe('https://schema.org/Reserved');
 });
+
+it('throws when a magic schema property setter receives multiple arguments', function (): void {
+    Schema::make('videoObject')->name('Introducing Laravel Head', 'https://example.com/video');
+})->throws(
+    BadMethodCallException::class,
+    'Magic schema property setters accept a single value, and [Laravel\Head\Schema\GenericSchemaObject] does not define a [name] method.',
+);

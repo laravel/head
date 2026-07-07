@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Schema;
 
+use BadMethodCallException;
 use DateTimeInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Str;
@@ -67,6 +68,14 @@ abstract class SchemaObject implements Arrayable, JsonSerializable
      */
     public function __call(string $method, array $parameters): static
     {
+        if (count($parameters) > 1) {
+            throw new BadMethodCallException(sprintf(
+                'Magic schema property setters accept a single value, and [%s] does not define a [%s] method.',
+                static::class,
+                $method,
+            ));
+        }
+
         return $this->set($method, $parameters[0] ?? true);
     }
 

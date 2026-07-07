@@ -38,8 +38,20 @@ class SchemaFactory
         return $this;
     }
 
+    /**
+     * Make a schema object from a schema object class or registered type name.
+     *
+     * @template TSchema of SchemaObject
+     *
+     * @param  class-string<TSchema>|string  $type
+     * @return ($type is class-string<TSchema> ? TSchema : SchemaObject)
+     */
     public function make(string $type): SchemaObject
     {
+        if (is_subclass_of($type, SchemaObject::class)) {
+            return new $type;
+        }
+
         $class = $this->types[Str::camel($type)] ?? null;
 
         return $class ? new $class : new GenericSchemaObject(Str::studly($type));

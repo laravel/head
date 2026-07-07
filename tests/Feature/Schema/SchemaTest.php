@@ -94,3 +94,15 @@ it('throws when a magic schema property setter receives multiple arguments', fun
     BadMethodCallException::class,
     'Magic schema property setters accept a single value, and [Laravel\Head\Schema\GenericSchemaObject] does not define a [name] method.',
 );
+
+it('makes schema objects directly from class names without registration', function (): void {
+    Head::schema(
+        Schema::make(JobPosting::class)
+            ->title('Senior Laravel Developer')
+            ->datePosted('2026-05-13')
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"@type":"JobPosting"')
+        ->toContain('"title":"Senior Laravel Developer"');
+});

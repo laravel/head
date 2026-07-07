@@ -71,6 +71,13 @@ it('stores cache friendly head metadata on view and controller routes', function
     ]]);
 });
 
+it('rejects unknown named route metadata arguments', function (): void {
+    $arguments = ['heading' => 'Dashboard'];
+
+    expect(fn (): array => Head::forMetadata(...$arguments))
+        ->toThrow(Error::class, 'Unknown named parameter $heading');
+});
+
 it('stores head metadata on resource and singleton routes', function (): void {
     Route::resource('posts', 'PostController')->metadata(Head::forMetadata(
         robots: 'index, follow',

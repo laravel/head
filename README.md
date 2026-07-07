@@ -103,6 +103,16 @@ Route::singleton('profile', ProfileController::class)->metadata(Head::forMetadat
 
 `Head::forMetadata()` returns a plain array for Laravel's native route metadata API, so route metadata remains compatible with cached routes.
 
+The top-level arguments are intentionally limited to Laravel Head's built-in route properties so editors and static analysis can catch misspelled names. Route attributes registered by custom tag builders may be passed through `extensions`:
+
+```php
+Route::get('/article', ArticleController::class)
+    ->metadata(Head::forMetadata(
+        title: 'Article',
+        extensions: ['readingTime' => 4],
+    ));
+```
+
 ### Supported Properties
 
 The supported route properties map to the same names as the fluent builder methods:

@@ -94,6 +94,7 @@ class Head extends Facade
      * @param  array<mixed, mixed>|null  $schema
      * @param  array<mixed, mixed>|null  $meta
      * @param  array<mixed, mixed>|null  $link
+     * @param  array<string, mixed>  $extensions
      * @return array<string, array<string, array<string, mixed>>>
      */
     public static function forMetadata(
@@ -129,7 +130,7 @@ class Head extends Facade
         ?array $schema = null,
         ?array $meta = null,
         ?array $link = null,
-        mixed ...$extensions,
+        array $extensions = [],
     ): array {
         $values = [
             'title' => $title,
@@ -164,13 +165,7 @@ class Head extends Facade
             'schema' => $schema,
             'meta' => $meta,
             'link' => $link,
-        ];
-
-        foreach ($extensions as $key => $value) {
-            if (is_string($key)) {
-                $values[$key] = $value;
-            }
-        }
+        ] + $extensions;
 
         $attributes = [];
 

@@ -52,6 +52,24 @@ it('resolves factory methods for classes whose schema type differs from the clas
         ->toContain('"@type":"Answer"');
 });
 
+it('sets breadcrumb items in bulk with sequential positions', function (): void {
+    Head::schema(
+        Schema::breadcrumbs()
+            ->item('Home', 'https://example.com')
+            ->items([
+                'Shop' => 'https://example.com/shop',
+                'Shoes' => 'https://example.com/shop/shoes',
+            ])
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"@type":"BreadcrumbList"')
+        ->toContain('"position":1,"name":"Home"')
+        ->toContain('"position":2,"name":"Shop"')
+        ->toContain('"position":3,"name":"Shoes"')
+        ->toContain('"item":"https://example.com/shop/shoes"');
+});
+
 it('registers custom schema types as first class factory methods', function (): void {
     Schema::register(JobPosting::class);
 

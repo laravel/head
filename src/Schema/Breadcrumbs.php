@@ -23,4 +23,14 @@ class Breadcrumbs extends SchemaObject
 
         return $this->set('itemListElement', $this->items);
     }
+
+    /** @param array<string, string> $items Breadcrumb names keyed to their URLs. */
+    public function items(array $items): static
+    {
+        foreach ($items as $name => $url) {
+            $this->item($name, $url);
+        }
+
+        return $this;
+    }
 }

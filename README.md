@@ -480,6 +480,28 @@ The built-in factory methods are `article`, `blogPosting`, `product`, `offer`, `
 
 Invalid JSON-LD schema data throws outside production and is logged as a warning in production.
 
+### Breadcrumbs
+
+Breadcrumb items may be added one at a time or in bulk. Positions are assigned automatically in the order the items are added:
+
+```php
+Head::schema(
+    Schema::breadcrumbs()->items([
+        'Home' => route('home'),
+        'Shop' => route('shop.index'),
+        'Shoes' => route('shop.category', 'shoes'),
+    ])
+);
+```
+
+Use `item()` to append a single crumb:
+
+```php
+Schema::breadcrumbs()
+    ->item('Home', route('home'))
+    ->item('Shop', route('shop.index'));
+```
+
 ### Custom Schemas
 
 Custom schema types can be registered explicitly:

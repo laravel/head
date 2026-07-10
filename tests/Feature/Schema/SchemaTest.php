@@ -13,7 +13,8 @@ it('renders built in schema objects as JSON LD', function (): void {
             ->headline('Introducing Laravel Head')
             ->description('A fluent API for the document head.')
             ->author(Schema::person()->name('Taylor Otwell'))
-            ->datePublished('2026-05-13')
+            ->publishedAt('2026-05-13')
+            ->modifiedAt('2026-05-14')
     );
 
     expect(Head::toHtml())
@@ -21,7 +22,9 @@ it('renders built in schema objects as JSON LD', function (): void {
         ->toContain('"@context":"https://schema.org"')
         ->toContain('"@type":"Article"')
         ->toContain('"description":"A fluent API for the document head."')
-        ->toContain('"@type":"Person"');
+        ->toContain('"@type":"Person"')
+        ->toContain('"datePublished":"2026-05-13"')
+        ->toContain('"dateModified":"2026-05-14"');
 });
 
 it('escapes html sensitive characters in JSON LD to prevent script breakout', function (): void {

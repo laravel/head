@@ -10,9 +10,9 @@ use Laravel\Head\HeadManager;
 use Laravel\Head\Routing\RouteAttributeParser;
 
 /**
- * @method static \Laravel\Head\HeadManager inertiaGlobals(callable $callback)
- * @method static \Laravel\Head\HeadManager defaults(callable $callback)
- * @method static \Laravel\Head\HeadManager errors(callable $callback)
+ * @method static \Laravel\Head\HeadManager inertiaGlobals(callable(\Laravel\Head\HeadBuilder): mixed $callback)
+ * @method static \Laravel\Head\HeadManager defaults(callable(\Laravel\Head\HeadBuilder): mixed $callback)
+ * @method static \Laravel\Head\HeadManager errors(callable(\Laravel\Head\ErrorPages): mixed $callback)
  * @method static \Laravel\Head\HeadManager inertia(string $prop = 'head')
  * @method static \Laravel\Head\HeadManager extend(class-string<\Laravel\Head\Tags\TagBuilder> $builder)
  * @method static \Laravel\Head\HeadManager status(int $status)
@@ -54,7 +54,7 @@ use Laravel\Head\Routing\RouteAttributeParser;
  * @method static \Laravel\Head\HeadManager manifest(string $href = '/site.webmanifest', bool|string|null $crossorigin = null)
  * @method static \Laravel\Head\HeadManager appleTouchStartupImage(string $href, \Laravel\Head\Enums\Media|string|null $media = null)
  * @method static \Laravel\Head\HeadManager pwa(string $name, string $manifest = '/site.webmanifest', ?string $themeColor = null, ?string $appleTouchIcon = null, ?string $appleTouchIconSizes = '180x180', ?string $appleWebAppStatusBarStyle = null)
- * @method static \Laravel\Head\HeadManager schema(\Laravel\Head\Schema\SchemaObject|array<string, mixed>|callable $schema)
+ * @method static \Laravel\Head\HeadManager schema(\Laravel\Head\Schema\SchemaObject|array<string, mixed>|callable(\Laravel\Head\Schema\SchemaFactory): (\Laravel\Head\Schema\SchemaObject|array<string, mixed>) $schema)
  * @method static array<string, mixed> toArray(?int $status = null)
  * @method static array<int, string> toElements(?int $status = null)
  * @method static array<int, string> toInertiaElements(?int $status = null)

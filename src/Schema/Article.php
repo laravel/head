@@ -20,17 +20,17 @@ class Article extends SchemaObject
         return $this->set('description', $description);
     }
 
-    public function author(SchemaObject|string $author): static
+    public function author(Person|Organization $author): static
     {
         return $this->set('author', $author);
     }
 
-    public function datePublished(DateTimeInterface|string $date): static
+    public function publishedAt(DateTimeInterface|string $date): static
     {
         return $this->date('datePublished', $date);
     }
 
-    public function dateModified(DateTimeInterface|string $date): static
+    public function modifiedAt(DateTimeInterface|string $date): static
     {
         return $this->date('dateModified', $date);
     }

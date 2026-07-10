@@ -57,7 +57,7 @@ class Title extends TagBuilder
 
     public function overlayOn(?TagBuilder $base): static
     {
-        if (! $base instanceof static) {
+        if (! $base instanceof self) {
             return $this;
         }
 

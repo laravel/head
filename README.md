@@ -419,6 +419,20 @@ Head::preload(asset('fonts/inter.woff2'), as: 'font', crossorigin: true)
     ->feed('/feed.atom', type: 'atom', title: 'Acme Atom');
 ```
 
+For local assets, `preloadAsset()` and `prefetchAsset()` resolve the URL through the `asset()` helper and detect the `as` attribute from the file extension. Font preloads automatically include `crossorigin`, which the preload specification requires even for same-origin fonts:
+
+```php
+Head::preloadAsset('fonts/inter.woff2')
+    ->prefetchAsset('images/next.webp');
+```
+
+```html
+<link rel="preload" href="https://example.com/fonts/inter.woff2" as="font" crossorigin>
+<link rel="prefetch" href="https://example.com/images/next.webp" as="image">
+```
+
+Pass `as` explicitly to override detection. `preloadAsset()` throws when the `as` attribute cannot be detected from the extension, since browsers ignore preloads without one; `prefetchAsset()` simply omits it.
+
 ## Custom Tags
 
 For tags without a dedicated method, use `meta()` and `link()`:

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Tags;
 
+use InvalidArgumentException;
 use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\Media;
 use Laravel\Head\Rendering\ResolvedHead;
@@ -146,6 +147,19 @@ class PerformanceLinks extends GroupedTagBuilder
         return $this;
     }
 
+    public function preloadAsset(string $path, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, Media|string|null $media = null): static
+    {
+        $as ??= self::detectAs($path) ?? throw new InvalidArgumentException(
+            "Unable to detect a preload [as] attribute for asset [{$path}]. Pass one explicitly.",
+        );
+
+        if ($as === 'font') {
+            $crossorigin ??= true;
+        }
+
+        return $this->preload(asset($path), as: $as, crossorigin: $crossorigin, type: $type, media: $media);
+    }
+
     public function prefetch(string $href, ?string $as = null): static
     {
         $this->prefetches[$href] = array_filter([
@@ -154,6 +168,11 @@ class PerformanceLinks extends GroupedTagBuilder
         ], fn ($value) => ! is_null($value));
 
         return $this;
+    }
+
+    public function prefetchAsset(string $path, ?string $as = null): static
+    {
+        return $this->prefetch(asset($path), as: $as ?? self::detectAs($path));
     }
 
     public function preconnect(string $href, bool|string|null $crossorigin = null): static
@@ -224,6 +243,24 @@ class PerformanceLinks extends GroupedTagBuilder
             'preconnect' => array_values($this->preconnects),
             'dnsPrefetch' => array_values($this->dnsPrefetches),
         ];
+    }
+
+    protected static function detectAs(string $path): ?string
+    {
+        [$path] = explode('#', $path, 2);
+        [$path] = explode('?', $path, 2);
+
+        return match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'woff2', 'woff', 'ttf', 'otf', 'eot' => 'font',
+            'css' => 'style',
+            'js', 'mjs' => 'script',
+            'avif', 'webp', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico' => 'image',
+            'mp4', 'webm', 'ogv' => 'video',
+            'mp3', 'ogg', 'wav', 'flac', 'aac', 'm4a' => 'audio',
+            'vtt' => 'track',
+            'json' => 'fetch',
+            default => null,
+        };
     }
 
     protected static function boolOrString(mixed $value): bool|string|null

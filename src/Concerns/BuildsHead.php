@@ -225,9 +225,23 @@ trait BuildsHead
         return $this;
     }
 
+    public function preloadAsset(string $path, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, Media|string|null $media = null): static
+    {
+        $this->headData()->builder(PerformanceLinks::class)->preloadAsset($path, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
+
+        return $this;
+    }
+
     public function prefetch(string $href, ?string $as = null): static
     {
         $this->headData()->builder(PerformanceLinks::class)->prefetch($href, as: $as);
+
+        return $this;
+    }
+
+    public function prefetchAsset(string $path, ?string $as = null): static
+    {
+        $this->headData()->builder(PerformanceLinks::class)->prefetchAsset($path, as: $as);
 
         return $this;
     }

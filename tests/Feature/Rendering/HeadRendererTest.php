@@ -7,10 +7,10 @@ use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
-use Laravel\Head\HeadManager;
+use Laravel\Head\HeadBuilder;
 
 it('renders resolved head tags in builder order', function (): void {
-    Head::defaults(function (HeadManager $head): void {
+    Head::defaults(function (HeadBuilder $head): void {
         $head
             ->title('Acme', suffix: ' - Acme')
             ->description('Build something great.')
@@ -61,7 +61,7 @@ it('does not render inertia keys in blade html output', function (): void {
 });
 
 it('renders inertia globals in blade html output', function (): void {
-    Head::inertiaGlobals(fn (HeadManager $head) => $head
+    Head::inertiaGlobals(fn (HeadBuilder $head) => $head
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 

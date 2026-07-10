@@ -17,7 +17,7 @@ it('renders a registered custom tag builder', function (): void {
     Head::extend(ReadingTime::class);
 
     Head::macro('readingTime', function (int $minutes): HeadManager {
-        $this->data()->overlayBuilder(ReadingTime::make($minutes));
+        $this->headData()->overlayBuilder(ReadingTime::make($minutes));
 
         return $this;
     });

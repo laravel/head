@@ -7,11 +7,11 @@ use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
-use Laravel\Head\HeadManager;
+use Laravel\Head\HeadBuilder;
 use Laravel\Head\Routing\RouteAttributeParser;
 
 it('cascades defaults route groups routes and controller mutations', function (): void {
-    Head::defaults(function (HeadManager $head): void {
+    Head::defaults(function (HeadBuilder $head): void {
         $head
             ->title('Acme', suffix: ' - Acme')
             ->description('Default description.');

@@ -59,6 +59,8 @@ use Laravel\Head\Routing\RouteAttributeParser;
  * @method static \Illuminate\Support\HtmlString renderForView(array<string, mixed> $variables = [], ?int $status = null)
  * @method static string toHtml(?int $status = null)
  * @method static \Laravel\Head\HeadManager flush()
+ * @method static \Laravel\Head\HeadManager|mixed when(mixed $value = null, callable $callback = null, callable $default = null)
+ * @method static \Laravel\Head\HeadManager|mixed unless(mixed $value = null, callable $callback = null, callable $default = null)
  * @method static void macro(string $name, object|callable $macro)
  * @method static void mixin(object $mixin, bool $replace = true)
  *

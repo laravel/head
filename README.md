@@ -33,10 +33,10 @@ Register page defaults in a service provider:
 
 ```php
 use Laravel\Head\Facades\Head;
-use Laravel\Head\HeadManager;
+use Laravel\Head\HeadBuilder;
 use Laravel\Head\Enums\OgType;
 
-Head::defaults(function (HeadManager $head) {
+Head::defaults(function (HeadBuilder $head) {
     $head
         ->title('Acme', suffix: ' - Acme')
         ->description('Build something great.')
@@ -182,6 +182,13 @@ Head::ogImage('/images/cover.jpg', alt: 'Draft cover')
 
 Open Graph media inherited from your defaults acts as a fallback. When route, runtime, or error metadata defines its own media of the same type, the default media is replaced instead of merged, so a page's `og:image` always wins over a site-wide default image.
 
+Conditional metadata may be defined fluently with `when()` and `unless()`:
+
+```php
+Head::title($post->title)
+    ->when($post->isDraft(), fn ($head) => $head->robotsHidden());
+```
+
 ## Error Pages
 
 Error metadata can be registered for status-code-specific pages:
@@ -197,6 +204,20 @@ Head::errors(function (ErrorPages $errors) {
         title: 'Page Not Found',
         description: 'The page you are looking for could not be found.',
     );
+});
+```
+
+Both `defaults()` and `status()` also accept the same fluent builder callback used by `Head::defaults()`:
+
+```php
+use Laravel\Head\ErrorPages;
+use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadBuilder;
+
+Head::errors(function (ErrorPages $errors) {
+    $errors->status(404, fn (HeadBuilder $head) => $head
+        ->title('Page Not Found')
+        ->description('The page you are looking for could not be found.'));
 });
 ```
 
@@ -250,9 +271,9 @@ To render X/Twitter cards from the same title, description, and image used by Op
 ```php
 use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
-use Laravel\Head\HeadManager;
+use Laravel\Head\HeadBuilder;
 
-Head::defaults(fn (HeadManager $head) => $head->twitter(
+Head::defaults(fn (HeadBuilder $head) => $head->twitter(
     card: TwitterCard::SummaryLargeImage,
 ));
 ```
@@ -581,9 +602,9 @@ Register them in a service provider with `Head::inertiaGlobals()`:
 
 ```php
 use Laravel\Head\Facades\Head;
-use Laravel\Head\HeadManager;
+use Laravel\Head\HeadBuilder;
 
-Head::inertiaGlobals(function (HeadManager $head) {
+Head::inertiaGlobals(function (HeadBuilder $head) {
     $head
         ->viewport('width=device-width, initial-scale=1')
         ->colorScheme('light dark')

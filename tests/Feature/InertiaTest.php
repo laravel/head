@@ -6,10 +6,11 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Support\Header;
 use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadBuilder;
 use Laravel\Head\HeadManager;
 
 it('shares rendered head elements with inertia page objects', function (): void {
-    Head::defaults(fn (HeadManager $head) => $head->title('Acme', suffix: ' - Acme'));
+    Head::defaults(fn (HeadBuilder $head) => $head->title('Acme', suffix: ' - Acme'));
 
     Route::get('/dashboard', fn () => Inertia::render('Dashboard', [
         'user' => 'Taylor',
@@ -71,7 +72,7 @@ it('keeps head elements off the wire during inertia partial reloads', function (
 });
 
 it('keeps inertia globals out of inertia page objects', function (): void {
-    Head::inertiaGlobals(fn (HeadManager $head) => $head
+    Head::inertiaGlobals(fn (HeadBuilder $head) => $head
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 
@@ -94,7 +95,7 @@ it('keeps inertia globals out of inertia page objects', function (): void {
 });
 
 it('renders inertia globals as static tags and page tags as inertia-managed tags in the inertia root view', function (): void {
-    Head::inertiaGlobals(fn (HeadManager $head) => $head
+    Head::inertiaGlobals(fn (HeadBuilder $head) => $head
         ->viewport('width=device-width, initial-scale=1')
         ->icon('/favicon.svg', type: 'image/svg+xml'));
 

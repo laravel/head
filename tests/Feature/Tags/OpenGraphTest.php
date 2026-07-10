@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Facades\Head;
-use Laravel\Head\HeadManager;
+use Laravel\Head\HeadBuilder;
 
 it('renders open graph media tags', function (): void {
     Head::og(type: OgType::Article, image: 'https://example.com/hero.jpg')
@@ -30,7 +30,7 @@ it('renders open graph media tags', function (): void {
 });
 
 it('replaces default layer og images with page level og images', function (): void {
-    Head::defaults(fn (HeadManager $head) => $head->ogImage('https://example.com/brand.png', alt: 'Brand card'));
+    Head::defaults(fn (HeadBuilder $head) => $head->ogImage('https://example.com/brand.png', alt: 'Brand card'));
 
     Head::ogImage('https://example.com/product.jpg', alt: 'Product photo');
 
@@ -40,7 +40,7 @@ it('replaces default layer og images with page level og images', function (): vo
 });
 
 it('falls back to default layer og images when no higher layer defines any', function (): void {
-    Head::defaults(fn (HeadManager $head) => $head->ogImage('https://example.com/brand.png'));
+    Head::defaults(fn (HeadBuilder $head) => $head->ogImage('https://example.com/brand.png'));
 
     Head::title('About');
 
@@ -49,7 +49,7 @@ it('falls back to default layer og images when no higher layer defines any', fun
 });
 
 it('keeps default layer og videos when a higher layer only defines images', function (): void {
-    Head::defaults(fn (HeadManager $head) => $head
+    Head::defaults(fn (HeadBuilder $head) => $head
         ->ogImage('https://example.com/brand.png')
         ->ogVideo('https://example.com/tour.mp4'));
 

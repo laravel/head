@@ -7,6 +7,7 @@ namespace Laravel\Head\Concerns;
 use BackedEnum;
 use Illuminate\Contracts\Pagination\Paginator;
 use Laravel\Head\Enums\ImageType;
+use Laravel\Head\Enums\Media;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Enums\RobotsRule;
 use Laravel\Head\Enums\TwitterCard;
@@ -56,9 +57,9 @@ trait BuildsHead
         return $this;
     }
 
-    public function themeColor(string $color): static
+    public function themeColor(string $color, Media|string|null $media = null): static
     {
-        return $this->meta('theme-color', $color);
+        return $this->meta('theme-color', $color, media: $media);
     }
 
     public function applicationName(string $name): static
@@ -217,7 +218,7 @@ trait BuildsHead
         return $this;
     }
 
-    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, ?string $media = null): static
+    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, Media|string|null $media = null): static
     {
         $this->headData()->builder(PerformanceLinks::class)->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);
 
@@ -292,7 +293,7 @@ trait BuildsHead
         return $this;
     }
 
-    public function meta(string $key, string $content, ?bool $property = null, ?string $media = null): static
+    public function meta(string $key, string $content, ?bool $property = null, Media|string|null $media = null): static
     {
         $this->headData()->builder(MetaTags::class)->tag($key, $content, $property, $media);
 
@@ -309,12 +310,12 @@ trait BuildsHead
         return $this;
     }
 
-    public function icon(string $href, ImageType|string|null $type = null, ?string $sizes = null, ?string $media = null): static
+    public function icon(string $href, ImageType|string|null $type = null, ?string $sizes = null, Media|string|null $media = null): static
     {
         return $this->link('icon', $href, static::linkAttributes([
             'type' => $type instanceof ImageType ? $type->value : $type,
             'sizes' => $sizes,
-            'media' => $media,
+            'media' => $media instanceof Media ? $media->value : $media,
         ]));
     }
 
@@ -339,10 +340,10 @@ trait BuildsHead
         ]));
     }
 
-    public function appleTouchStartupImage(string $href, ?string $media = null): static
+    public function appleTouchStartupImage(string $href, Media|string|null $media = null): static
     {
         return $this->link('apple-touch-startup-image', $href, static::linkAttributes([
-            'media' => $media,
+            'media' => $media instanceof Media ? $media->value : $media,
         ]));
     }
 

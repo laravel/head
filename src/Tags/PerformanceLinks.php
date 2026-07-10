@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Laravel\Head\Tags;
 
 use Laravel\Head\Enums\ImageType;
+use Laravel\Head\Enums\Media;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
@@ -132,14 +133,14 @@ class PerformanceLinks extends GroupedTagBuilder
         return $links;
     }
 
-    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, ?string $media = null): static
+    public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, Media|string|null $media = null): static
     {
         $this->preloads[$href] = array_filter([
             'href' => $href,
             'as' => $as,
             'crossorigin' => $crossorigin,
             'type' => $type instanceof ImageType ? $type->value : $type,
-            'media' => $media,
+            'media' => $media instanceof Media ? $media->value : $media,
         ], fn ($value) => ! is_null($value));
 
         return $this;
@@ -247,7 +248,7 @@ class PerformanceLinks extends GroupedTagBuilder
             as: self::string($attributes['as'] ?? null),
             crossorigin: self::boolOrString($attributes['crossorigin'] ?? null),
             type: self::stringOrBackedEnum($attributes['type'] ?? null),
-            media: self::string($attributes['media'] ?? null),
+            media: self::stringOrBackedEnum($attributes['media'] ?? null),
         );
 
         return true;

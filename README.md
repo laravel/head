@@ -313,12 +313,16 @@ Theme colors can be set globally, per route, or at runtime:
 Head::themeColor('#0f172a');
 ```
 
-This renders a `<meta name="theme-color">` tag. If you need media-specific theme colors, use `meta()` directly:
+This renders a `<meta name="theme-color">` tag. Media-specific theme colors can use the `Media` enum:
 
 ```php
-Head::meta('theme-color', '#ffffff', media: '(prefers-color-scheme: light)')
-    ->meta('theme-color', '#111827', media: '(prefers-color-scheme: dark)');
+use Laravel\Head\Enums\Media;
+
+Head::themeColor('#ffffff', media: Media::Light)
+    ->themeColor('#111827', media: Media::Dark);
 ```
+
+`Media` also includes `Portrait` and `Landscape`. Any media parameter continues to accept a custom media query string.
 
 Route metadata supports simple theme colors through the same camel-case key:
 
@@ -336,6 +340,7 @@ Laravel Head includes helpers for common browser and application metadata:
 
 ```php
 use Laravel\Head\Enums\ImageType;
+use Laravel\Head\Enums\Media;
 
 Head::applicationName('Acme')
     ->colorScheme('light dark')
@@ -347,7 +352,7 @@ Head::applicationName('Acme')
     ->icon('/favicon.svg', type: ImageType::Svg)
     ->icon('/favicon-32x32.png', type: ImageType::Png, sizes: '32x32')
     ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
-    ->appleTouchStartupImage('/launch.png', media: '(orientation: portrait)')
+    ->appleTouchStartupImage('/launch.png', media: Media::Portrait)
     ->maskIcon('/safari-pinned-tab.svg', color: '#111827')
     ->manifest('/site.webmanifest');
 ```
@@ -356,6 +361,7 @@ Route metadata uses the same names:
 
 ```php
 use Laravel\Head\Enums\ImageType;
+use Laravel\Head\Enums\Media;
 use Laravel\Head\Facades\Head;
 
 Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
@@ -369,7 +375,7 @@ Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
         ['href' => '/favicon-32x32.png', 'type' => ImageType::Png, 'sizes' => '32x32'],
     ],
     appleTouchIcon: ['href' => '/apple-touch-icon.png', 'sizes' => '180x180'],
-    appleTouchStartupImage: ['href' => '/launch.png', 'media' => '(orientation: portrait)'],
+    appleTouchStartupImage: ['href' => '/launch.png', 'media' => Media::Portrait],
     manifest: '/site.webmanifest',
 ));
 ```
@@ -428,8 +434,10 @@ Head::meta('format-detection', 'telephone=no')
 Meta tags may include a media query when the browser should only apply the tag under matching conditions:
 
 ```php
-Head::meta('theme-color', '#ffffff', media: '(prefers-color-scheme: light)')
-    ->meta('theme-color', '#111827', media: '(prefers-color-scheme: dark)');
+use Laravel\Head\Enums\Media;
+
+Head::meta('theme-color', '#ffffff', media: Media::Light)
+    ->meta('theme-color', '#111827', media: Media::Dark);
 ```
 
 `meta()` uses `name=` for regular meta tags. For keys that normally use `property=`, such as Open Graph (`og:`) or article metadata (`article:`), it switches automatically:

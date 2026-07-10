@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Laravel\Head\Enums\ImageType;
+use Laravel\Head\Enums\Media;
 use Laravel\Head\Facades\Head;
 
 it('renders generic link tags', function (): void {
@@ -23,7 +24,7 @@ it('renders link aliases', function (): void {
         ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
         ->maskIcon('/safari-pinned-tab.svg', color: '#111827')
         ->manifest('/site.webmanifest')
-        ->appleTouchStartupImage('/launch.png', media: '(orientation: portrait)');
+        ->appleTouchStartupImage('/launch.png', media: Media::Portrait);
 
     expect(Head::toHtml())
         ->toContain('rel="icon" href="/favicon.svg" type="image/svg+xml">')
@@ -43,7 +44,7 @@ it('resolves link aliases from route attributes', function (): void {
         appleTouchIcon: ['href' => '/apple-touch-icon.png', 'sizes' => '180x180'],
         maskIcon: ['href' => '/safari-pinned-tab.svg', 'color' => '#111827'],
         manifest: '/site.webmanifest',
-        appleTouchStartupImage: ['href' => '/launch.png', 'media' => '(orientation: portrait)'],
+        appleTouchStartupImage: ['href' => '/launch.png', 'media' => Media::Portrait],
     ));
 
     $this->get('/app')

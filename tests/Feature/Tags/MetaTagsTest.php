@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Laravel\Head\Enums\Media;
 use Laravel\Head\Facades\Head;
 
 it('renders generic meta tags', function (): void {
@@ -70,6 +71,20 @@ it('resolves media-specific meta tags from route attributes', function (): void 
         meta: [
             ['key' => 'theme-color', 'content' => '#ffffff', 'media' => '(prefers-color-scheme: light)'],
             ['key' => 'theme-color', 'content' => '#111827', 'media' => '(prefers-color-scheme: dark)'],
+        ],
+    ));
+
+    $this->get('/dashboard')
+        ->assertOk()
+        ->assertSee('<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">', false)
+        ->assertSee('<meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)">', false);
+});
+
+it('resolves media enum values from route attributes', function (): void {
+    Route::get('/dashboard', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+        meta: [
+            ['key' => 'theme-color', 'content' => '#ffffff', 'media' => Media::Light],
+            ['key' => 'theme-color', 'content' => '#111827', 'media' => Media::Dark],
         ],
     ));
 

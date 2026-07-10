@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Laravel\Head\Tags;
 
 use Illuminate\Support\Str;
+use Laravel\Head\Enums\Media;
 use Laravel\Head\Rendering\ResolvedHead;
 use Laravel\Head\Rendering\TagRenderer;
 
@@ -54,7 +55,7 @@ class MetaTags extends GroupedTagBuilder
                     $meta['key'],
                     $meta['content'],
                     property: self::bool($meta['property'] ?? null),
-                    media: self::string($meta['media'] ?? null),
+                    media: self::stringOrBackedEnum($meta['media'] ?? null),
                 );
             }
         }
@@ -67,8 +68,10 @@ class MetaTags extends GroupedTagBuilder
         return ['meta', ...array_keys(self::aliases())];
     }
 
-    public function tag(string $key, string $content, ?bool $property = null, ?string $media = null): static
+    public function tag(string $key, string $content, ?bool $property = null, Media|string|null $media = null): static
     {
+        $media = $media instanceof Media ? $media->value : $media;
+
         $this->tags[$this->tagKey($key, $property, $media)] = array_filter([
             'key' => $key,
             'content' => $content,

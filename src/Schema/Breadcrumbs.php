@@ -23,9 +23,4 @@ class Breadcrumbs extends SchemaObject
 
         return $this->set('itemListElement', $this->items);
     }
-
-    public function auto(): static
-    {
-        return $this->set('itemListElement', $this->items);
-    }
 }

@@ -123,7 +123,7 @@ The supported route properties map to the same names as the fluent builder metho
 | App metadata | `themeColor`, `applicationName`, `colorScheme`, `referrer`, `viewport`, `appleWebAppTitle`, `webAppCapable`, `appleWebAppStatusBarStyle` |
 | Social | `og`, `ogImage`, `ogVideo`, `ogAudio` |
 | Performance | `preload`, `prefetch`, `preconnect`, `dnsPrefetch` |
-| Discovery | `alternates`, `feed`, `icon`, `appleTouchIcon`, `appleTouchStartupImage`, `maskIcon`, `manifest` |
+| Discovery | `alternates`, `feed`, `icon`, `favicon`, `appleTouchIcon`, `appleTouchStartupImage`, `maskIcon`, `manifest` |
 | Structured data | `schema` |
 | Custom tags | `meta`, `link` |
 
@@ -349,13 +349,15 @@ Head::applicationName('Acme')
     ->appleWebAppTitle('Acme')
     ->webAppCapable()
     ->appleWebAppStatusBarStyle('black')
-    ->icon('/favicon.svg', type: ImageType::Svg)
+    ->favicon('/favicon.svg', type: ImageType::Svg)
     ->icon('/favicon-32x32.png', type: ImageType::Png, sizes: '32x32')
     ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
     ->appleTouchStartupImage('/launch.png', media: Media::Portrait)
     ->maskIcon('/safari-pinned-tab.svg', color: '#111827')
     ->manifest('/site.webmanifest');
 ```
+
+`favicon()` is an alias of `icon()` and accepts the same `type`, `sizes`, and `media` arguments.
 
 Route metadata uses the same names:
 
@@ -370,7 +372,7 @@ Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
     appleWebAppTitle: 'Acme',
     webAppCapable: true,
     appleWebAppStatusBarStyle: 'black',
-    icon: [
+    favicon: [
         ['href' => '/favicon.svg', 'type' => ImageType::Svg],
         ['href' => '/favicon-32x32.png', 'type' => ImageType::Png, 'sizes' => '32x32'],
     ],

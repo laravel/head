@@ -35,7 +35,7 @@ class GenericLinks extends GroupedTagBuilder
 
     public static function routeAttributeKeys(): array
     {
-        return ['link', 'icon', 'appleTouchIcon', 'maskIcon', 'manifest', 'appleTouchStartupImage'];
+        return ['link', 'icon', 'favicon', 'appleTouchIcon', 'maskIcon', 'manifest', 'appleTouchStartupImage'];
     }
 
     public static function fromRouteAttribute(string $key, mixed $value): ?self
@@ -59,7 +59,7 @@ class GenericLinks extends GroupedTagBuilder
 
     protected static function fromAliasRouteAttribute(string $key, mixed $value): ?self
     {
-        if (! in_array($key, ['icon', 'appleTouchIcon', 'maskIcon', 'manifest', 'appleTouchStartupImage'], true)) {
+        if (! in_array($key, ['icon', 'favicon', 'appleTouchIcon', 'maskIcon', 'manifest', 'appleTouchStartupImage'], true)) {
             return null;
         }
 
@@ -148,7 +148,7 @@ class GenericLinks extends GroupedTagBuilder
         }
 
         match ($key) {
-            'icon' => $this->link('icon', $href, self::attributes([
+            'icon', 'favicon' => $this->link('icon', $href, self::attributes([
                 'type' => self::stringOrBackedEnum($attributes['type'] ?? null),
                 'sizes' => $attributes['sizes'] ?? null,
                 'media' => $attributes['media'] ?? null,

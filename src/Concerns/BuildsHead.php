@@ -319,6 +319,11 @@ trait BuildsHead
         ]));
     }
 
+    public function favicon(string $href, ImageType|string|null $type = null, ?string $sizes = null, Media|string|null $media = null): static
+    {
+        return $this->icon($href, type: $type, sizes: $sizes, media: $media);
+    }
+
     public function appleTouchIcon(string $href, ?string $sizes = null): static
     {
         return $this->link('apple-touch-icon', $href, static::linkAttributes([

@@ -19,7 +19,7 @@ it('renders generic link tags', function (): void {
 });
 
 it('renders link aliases', function (): void {
-    Head::icon('/favicon.svg', type: ImageType::Svg)
+    Head::favicon('/favicon.svg', type: ImageType::Svg)
         ->icon('/favicon-32x32.png', type: ImageType::Png, sizes: '32x32')
         ->appleTouchIcon('/apple-touch-icon.png', sizes: '180x180')
         ->maskIcon('/safari-pinned-tab.svg', color: '#111827')
@@ -41,6 +41,7 @@ it('resolves link aliases from route attributes', function (): void {
             ['href' => '/favicon.svg', 'type' => ImageType::Svg],
             ['href' => '/favicon-32x32.png', 'type' => ImageType::Png, 'sizes' => '32x32'],
         ],
+        favicon: ['href' => '/favicon-dark.svg', 'type' => ImageType::Svg, 'media' => Media::Dark],
         appleTouchIcon: ['href' => '/apple-touch-icon.png', 'sizes' => '180x180'],
         maskIcon: ['href' => '/safari-pinned-tab.svg', 'color' => '#111827'],
         manifest: '/site.webmanifest',
@@ -51,6 +52,7 @@ it('resolves link aliases from route attributes', function (): void {
         ->assertOk()
         ->assertSee('rel="icon" href="/favicon.svg" type="image/svg+xml">', false)
         ->assertSee('rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">', false)
+        ->assertSee('rel="icon" href="/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">', false)
         ->assertSee('rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">', false)
         ->assertSee('rel="mask-icon" href="/safari-pinned-tab.svg" color="#111827">', false)
         ->assertSee('rel="manifest" href="/site.webmanifest">', false)

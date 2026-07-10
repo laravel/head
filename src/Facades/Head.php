@@ -46,6 +46,7 @@ use Laravel\Head\Routing\RouteAttributeParser;
  * @method static \Laravel\Head\HeadManager meta(string $key, string $content, ?bool $property = null, \Laravel\Head\Enums\Media|string|null $media = null)
  * @method static \Laravel\Head\HeadManager link(string $rel, string $href, array<string, \BackedEnum|bool|float|int|string|null> $attributes = [])
  * @method static \Laravel\Head\HeadManager icon(string $href, \Laravel\Head\Enums\ImageType|string|null $type = null, ?string $sizes = null, \Laravel\Head\Enums\Media|string|null $media = null)
+ * @method static \Laravel\Head\HeadManager favicon(string $href, \Laravel\Head\Enums\ImageType|string|null $type = null, ?string $sizes = null, \Laravel\Head\Enums\Media|string|null $media = null)
  * @method static \Laravel\Head\HeadManager appleTouchIcon(string $href, ?string $sizes = null)
  * @method static \Laravel\Head\HeadManager maskIcon(string $href, ?string $color = null)
  * @method static \Laravel\Head\HeadManager manifest(string $href = '/site.webmanifest', bool|string|null $crossorigin = null)
@@ -89,6 +90,7 @@ class Head extends Facade
      * @param  array<string, string>|null  $alternates
      * @param  array<mixed, mixed>|string|null  $feed
      * @param  array<mixed, mixed>|string|null  $icon
+     * @param  array<mixed, mixed>|string|null  $favicon
      * @param  array<mixed, mixed>|string|null  $appleTouchIcon
      * @param  array<mixed, mixed>|string|null  $appleTouchStartupImage
      * @param  array<mixed, mixed>|string|null  $maskIcon
@@ -125,6 +127,7 @@ class Head extends Facade
         ?array $alternates = null,
         string|array|null $feed = null,
         string|array|null $icon = null,
+        string|array|null $favicon = null,
         string|array|null $appleTouchIcon = null,
         string|array|null $appleTouchStartupImage = null,
         string|array|null $maskIcon = null,
@@ -160,6 +163,7 @@ class Head extends Facade
             'alternates' => $alternates,
             'feed' => $feed,
             'icon' => $icon,
+            'favicon' => $favicon,
             'appleTouchIcon' => $appleTouchIcon,
             'appleTouchStartupImage' => $appleTouchStartupImage,
             'maskIcon' => $maskIcon,

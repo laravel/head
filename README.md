@@ -470,7 +470,7 @@ Head::schema(
         ->offers(
             Schema::offer()
                 ->price($product->price)
-                ->priceCurrency('USD')
+                ->currency('USD')
                 ->availability(OfferAvailability::InStock)
         )
 );

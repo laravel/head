@@ -15,7 +15,7 @@ class Offer extends SchemaObject
         return $this->set('price', $price);
     }
 
-    public function priceCurrency(string $currency): static
+    public function currency(string $currency): static
     {
         return $this->set('priceCurrency', $currency);
     }

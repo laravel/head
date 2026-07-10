@@ -107,12 +107,13 @@ it('sets offer availability from schema org enum values', function (): void {
             ->offers(
                 Schema::offer()
                     ->price(125)
-                    ->priceCurrency('USD')
+                    ->currency('USD')
                     ->availability(OfferAvailability::InStock)
             )
     );
 
     expect(Head::toHtml())
+        ->toContain('"priceCurrency":"USD"')
         ->toContain('"availability":"https://schema.org/InStock"');
 });
 

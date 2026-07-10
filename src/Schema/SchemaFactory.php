@@ -59,6 +59,8 @@ class SchemaFactory
     }
 
     /**
+     * Dynamically make a schema object for the called type name.
+     *
      * @param  array<int, mixed>  $parameters
      */
     public function __call(string $method, array $parameters): SchemaObject

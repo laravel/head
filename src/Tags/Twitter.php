@@ -129,6 +129,8 @@ class Twitter extends GroupedTagBuilder
     }
 
     /**
+     * Get the Twitter card properties, falling back to the page title and description.
+     *
      * @return array<string, string>
      */
     public function render(?string $title = null, ?string $description = null): array

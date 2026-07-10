@@ -27,6 +27,9 @@ abstract class SchemaObject implements Arrayable, JsonSerializable
         $this->type = $type ?? $this->typeFromAttribute();
     }
 
+    /**
+     * Set a schema property, coercing nested schema objects and dates.
+     */
     public function set(string $property, mixed $value): static
     {
         $this->properties[$property] = $this->coerce($value);
@@ -64,6 +67,8 @@ abstract class SchemaObject implements Arrayable, JsonSerializable
     }
 
     /**
+     * Dynamically set the schema property named by the called method.
+     *
      * @param  array<int, mixed>  $parameters
      */
     public function __call(string $method, array $parameters): static
@@ -96,6 +101,9 @@ abstract class SchemaObject implements Arrayable, JsonSerializable
         return $value;
     }
 
+    /**
+     * Resolve the schema.org type from the SchemaType attribute or the class name.
+     */
     protected function typeFromAttribute(): string
     {
         $reflection = new ReflectionClass($this);

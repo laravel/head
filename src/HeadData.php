@@ -44,6 +44,9 @@ class HeadData
         return $this->builders[$class] ??= new $class;
     }
 
+    /**
+     * Overlay the given builder onto any existing builder of the same type.
+     */
     public function overlayBuilder(TagBuilder $builder): static
     {
         $class = $builder::class;
@@ -52,6 +55,9 @@ class HeadData
         return $this;
     }
 
+    /**
+     * Merge the given data over this data into a new instance.
+     */
     public function merge(HeadData $data): self
     {
         $merged = clone $this;
@@ -74,6 +80,9 @@ class HeadData
         return true;
     }
 
+    /**
+     * Mark all builders as belonging to the defaults layer.
+     */
     public function asDefaults(): static
     {
         $defaults = clone $this;

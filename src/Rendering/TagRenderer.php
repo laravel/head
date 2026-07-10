@@ -11,6 +11,9 @@ class TagRenderer
         //
     }
 
+    /**
+     * Get a renderer that stamps tags with data-inertia ownership attributes.
+     */
     public function withInertiaAttributes(): self
     {
         return new self(true);
@@ -23,6 +26,9 @@ class TagRenderer
         return '<title'.$this->inertiaAttribute($inertiaKey).'>'.e($title).'</title>';
     }
 
+    /**
+     * Render a meta tag keyed by the given attribute ("name" or "property").
+     */
     public function meta(string $attribute, string $key, string|int|float|bool $content, ?string $inertiaKey = null): string
     {
         $inertiaKey ??= $key;
@@ -31,6 +37,8 @@ class TagRenderer
     }
 
     /**
+     * Render a meta tag keyed by the given attribute ("name" or "property") with arbitrary attributes.
+     *
      * @param  array<string, bool|float|int|string|null>  $attributes
      */
     public function metaWithAttributes(string $attribute, string $key, array $attributes, ?string $inertiaKey = null): string
@@ -88,6 +96,9 @@ class TagRenderer
             ->implode(' ');
     }
 
+    /**
+     * Generate a stable, content-derived data-inertia key for a tag.
+     */
     public function stableKey(string $prefix, string $value): string
     {
         return $prefix.':'.substr(md5($value), 0, 16);

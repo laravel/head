@@ -271,6 +271,8 @@ class OpenGraph extends GroupedTagBuilder
     }
 
     /**
+     * Get the Open Graph properties, falling back to the page title and description.
+     *
      * @return array<string, string>
      */
     public function render(?string $title = null, ?string $description = null): array

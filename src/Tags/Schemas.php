@@ -55,6 +55,8 @@ class Schemas extends GroupedTagBuilder
     }
 
     /**
+     * Add a schema, keyed by content so identical schemas render once.
+     *
      * @param  SchemaObject|SchemaData  $schema
      */
     public function schema(SchemaObject|array $schema): static

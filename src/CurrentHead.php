@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
+/**
+ * The request-scoped head data and response status.
+ */
 class CurrentHead
 {
     protected HeadData $data;

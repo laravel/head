@@ -126,6 +126,9 @@ class FeedLinks extends GroupedTagBuilder
     }
 
     /**
+     * Normalize a route attribute value into a list of feed definitions,
+     * treating an attribute map containing any single-feed key as one feed.
+     *
      * @param  array<mixed, mixed>  $value
      * @return array<mixed, mixed>
      */

@@ -67,6 +67,8 @@ class TagRegistry
     }
 
     /**
+     * Map each supported route attribute key to its tag builder.
+     *
      * @return array<string, class-string<TagBuilder>>
      */
     public function routeAttributeKeys(): array

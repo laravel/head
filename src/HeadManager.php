@@ -51,6 +51,8 @@ class HeadManager implements Arrayable, Htmlable
     }
 
     /**
+     * Define head tags rendered as server-owned tags on every Inertia document.
+     *
      * @param  callable(HeadBuilder): mixed  $callback
      */
     public function inertiaGlobals(callable $callback): static
@@ -61,6 +63,8 @@ class HeadManager implements Arrayable, Htmlable
     }
 
     /**
+     * Define default head data merged beneath every page's head.
+     *
      * @param  callable(HeadBuilder): mixed  $callback
      */
     public function defaults(callable $callback): static
@@ -71,6 +75,8 @@ class HeadManager implements Arrayable, Htmlable
     }
 
     /**
+     * Define head data for error pages.
+     *
      * @param  callable(ErrorPages): mixed  $callback
      */
     public function errors(callable $callback): static
@@ -80,6 +86,9 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
+    /**
+     * Customize the Inertia prop the head elements are shared under.
+     */
     public function inertia(string $prop = self::INERTIA_PROP): static
     {
         $this->inertiaProp = $prop;
@@ -104,6 +113,9 @@ class HeadManager implements Arrayable, Htmlable
         return $this;
     }
 
+    /**
+     * Set the response status used to resolve error page head data.
+     */
     public function status(int $status): static
     {
         $this->state()->setStatus($status);

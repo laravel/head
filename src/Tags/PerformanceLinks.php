@@ -326,6 +326,9 @@ class PerformanceLinks extends GroupedTagBuilder
     }
 
     /**
+     * Normalize a route attribute value into a list of link definitions,
+     * treating an attribute map containing any single-link key as one link.
+     *
      * @param  string|array<mixed, mixed>  $value
      * @param  array<int, string>  $singleAttributeKeys
      * @return array<mixed, mixed>

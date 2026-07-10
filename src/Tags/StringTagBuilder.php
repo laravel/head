@@ -7,6 +7,8 @@ namespace Laravel\Head\Tags;
 use Laravel\Head\Rendering\ResolvedHead;
 
 /**
+ * A tag builder holding a single string value.
+ *
  * @phpstan-consistent-constructor
  */
 abstract class StringTagBuilder extends TagBuilder

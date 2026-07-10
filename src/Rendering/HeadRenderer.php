@@ -23,11 +23,17 @@ class HeadRenderer
         $this->tags = $tags ?? new TagRenderer;
     }
 
+    /**
+     * Render the resolved head as an HTML string.
+     */
     public function render(HeadData $head, ?Request $request = null): string
     {
         return implode(PHP_EOL, $this->toElements($head, $request));
     }
 
+    /**
+     * Render the initial Inertia document head as an HTML string.
+     */
     public function renderInertiaDocument(HeadData $inertiaGlobals, HeadData $head, ?Request $request = null): string
     {
         return implode(PHP_EOL, $this->toInertiaDocumentElements($inertiaGlobals, $head, $request));
@@ -95,6 +101,8 @@ class HeadRenderer
     }
 
     /**
+     * Resolve a builder instance, materializing builders that render when empty.
+     *
      * @param  class-string<TagBuilder>  $builder
      */
     protected function builder(ResolvedHead $head, string $builder): ?TagBuilder

@@ -19,6 +19,8 @@ class RouteAttributeParser
     protected static int $metadataLayer = 0;
 
     /**
+     * Normalize variadic head arguments, unwrapping a single array argument.
+     *
      * @param  array<int|string, mixed>  $arguments
      * @return array<mixed, mixed>
      */
@@ -32,6 +34,8 @@ class RouteAttributeParser
     }
 
     /**
+     * Wrap head attributes in a cache-friendly route metadata layer.
+     *
      * @param  array<string, mixed>  $attributes
      * @return array<string, array<string, array<string, mixed>>>
      */
@@ -49,6 +53,8 @@ class RouteAttributeParser
     }
 
     /**
+     * Get the head attribute layers stored in the route's metadata.
+     *
      * @return array<int, array<mixed, mixed>>
      */
     public static function routeMetadata(Route $route): array
@@ -71,6 +77,8 @@ class RouteAttributeParser
     }
 
     /**
+     * Apply head attributes on top of the given head data.
+     *
      * @param  HeadData|array<mixed, mixed>|null  $attributes
      */
     public static function apply(HeadData $head, HeadData|array|null $attributes, TagRegistry $registry): HeadData

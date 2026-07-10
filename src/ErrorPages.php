@@ -46,6 +46,9 @@ class ErrorPages
         return $this;
     }
 
+    /**
+     * Get the merged error head data for a status, or null when none is defined.
+     */
     public function forStatus(int $status): ?HeadData
     {
         if (! isset($this->statuses[$status]) && $this->defaults->isEmpty()) {

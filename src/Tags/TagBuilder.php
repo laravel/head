@@ -10,6 +10,9 @@ use Laravel\Head\Rendering\TagRenderer;
 
 abstract class TagBuilder
 {
+    /**
+     * The unique name identifying this builder within the head.
+     */
     abstract public static function key(): string;
 
     /**
@@ -36,6 +39,8 @@ abstract class TagBuilder
     }
 
     /**
+     * The route attribute keys this builder accepts values for.
+     *
      * @return array<int, string>
      */
     public static function routeAttributeKeys(): array
@@ -43,16 +48,25 @@ abstract class TagBuilder
         return [static::key()];
     }
 
+    /**
+     * Create a builder from a route attribute value, or null when the value is invalid.
+     */
     public static function fromRouteAttribute(string $key, mixed $value): ?self
     {
         return null;
     }
 
+    /**
+     * Determine if the builder should render even when no data was set.
+     */
     public static function rendersWhenEmpty(ResolvedHead $head): bool
     {
         return false;
     }
 
+    /**
+     * Mark the builder's data as belonging to the defaults layer.
+     */
     public function asDefaults(): static
     {
         return $this;
@@ -105,6 +119,8 @@ abstract class TagBuilder
     }
 
     /**
+     * Normalize a route attribute value into a list of items.
+     *
      * @return array<int, mixed>
      */
     protected static function items(mixed $value): array
@@ -113,6 +129,8 @@ abstract class TagBuilder
     }
 
     /**
+     * Filter an array down to its string-keyed values.
+     *
      * @param  array<mixed, mixed>  $values
      * @return array<string, mixed>
      */

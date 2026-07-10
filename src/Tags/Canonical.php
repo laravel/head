@@ -13,6 +13,9 @@ use Laravel\Head\Rendering\TagRenderer;
  */
 class Canonical extends TagBuilder
 {
+    /**
+     * @param  string  $mode  Either "url" for an explicit URL or "auto" to resolve from the request.
+     */
     public function __construct(
         protected string $mode,
         protected ?string $url = null,
@@ -27,6 +30,9 @@ class Canonical extends TagBuilder
         return 'canonical';
     }
 
+    /**
+     * Use a null $url to resolve the canonical URL from the current request.
+     */
     public static function make(?string $url = null, ?bool $forceHttps = null, ?bool $trailingSlash = null): self
     {
         return new self(is_null($url) ? 'auto' : 'url', $url, $forceHttps, $trailingSlash);

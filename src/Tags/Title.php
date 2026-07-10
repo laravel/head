@@ -69,6 +69,9 @@ class Title extends TagBuilder
         );
     }
 
+    /**
+     * Default titles render exactly; the prefix and suffix only decorate page titles.
+     */
     public function asDefaults(): static
     {
         return is_null($this->value)

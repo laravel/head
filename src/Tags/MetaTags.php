@@ -138,6 +138,9 @@ class MetaTags extends GroupedTagBuilder
         return ($property ?? $this->isRdfaProperty($key)) ? 'property' : 'name';
     }
 
+    /**
+     * The identity a meta tag is deduplicated by: attribute, key, and media query.
+     */
     protected function tagKey(string $key, ?bool $property, ?string $media): string
     {
         return implode('|', [

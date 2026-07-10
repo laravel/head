@@ -25,4 +25,14 @@ class Faq extends SchemaObject
 
         return $this->set('mainEntity', $this->questions);
     }
+
+    /** @param array<string, string> $questions Questions keyed to their answers. */
+    public function questions(array $questions): static
+    {
+        foreach ($questions as $name => $answer) {
+            $this->question($name, $answer);
+        }
+
+        return $this;
+    }
 }

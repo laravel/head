@@ -70,6 +70,21 @@ it('sets breadcrumb items in bulk with sequential positions', function (): void 
         ->toContain('"item":"https://example.com/shop/shoes"');
 });
 
+it('sets faq questions in bulk', function (): void {
+    Head::schema(
+        Schema::faq()->questions([
+            'What is Laravel Head?' => 'A fluent API for managing the document head.',
+            'Is it free?' => 'Yes, it is open source.',
+        ])
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"@type":"FAQPage"')
+        ->toContain('"name":"What is Laravel Head?"')
+        ->toContain('"name":"Is it free?"')
+        ->toContain('"text":"Yes, it is open source."');
+});
+
 it('registers custom schema types as first class factory methods', function (): void {
     Schema::register(JobPosting::class);
 

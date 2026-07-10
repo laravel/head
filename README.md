@@ -502,6 +502,19 @@ Schema::breadcrumbs()
     ->item('Shop', route('shop.index'));
 ```
 
+### FAQs
+
+FAQ questions follow the same pattern — add them one at a time with `question()` or in bulk with `questions()`:
+
+```php
+Head::schema(
+    Schema::faq()->questions([
+        'What is Laravel Head?' => 'A fluent API for managing the document head.',
+        'Is it free?' => 'Yes, it is open source.',
+    ])
+);
+```
+
 ### Custom Schemas
 
 Custom schema types can be registered explicitly:

@@ -104,6 +104,7 @@ it('sets offer availability from schema org enum values', function (): void {
     Head::schema(
         Schema::product()
             ->name('Desk')
+            ->brand(Schema::brand()->name('Acme'))
             ->offers(
                 Schema::offer()
                     ->price(125)
@@ -113,6 +114,7 @@ it('sets offer availability from schema org enum values', function (): void {
     );
 
     expect(Head::toHtml())
+        ->toContain('"brand":{"@type":"Brand","name":"Acme"}')
         ->toContain('"priceCurrency":"USD"')
         ->toContain('"availability":"https://schema.org/InStock"');
 });

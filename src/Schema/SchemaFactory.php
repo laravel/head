@@ -18,6 +18,7 @@ class SchemaFactory
         $this->register(BlogPosting::class);
         $this->register(Product::class);
         $this->register(Offer::class);
+        $this->register(Brand::class);
         $this->register(Breadcrumbs::class);
         $this->register(Faq::class);
         $this->register(Organization::class);

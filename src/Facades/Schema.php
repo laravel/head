@@ -12,6 +12,7 @@ use Laravel\Head\Schema\SchemaFactory;
  * @method static \Laravel\Head\Schema\BlogPosting blogPosting()
  * @method static \Laravel\Head\Schema\Product product()
  * @method static \Laravel\Head\Schema\Offer offer()
+ * @method static \Laravel\Head\Schema\Brand brand()
  * @method static \Laravel\Head\Schema\Breadcrumbs breadcrumbs()
  * @method static \Laravel\Head\Schema\Faq faq()
  * @method static \Laravel\Head\Schema\Organization organization()

@@ -32,15 +32,15 @@ class Product extends SchemaObject
         return $this->set('sku', $sku);
     }
 
-    public function brand(SchemaObject|string $brand): static
+    public function brand(Brand|Organization $brand): static
     {
         return $this->set('brand', $brand);
     }
 
     /**
-     * @param  SchemaObject|array<int, SchemaObject>  $offers
+     * @param  Offer|array<int, Offer>  $offers
      */
-    public function offers(SchemaObject|array $offers): static
+    public function offers(Offer|array $offers): static
     {
         return $this->set('offers', $offers);
     }

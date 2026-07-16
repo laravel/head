@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Laravel\Head\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Laravel\Head\Enums\RobotsRule;
 use Laravel\Head\HeadManager;
-use Laravel\Head\Routing\RouteAttributeParser;
 
 /**
  * @method static \Laravel\Head\HeadManager inertiaGlobals(callable(\Laravel\Head\HeadBuilder): mixed $callback)
@@ -73,119 +71,6 @@ use Laravel\Head\Routing\RouteAttributeParser;
  */
 class Head extends Facade
 {
-    /**
-     * Create cache-friendly Laravel route metadata for document head data.
-     *
-     * @param  array<mixed, mixed>|string|null  $title
-     * @param  array<mixed, mixed>|string|true|null  $canonical
-     * @param  array<int, string|RobotsRule>|string|RobotsRule|null  $robots
-     * @param  array<string, mixed>|null  $og
-     * @param  array<mixed, mixed>|string|null  $ogImage
-     * @param  array<mixed, mixed>|string|null  $ogVideo
-     * @param  array<mixed, mixed>|string|null  $ogAudio
-     * @param  array<string, mixed>|null  $twitter
-     * @param  array<mixed, mixed>|string|null  $twitterImage
-     * @param  array<mixed, mixed>|string|null  $preload
-     * @param  array<mixed, mixed>|string|null  $prefetch
-     * @param  array<mixed, mixed>|string|null  $preconnect
-     * @param  array<mixed, mixed>|string|null  $dnsPrefetch
-     * @param  array<string, string>|null  $alternates
-     * @param  array<mixed, mixed>|string|null  $feed
-     * @param  array<mixed, mixed>|string|null  $icon
-     * @param  array<mixed, mixed>|string|null  $favicon
-     * @param  array<mixed, mixed>|string|null  $appleTouchIcon
-     * @param  array<mixed, mixed>|string|null  $appleTouchStartupImage
-     * @param  array<mixed, mixed>|string|null  $maskIcon
-     * @param  array<mixed, mixed>|string|null  $manifest
-     * @param  array<mixed, mixed>|null  $schema
-     * @param  array<mixed, mixed>|null  $meta
-     * @param  array<mixed, mixed>|null  $link
-     * @param  array<string, mixed>  $extensions
-     * @return array<string, array<string, array<string, mixed>>>
-     */
-    public static function forMetadata(
-        string|array|null $title = null,
-        ?string $description = null,
-        string|array|true|null $canonical = null,
-        string|RobotsRule|array|null $robots = null,
-        ?string $themeColor = null,
-        ?string $applicationName = null,
-        ?string $colorScheme = null,
-        ?string $referrer = null,
-        ?string $viewport = null,
-        ?string $appleWebAppTitle = null,
-        ?bool $webAppCapable = null,
-        ?string $appleWebAppStatusBarStyle = null,
-        ?array $og = null,
-        string|array|null $ogImage = null,
-        string|array|null $ogVideo = null,
-        string|array|null $ogAudio = null,
-        ?array $twitter = null,
-        string|array|null $twitterImage = null,
-        string|array|null $preload = null,
-        string|array|null $prefetch = null,
-        string|array|null $preconnect = null,
-        string|array|null $dnsPrefetch = null,
-        ?array $alternates = null,
-        string|array|null $feed = null,
-        string|array|null $icon = null,
-        string|array|null $favicon = null,
-        string|array|null $appleTouchIcon = null,
-        string|array|null $appleTouchStartupImage = null,
-        string|array|null $maskIcon = null,
-        string|array|null $manifest = null,
-        ?array $schema = null,
-        ?array $meta = null,
-        ?array $link = null,
-        array $extensions = [],
-    ): array {
-        $values = [
-            'title' => $title,
-            'description' => $description,
-            'canonical' => $canonical,
-            'robots' => $robots,
-            'themeColor' => $themeColor,
-            'applicationName' => $applicationName,
-            'colorScheme' => $colorScheme,
-            'referrer' => $referrer,
-            'viewport' => $viewport,
-            'appleWebAppTitle' => $appleWebAppTitle,
-            'webAppCapable' => $webAppCapable,
-            'appleWebAppStatusBarStyle' => $appleWebAppStatusBarStyle,
-            'og' => $og,
-            'ogImage' => $ogImage,
-            'ogVideo' => $ogVideo,
-            'ogAudio' => $ogAudio,
-            'twitter' => $twitter,
-            'twitterImage' => $twitterImage,
-            'preload' => $preload,
-            'prefetch' => $prefetch,
-            'preconnect' => $preconnect,
-            'dnsPrefetch' => $dnsPrefetch,
-            'alternates' => $alternates,
-            'feed' => $feed,
-            'icon' => $icon,
-            'favicon' => $favicon,
-            'appleTouchIcon' => $appleTouchIcon,
-            'appleTouchStartupImage' => $appleTouchStartupImage,
-            'maskIcon' => $maskIcon,
-            'manifest' => $manifest,
-            'schema' => $schema,
-            'meta' => $meta,
-            'link' => $link,
-        ] + $extensions;
-
-        $attributes = [];
-
-        foreach ($values as $key => $value) {
-            if (! is_null($value)) {
-                $attributes[$key] = $value;
-            }
-        }
-
-        return RouteAttributeParser::metadata($attributes);
-    }
-
     /**
      * Get the registered name of the component.
      */

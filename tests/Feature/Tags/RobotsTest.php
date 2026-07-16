@@ -48,7 +48,7 @@ it('renders robots tags from mixed string and enum rules', function (): void {
 
 it('resolves robots rules from route attributes', function (): void {
     Route::get('/private', fn (): string => Head::toHtml())
-        ->metadata(Head::forMetadata(robots: [RobotsRule::NoIndex, RobotsRule::NoFollow]));
+        ->withHead(robots: [RobotsRule::NoIndex, RobotsRule::NoFollow]);
 
     $this->get('/private')
         ->assertOk()

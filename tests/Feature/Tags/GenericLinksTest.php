@@ -36,7 +36,7 @@ it('renders link aliases', function (): void {
 });
 
 it('resolves link aliases from route attributes', function (): void {
-    Route::get('/app', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+    Route::get('/app', fn (): string => Head::toHtml())->withHead(
         icon: [
             ['href' => '/favicon.svg', 'type' => ImageType::Svg],
             ['href' => '/favicon-32x32.png', 'type' => ImageType::Png, 'sizes' => '32x32'],
@@ -46,7 +46,7 @@ it('resolves link aliases from route attributes', function (): void {
         maskIcon: ['href' => '/safari-pinned-tab.svg', 'color' => '#111827'],
         manifest: '/site.webmanifest',
         appleTouchStartupImage: ['href' => '/launch.png', 'media' => Media::Portrait],
-    ));
+    );
 
     $this->get('/app')
         ->assertOk()

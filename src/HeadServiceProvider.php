@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Head\Rendering\HeadRenderer;
+use Laravel\Head\Routing\HeadRouteMacros;
 use Laravel\Head\Schema\SchemaFactory;
 use Laravel\Head\Schema\SchemaValidator;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -49,6 +50,8 @@ class HeadServiceProvider extends ServiceProvider
             ? "<?php echo app('head')->renderForView(get_defined_vars()); ?>"
             : "<?php echo app('head')->renderForView(get_defined_vars(), {$expression}); ?>"
         );
+
+        (new HeadRouteMacros)->register();
 
         $this->registerExceptionStatusResolver();
         $this->shareWithInertia();

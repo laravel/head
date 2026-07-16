@@ -17,14 +17,14 @@ it('cascades defaults route groups routes and controller mutations', function ()
             ->description('Default description.');
     });
 
-    Route::metadata(Head::forMetadata(description: 'Admin description.', robots: 'noindex, nofollow'))
+    Route::withHead(description: 'Admin description.', robots: 'noindex, nofollow')
         ->prefix('admin')
         ->group(function (): void {
             Route::get('/dashboard', function (): string {
                 Head::title('Runtime dashboard');
 
                 return Head::toHtml();
-            })->metadata(Head::forMetadata(title: 'Dashboard'));
+            })->withHead(title: 'Dashboard');
         });
 
     $this->get('/admin/dashboard')
@@ -35,14 +35,14 @@ it('cascades defaults route groups routes and controller mutations', function ()
 });
 
 it('keeps route group head metadata as a separate cascade layer', function (): void {
-    Route::metadata(Head::forMetadata(
+    Route::withHead(
         description: 'Admin reports',
         og: ['siteName' => 'Acme'],
-    ))
+    )
         ->prefix('admin')
         ->group(function (): void {
             Route::get('/dashboard', fn (): string => Head::toHtml())
-                ->metadata(Head::forMetadata(title: 'Dashboard', og: ['title' => 'Dashboard']));
+                ->withHead(title: 'Dashboard', og: ['title' => 'Dashboard']);
         });
 
     $this->get('/admin/dashboard')
@@ -54,14 +54,14 @@ it('keeps route group head metadata as a separate cascade layer', function (): v
 });
 
 it('stores cache friendly head metadata on view and controller routes', function (): void {
-    $view = Route::view('/contact', 'contact')->metadata(Head::forMetadata(
+    $view = Route::view('/contact', 'contact')->withHead(
         title: 'Contact',
         description: 'Get in touch.',
-    ));
+    );
 
-    $controller = Route::get('/about', fn (): string => 'About')->metadata(Head::forMetadata(
+    $controller = Route::get('/about', fn (): string => 'About')->withHead(
         title: 'About',
-    ));
+    );
 
     expect(array_values($view->getMetadata(RouteAttributeParser::HEAD)))->toBe([[
         'title' => 'Contact',
@@ -71,21 +71,14 @@ it('stores cache friendly head metadata on view and controller routes', function
     ]]);
 });
 
-it('rejects unknown named route metadata arguments', function (): void {
-    $arguments = ['heading' => 'Dashboard'];
-
-    expect(fn (): array => Head::forMetadata(...$arguments))
-        ->toThrow(Error::class, 'Unknown named parameter $heading');
-});
-
 it('stores head metadata on resource and singleton routes', function (): void {
-    Route::resource('posts', 'PostController')->metadata(Head::forMetadata(
+    Route::resource('posts', 'PostController')->withHead(
         robots: 'index, follow',
-    ));
+    );
 
-    Route::singleton('profile', 'ProfileController')->metadata(Head::forMetadata(
+    Route::singleton('profile', 'ProfileController')->withHead(
         title: 'Your Profile',
-    ));
+    );
 
     $posts = Route::getRoutes()->getByName('posts.index');
     $profile = Route::getRoutes()->getByName('profile.show');
@@ -98,7 +91,7 @@ it('stores head metadata on resource and singleton routes', function (): void {
 });
 
 it('parses route head data using the fluent field shapes', function (): void {
-    Route::get('/product', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+    Route::get('/product', fn (): string => Head::toHtml())->withHead(
         title: ['value' => 'Product', 'suffix' => ' - Store'],
         canonical: ['auto' => true, 'forceHttps' => false],
         og: ['type' => OgType::Website, 'image' => 'https://example.com/og.jpg'],
@@ -111,7 +104,7 @@ it('parses route head data using the fluent field shapes', function (): void {
         link: [
             ['rel' => 'manifest', 'href' => '/manifest.json'],
         ],
-    ));
+    );
 
     $this->get('/product')
         ->assertOk()
@@ -129,13 +122,13 @@ it('parses route head data using the fluent field shapes', function (): void {
 });
 
 it('does not accept snake case route head data aliases', function (): void {
-    Route::get('/legacy-inputs', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+    Route::get('/legacy-inputs', fn (): string => Head::toHtml())->withHead(
         canonical: ['auto' => true, 'force_https' => false],
         og: ['title' => 'Legacy', 'site_name' => 'Legacy'],
         ogImage: [
             ['url' => 'https://example.com/image.jpg', 'secure_url' => 'https://secure.example.com/image.jpg'],
         ],
-    ));
+    );
 
     $this->get('/legacy-inputs')
         ->assertOk()
@@ -146,13 +139,13 @@ it('does not accept snake case route head data aliases', function (): void {
 });
 
 it('parses single repeatable route head data values', function (): void {
-    Route::get('/assets', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+    Route::get('/assets', fn (): string => Head::toHtml())->withHead(
         preload: ['href' => '/fonts/inter.woff2', 'as' => 'font', 'crossorigin' => true],
         prefetch: '/images/next.webp',
         preconnect: ['href' => 'https://fonts.example.com', 'crossorigin' => true],
         dnsPrefetch: 'https://analytics.example.com',
         feed: ['href' => '/feed.atom', 'title' => 'Acme Atom', 'type' => 'atom'],
-    ));
+    );
 
     $this->get('/assets')
         ->assertOk()
@@ -174,9 +167,9 @@ it('throws for unknown route head data keys', function (): void {
 })->throws(InvalidArgumentException::class, 'Unknown route head attribute [heading].');
 
 it('throws for invalid values on known route head data keys', function (): void {
-    Route::get('/invalid-head-value', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+    Route::get('/invalid-head-value', fn (): string => Head::toHtml())->withHead(
         ogImage: ['alt' => 'Missing URL'],
-    ));
+    );
 
     $this->withoutExceptionHandling()->get('/invalid-head-value');
 })->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [ogImage].');
@@ -192,9 +185,9 @@ it('throws when route head data tries to suppress canonical URLs', function (): 
 })->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [canonical].');
 
 it('throws when route canonical data uses the removed none option', function (): void {
-    Route::get('/invalid-canonical-none', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+    Route::get('/invalid-canonical-none', fn (): string => Head::toHtml())->withHead(
         canonical: ['none' => true],
-    ));
+    );
 
     $this->withoutExceptionHandling()->get('/invalid-canonical-none');
 })->throws(InvalidArgumentException::class, 'Invalid value for route head attribute [canonical].');

@@ -14,7 +14,7 @@ it('carries inherited canonical options into later canonical URLs', function ():
     Head::defaults(fn (HeadBuilder $head): HeadBuilder => $head->canonical(forceHttps: false, trailingSlash: true));
 
     Route::get('/about', fn (): string => Head::toHtml())
-        ->metadata(Head::forMetadata(canonical: '/about'));
+        ->withHead(canonical: '/about');
 
     $this->get('/about')
         ->assertOk()

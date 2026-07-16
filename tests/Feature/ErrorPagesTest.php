@@ -19,10 +19,10 @@ it('lets error head beat the resolved page head', function (): void {
         );
     });
 
-    Route::get('/missing', fn (): string => Head::toHtml(404))->metadata(Head::forMetadata(
+    Route::get('/missing', fn (): string => Head::toHtml(404))->withHead(
         title: 'Original Page',
         description: 'Original description.',
-    ));
+    );
 
     $this->get('/missing')
         ->assertOk()
@@ -42,9 +42,9 @@ it('accepts head builder callbacks for error metadata', function (): void {
             ->description('The page could not be found.'));
     });
 
-    Route::get('/missing', fn (): string => Head::toHtml(404))->metadata(Head::forMetadata(
+    Route::get('/missing', fn (): string => Head::toHtml(404))->withHead(
         title: 'Original Page',
-    ));
+    );
 
     $this->get('/missing')
         ->assertOk()

@@ -62,55 +62,48 @@ Many pages can define their metadata directly on the route, especially semi-stat
 ### Routes & Groups
 
 ```php
-use Laravel\Head\Facades\Head;
-
 Route::view('/contact', 'contact')
     ->name('contact')
-    ->metadata(Head::forMetadata(
+    ->withHead(
         title: 'Contact Us',
         description: 'Get in touch.',
-    ));
+    );
 ```
 
-Shared route metadata can be applied to a group:
+Shared route metadata can be applied to a group, at any position in the chain:
 
 ```php
-use Laravel\Head\Facades\Head;
-
-Route::metadata(Head::forMetadata(robots: 'noindex, nofollow'))
+Route::withHead(robots: 'noindex, nofollow')
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', DashboardController::class)
             ->name('dashboard')
-            ->metadata(Head::forMetadata(title: 'Dashboard'));
+            ->withHead(title: 'Dashboard');
     });
 ```
 
 Resource and singleton routes can define metadata too:
 
 ```php
-use Laravel\Head\Facades\Head;
-
-Route::resource('posts', PostController::class)->metadata(Head::forMetadata(
+Route::resource('posts', PostController::class)->withHead(
     robots: 'index, follow',
-));
+);
 
-Route::singleton('profile', ProfileController::class)->metadata(Head::forMetadata(
+Route::singleton('profile', ProfileController::class)->withHead(
     title: 'Your Profile',
-));
+);
 ```
 
-`Head::forMetadata()` returns a plain array for Laravel's native route metadata API, so route metadata remains compatible with cached routes.
+`withHead()` stores plain arrays through Laravel's native route metadata API, equivalent to calling `->metadata()` with the attributes nested under a `head` key, so route metadata remains compatible with cached routes.
 
-The top-level arguments are intentionally limited to Laravel Head's built-in route properties so editors and static analysis can catch misspelled names. Route attributes registered by custom tag builders may be passed through `extensions`:
+The named arguments are intentionally limited to Laravel Head's built-in route properties so editors and static analysis can catch misspelled names. Route attributes registered by custom tag builders may be passed through `extensions`:
 
 ```php
-Route::get('/article', ArticleController::class)
-    ->metadata(Head::forMetadata(
-        title: 'Article',
-        extensions: ['readingTime' => 4],
-    ));
+Route::get('/article', ArticleController::class)->withHead(
+    title: 'Article',
+    extensions: ['readingTime' => 4],
+);
 ```
 
 ### Supported Properties
@@ -327,11 +320,9 @@ Head::themeColor('#ffffff', media: Media::Light)
 Route metadata supports simple theme colors through the same camel-case key:
 
 ```php
-use Laravel\Head\Facades\Head;
-
-Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
+Route::view('/dashboard', 'dashboard')->withHead(
     themeColor: '#0f172a',
-));
+);
 ```
 
 ## App Metadata & Icons
@@ -364,9 +355,8 @@ Route metadata uses the same names:
 ```php
 use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\Media;
-use Laravel\Head\Facades\Head;
 
-Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
+Route::view('/dashboard', 'dashboard')->withHead(
     applicationName: 'Acme',
     colorScheme: 'light dark',
     appleWebAppTitle: 'Acme',
@@ -379,7 +369,7 @@ Route::view('/dashboard', 'dashboard')->metadata(Head::forMetadata(
     appleTouchIcon: ['href' => '/apple-touch-icon.png', 'sizes' => '180x180'],
     appleTouchStartupImage: ['href' => '/launch.png', 'media' => Media::Portrait],
     manifest: '/site.webmanifest',
-));
+);
 ```
 
 ## Progressive Web Apps
@@ -518,7 +508,7 @@ Schema::breadcrumbs()
 
 ### FAQs
 
-FAQ questions follow the same pattern — add them one at a time with `question()` or in bulk with `questions()`:
+FAQ questions follow the same pattern. Add them one at a time with `question()` or in bulk with `questions()`:
 
 ```php
 Head::schema(

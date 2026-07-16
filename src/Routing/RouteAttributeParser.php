@@ -53,6 +53,34 @@ class RouteAttributeParser
     }
 
     /**
+     * Wrap named head arguments in a cache-friendly route metadata layer,
+     * discarding arguments that were not provided.
+     *
+     * @param  array<mixed, mixed>  $arguments
+     * @return array<string, array<string, array<string, mixed>>>
+     */
+    public static function metadataFromArguments(array $arguments): array
+    {
+        $extensions = $arguments['extensions'] ?? [];
+
+        unset($arguments['extensions']);
+
+        if (is_array($extensions)) {
+            $arguments += $extensions;
+        }
+
+        $attributes = [];
+
+        foreach ($arguments as $key => $value) {
+            if (is_string($key) && ! is_null($value)) {
+                $attributes[$key] = $value;
+            }
+        }
+
+        return static::metadata($attributes);
+    }
+
+    /**
      * Get the head attribute layers stored in the route's metadata.
      *
      * @return array<int, array<mixed, mixed>>

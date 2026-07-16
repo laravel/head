@@ -32,9 +32,9 @@ it('provides common media query values', function (): void {
 });
 
 it('resolves theme colors from route attributes', function (): void {
-    Route::get('/product', fn (): string => Head::toHtml())->metadata(Head::forMetadata(
+    Route::get('/product', fn (): string => Head::toHtml())->withHead(
         themeColor: '#0f172a',
-    ));
+    );
 
     $this->get('/product')
         ->assertOk()
@@ -42,9 +42,9 @@ it('resolves theme colors from route attributes', function (): void {
 });
 
 it('shares stable inertia keys for theme colors', function (): void {
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->metadata(Head::forMetadata(
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
         themeColor: '#0f172a',
-    ));
+    );
 
     $this->get('/dashboard', [Header::INERTIA => 'true'])
         ->assertOk()

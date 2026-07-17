@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @head
-    <x-inertia::head />
+    {!! view('nested-head') !!}
 </head>
 <body>
     <x-inertia::app />

@@ -21,5 +21,5 @@ it('registers the head facade', function (): void {
 it('registers the blade directive', function (): void {
     $compiled = app('blade.compiler')->compileString('@head');
 
-    expect($compiled)->toContain("app('head')->renderForView(get_defined_vars())");
+    expect($compiled)->toContain("app('head')->renderForView()");
 });

@@ -47,8 +47,8 @@ class HeadServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Blade::directive('head', fn (string $expression): string => $expression === ''
-            ? "<?php echo app('head')->renderForView(get_defined_vars()); ?>"
-            : "<?php echo app('head')->renderForView(get_defined_vars(), {$expression}); ?>"
+            ? "<?php echo app('head')->renderForView(); ?>"
+            : "<?php echo app('head')->renderForView({$expression}); ?>"
         );
 
         (new HeadRouteMacros)->register();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Inertia\Ssr\Gateway;
+use Inertia\Ssr\Response as SsrResponse;
 use Inertia\Support\Header;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadBuilder;
@@ -112,4 +114,63 @@ it('renders inertia globals as static tags and page tags as inertia-managed tags
         ->assertSee('<meta data-inertia="description" name="description" content="Dashboard overview.">', false)
         ->assertDontSee('<meta data-inertia="viewport"', false)
         ->assertDontSee('<link data-inertia="link:icon', false);
+});
+
+it('renders the full inertia document in the legacy directive root template', function (): void {
+    Inertia::setRootView('app-directives');
+
+    Head::inertiaGlobals(fn (HeadBuilder $head) => $head
+        ->viewport('width=device-width, initial-scale=1'));
+
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+        title: 'Dashboard',
+        description: 'Dashboard overview.',
+    );
+
+    $html = $this->get('/dashboard')->assertOk()->getContent();
+
+    expect(substr_count($html, '<title data-inertia="title">Dashboard</title>'))->toBe(1)
+        ->and(substr_count($html, '<meta data-inertia="description" name="description" content="Dashboard overview.">'))->toBe(1)
+        ->and($html)->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
+});
+
+it('renders laravel head alongside the inertia ssr head and body', function (): void {
+    $this->app->bind(Gateway::class, fn () => new class implements Gateway
+    {
+        public function dispatch(array $page): ?SsrResponse
+        {
+            return new SsrResponse(
+                '<meta name="inertia-ssr" content="rendered">',
+                '<div id="app">SSR BODY</div>',
+            );
+        }
+    });
+
+    Head::inertiaGlobals(fn (HeadBuilder $head) => $head
+        ->viewport('width=device-width, initial-scale=1'));
+
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+        title: 'Dashboard',
+        description: 'Dashboard overview.',
+    );
+
+    $html = $this->get('/dashboard')->assertOk()->getContent();
+
+    expect(substr_count($html, '<title data-inertia="title">Dashboard</title>'))->toBe(1)
+        ->and(substr_count($html, '<meta data-inertia="description" name="description" content="Dashboard overview.">'))->toBe(1)
+        ->and($html)->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">')
+        ->and(substr_count($html, '<meta name="inertia-ssr" content="rendered">'))->toBe(1)
+        ->and($html)->toContain('<div id="app">SSR BODY</div>');
+});
+
+it('renders inertia-managed tags when the directive runs outside the root view scope', function (): void {
+    Inertia::setRootView('app-nested');
+
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+        title: 'Dashboard',
+    );
+
+    $this->get('/dashboard')
+        ->assertOk()
+        ->assertSee('<title data-inertia="title">Dashboard</title>', false);
 });

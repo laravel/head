@@ -7,7 +7,7 @@ use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadBuilder;
 
 it('renders twitter image tags', function (): void {
-    Head::twitter(card: TwitterCard::SummaryLargeImage, image: 'https://example.com/twitter.jpg')
+    Head::twitter(card: TwitterCard::SummaryWithLargeImage, image: 'https://example.com/twitter.jpg')
         ->twitterImage('https://example.com/twitter-alt.jpg', alt: 'Twitter alt');
 
     expect(Head::toHtml())

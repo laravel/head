@@ -28,14 +28,14 @@ it('renders robots tags from a single rule', function (): void {
     expect(Head::toHtml())->toContain('<meta name="robots" content="noindex">');
 });
 
-it('renders searchable robots tags', function (): void {
-    Head::robotsSearchable();
+it('renders tags for pages searchable by robots', function (): void {
+    Head::searchableByRobots();
 
     expect(Head::toHtml())->toContain('<meta name="robots" content="all">');
 });
 
-it('renders hidden robots tags', function (): void {
-    Head::robotsHidden();
+it('renders tags for pages hidden from robots', function (): void {
+    Head::hiddenFromRobots();
 
     expect(Head::toHtml())->toContain('<meta name="robots" content="none">');
 });

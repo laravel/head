@@ -17,7 +17,7 @@ it('renders resolved head tags in builder order', function (): void {
             ->description('Build something great.')
             ->canonical()
             ->og(siteName: 'Acme', type: OgType::Website)
-            ->twitter(card: TwitterCard::SummaryLargeImage)
+            ->twitter(card: TwitterCard::SummaryWithLargeImage)
             ->preconnect('https://fonts.example.com');
     });
 

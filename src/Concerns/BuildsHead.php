@@ -117,7 +117,7 @@ trait BuildsHead
     /**
      * Add a robots meta tag with the "all" directive, allowing search engines to index the page.
      */
-    public function robotsSearchable(): static
+    public function searchableByRobots(): static
     {
         return $this->robots(RobotsRule::All);
     }
@@ -125,7 +125,7 @@ trait BuildsHead
     /**
      * Add a robots meta tag with the "none" directive, preventing search engines from indexing the page.
      */
-    public function robotsHidden(): static
+    public function hiddenFromRobots(): static
     {
         return $this->robots(RobotsRule::None);
     }

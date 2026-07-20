@@ -98,7 +98,7 @@ it('parses route head data using the fluent field shapes', function (): void {
         ogImage: [
             ['url' => 'https://example.com/structured.jpg', 'alt' => 'Structured image', 'width' => 1200, 'type' => ImageType::Jpeg],
         ],
-        twitter: ['card' => TwitterCard::SummaryLargeImage],
+        twitter: ['card' => TwitterCard::SummaryWithLargeImage],
         twitterImage: ['url' => 'https://example.com/twitter.jpg', 'alt' => 'Twitter image'],
         meta: ['product:price:amount' => '99.00'],
         link: [

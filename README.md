@@ -42,7 +42,7 @@ Head::defaults(function (HeadBuilder $head) {
         ->description('Build something great.')
         ->canonical()
         ->og(siteName: 'Acme', type: OgType::Website)
-        ->robotsSearchable()
+        ->searchableByRobots()
         ->preconnect('https://fonts.example.com');
 });
 ```
@@ -53,7 +53,7 @@ Canonical URLs are rendered when you call `Head::canonical()`, by using the curr
 
 Robots directives may be passed as a raw string, as `RobotsRule` enum cases, or as a list mixing both forms. Lists are rendered as comma-separated directives, so `Head::robots([RobotsRule::NoIndex, RobotsRule::NoFollow])` renders `noindex, nofollow`.
 
-For the two common intents, `Head::robotsSearchable()` renders `all`, and `Head::robotsHidden()` renders `none`.
+For the two common intents, `Head::searchableByRobots()` renders `all`, and `Head::hiddenFromRobots()` renders `none`.
 
 ## Route Metadata
 
@@ -179,7 +179,7 @@ Conditional metadata may be defined fluently with `when()` and `unless()`:
 
 ```php
 Head::title($post->title)
-    ->when($post->isDraft(), fn ($head) => $head->robotsHidden());
+    ->when($post->isDraft(), fn ($head) => $head->hiddenFromRobots());
 ```
 
 ## Error Pages
@@ -267,7 +267,7 @@ use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadBuilder;
 
 Head::defaults(fn (HeadBuilder $head) => $head->twitter(
-    card: TwitterCard::SummaryLargeImage,
+    card: TwitterCard::SummaryWithLargeImage,
 ));
 ```
 

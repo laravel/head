@@ -35,7 +35,7 @@ it('accepts head builder callbacks for error metadata', function (): void {
     Head::defaults(fn (HeadBuilder $head) => $head->title('Acme', suffix: ' - Acme'));
 
     Head::errors(function (ErrorPages $errors): void {
-        $errors->defaults(fn (HeadBuilder $head) => $head->robotsHidden());
+        $errors->defaults(fn (HeadBuilder $head) => $head->hiddenFromRobots());
 
         $errors->status(404, fn (HeadBuilder $head) => $head
             ->title('Page Not Found')

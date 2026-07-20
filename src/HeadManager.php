@@ -12,6 +12,7 @@ use Illuminate\Routing\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Traits\Conditionable;
 use Illuminate\Support\Traits\Macroable;
+use Inertia\Ssr\SsrState;
 use Laravel\Head\Concerns\BuildsHead;
 use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\RouteAttributeParser;
@@ -154,21 +155,19 @@ class HeadManager implements Arrayable, Htmlable
 
     /**
      * Render tags for a Blade view, adding Inertia ownership attributes when
-     * the directive is rendered from an Inertia root view.
-     *
-     * @param  array<string, mixed>  $variables
+     * the current request is rendering an Inertia page.
      */
-    public function renderForView(array $variables = [], ?int $status = null): HtmlString
+    public function renderForView(?int $status = null): HtmlString
     {
-        if ($this->isInertiaRootView($variables)) {
-            return new HtmlString($this->renderer->renderInertiaDocument(
-                $this->inertiaGlobals,
-                $this->resolve($status),
-                $this->request(),
-            ));
+        if (! $this->renderingInertiaPage()) {
+            return $this->render($status);
         }
 
-        return $this->render($status);
+        return new HtmlString($this->renderer->renderInertiaDocument(
+            $this->inertiaGlobals,
+            $this->resolve($status),
+            $this->request(),
+        ));
     }
 
     public function toHtml(?int $status = null): string
@@ -230,16 +229,14 @@ class HeadManager implements Arrayable, Htmlable
     }
 
     /**
-     * @param  array<string, mixed>  $variables
+     * Determine if the current request is rendering an Inertia page. Inertia
+     * stores the page on the scoped SsrState before the root view renders, so
+     * this holds at any depth of the view tree, unlike the view's variables.
      */
-    protected function isInertiaRootView(array $variables): bool
+    protected function renderingInertiaPage(): bool
     {
-        $page = $variables['page'] ?? null;
-
-        return is_array($page)
-            && array_key_exists('component', $page)
-            && array_key_exists('props', $page)
-            && array_key_exists('url', $page);
+        return class_exists(SsrState::class)
+            && $this->app->make(SsrState::class)->page !== [];
     }
 
     protected function headData(): HeadData

@@ -2,9 +2,9 @@
 <html>
 <head>
     @head
-    <x-inertia::head />
+    @inertiaHead
 </head>
 <body>
-    <x-inertia::app />
+    @inertia
 </body>
 </html>

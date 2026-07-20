@@ -9,7 +9,7 @@ use Illuminate\Foundation\Exceptions\Handler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Inertia\Inertia;
+use Laravel\Head\Inertia\Integration as InertiaIntegration;
 use Laravel\Head\Rendering\HeadRenderer;
 use Laravel\Head\Routing\HeadRouteMacros;
 use Laravel\Head\Schema\SchemaFactory;
@@ -39,6 +39,8 @@ class HeadServiceProvider extends ServiceProvider
             $app->make(TagRegistry::class),
         ));
         $this->app->alias(HeadManager::class, 'head');
+
+        (new InertiaIntegration($this->app))->register();
     }
 
     /**
@@ -47,14 +49,13 @@ class HeadServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Blade::directive('head', fn (string $expression): string => $expression === ''
-            ? "<?php echo app('head')->renderForView(get_defined_vars()); ?>"
-            : "<?php echo app('head')->renderForView(get_defined_vars(), {$expression}); ?>"
+            ? "<?php echo app('head')->renderForView(); ?>"
+            : "<?php echo app('head')->renderForView({$expression}); ?>"
         );
 
         (new HeadRouteMacros)->register();
 
         $this->registerExceptionStatusResolver();
-        $this->shareWithInertia();
     }
 
     protected function registerExceptionStatusResolver(): void
@@ -68,25 +69,6 @@ class HeadServiceProvider extends ServiceProvider
                     $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500
                 );
             });
-        });
-    }
-
-    protected function shareWithInertia(): void
-    {
-        if (! class_exists(Inertia::class)) {
-            return;
-        }
-
-        // A plain callable (rather than Inertia::always) keeps the elements
-        // off the wire during partial reloads; the client retains the head
-        // from the last full visit.
-        $this->app->booted(function (): void {
-            $head = $this->app->make(HeadManager::class);
-
-            Inertia::share(
-                $head->inertiaProp(),
-                fn (): array => $this->app->make(HeadManager::class)->toInertiaElements(),
-            );
         });
     }
 }

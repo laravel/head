@@ -57,7 +57,7 @@ use Laravel\Head\HeadManager;
  * @method static array<int, string> toElements(?int $status = null)
  * @method static array<int, string> toInertiaElements(?int $status = null)
  * @method static \Illuminate\Support\HtmlString render(?int $status = null)
- * @method static \Illuminate\Support\HtmlString renderForView(array<string, mixed> $variables = [], ?int $status = null)
+ * @method static \Illuminate\Support\HtmlString renderForView(?int $status = null)
  * @method static string toHtml(?int $status = null)
  * @method static \Laravel\Head\HeadManager flush()
  * @method static \Laravel\Head\HeadManager|mixed when(mixed $value = null, callable $callback = null, callable $default = null)

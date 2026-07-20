@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    @head
     <x-inertia::head />
+    @head
 </head>
 <body>
     <x-inertia::app />

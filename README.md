@@ -609,23 +609,7 @@ Use the same `@head` directive in your Inertia root template, alongside Inertia'
 </html>
 ```
 
-Then enable the `serverHead` option in your application's entry point. Inertia's client adapters support it from v3.5:
-
-```js
-createInertiaApp({
-    // ...
-    serverHead: true,
-})
-```
-
-That is the whole integration. `@head` renders the complete document head on every full page load, so SEO, crawlers, and link previews never depend on JavaScript. On the client, Inertia adopts the server-rendered tags and keeps them in sync on every visit: standard navigation, instant visits, and back/forward history alike. No client-side `<Head>` component is required.
-
-> [!NOTE]
-> When adding Laravel Head to an existing Inertia application, remove any title callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title, and move tags managed by Inertia's [`<Head>` component](https://inertiajs.com/docs/v3/the-basics/title-and-meta) into Laravel Head so the two never define the same element.
-
-#### The Head Prop
-
-Laravel Head shares the page-managed head as an array of rendered element strings under a `head` prop on every page object:
+When Inertia is installed, Laravel Head automatically shares the page-managed head as an array of rendered element strings under a `head` prop on every page object:
 
 ```json
 {
@@ -638,7 +622,21 @@ Laravel Head shares the page-managed head as an array of rendered element string
 }
 ```
 
-Each element carries a stable `data-inertia` key, which Inertia uses to adopt, update, or remove individual tags as page objects arrive. The prop is not sent during partial reloads; the client's merged page object keeps the head from the last full visit. During an [instant visit](https://inertiajs.com/docs/v3/the-basics/instant-visits), the previous page's head is carried over until the background response arrives, then updated. If your application already uses the `head` prop for something else, change the prop name in a service provider:
+Enable Inertia's `serverHead` option to consume this prop. The option is available in Inertia v3.5 and later:
+
+```js
+createInertiaApp({
+    // ...
+    serverHead: true,
+})
+```
+
+Each page-managed element has a stable `data-inertia` key. `@head` renders the initial document, then Inertia adopts those elements and keeps them in sync on standard visits, [instant visits](https://inertiajs.com/docs/v3/the-basics/instant-visits), and back/forward navigation. SEO and link previews do not depend on JavaScript, and no client-side `<Head>` component is required. This works with or without [SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering); `serverHead` prevents the shared elements from also being emitted by the JavaScript SSR render.
+
+> [!NOTE]
+> When adding Laravel Head to an existing Inertia application, remove any title callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title, and move tags managed by Inertia's [`<Head>` component](https://inertiajs.com/docs/v3/the-basics/title-and-meta) into Laravel Head so the two never define the same element.
+
+The `head` prop is omitted from partial reload responses, so Inertia retains the last full page's head. Instant visits likewise retain the current head until the background response arrives. If your application already uses the `head` prop, change its name in a service provider:
 
 ```php
 use Laravel\Head\Facades\Head;

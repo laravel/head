@@ -134,13 +134,16 @@ it('renders the full inertia document in the legacy directive root template', fu
         ->and($html)->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
 });
 
-it('renders laravel head alongside the inertia ssr head and body', function (): void {
+it('deduplicates laravel head from the inertia ssr head while preserving other ssr elements', function (): void {
     $this->app->bind(Gateway::class, fn () => new class implements Gateway
     {
         public function dispatch(array $page): ?SsrResponse
         {
             return new SsrResponse(
-                '<meta name="inertia-ssr" content="rendered">',
+                implode("\n", [
+                    ...$page['props'][HeadManager::INERTIA_PROP],
+                    '<meta data-inertia="client-only" name="client-only" content="Preserved">',
+                ]),
                 '<div id="app">SSR BODY</div>',
             );
         }
@@ -159,7 +162,37 @@ it('renders laravel head alongside the inertia ssr head and body', function (): 
     expect(substr_count($html, '<title data-inertia="title">Dashboard</title>'))->toBe(1)
         ->and(substr_count($html, '<meta data-inertia="description" name="description" content="Dashboard overview.">'))->toBe(1)
         ->and($html)->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">')
-        ->and(substr_count($html, '<meta name="inertia-ssr" content="rendered">'))->toBe(1)
+        ->and(substr_count($html, '<meta data-inertia="client-only" name="client-only" content="Preserved">'))->toBe(1)
+        ->and($html)->toContain('<div id="app">SSR BODY</div>');
+});
+
+it('deduplicates the ssr head even when the inertia head component renders before the directive', function (): void {
+    $this->app->bind(Gateway::class, fn () => new class implements Gateway
+    {
+        public function dispatch(array $page): ?SsrResponse
+        {
+            return new SsrResponse(
+                implode("\n", [
+                    ...$page['props'][HeadManager::INERTIA_PROP],
+                    '<meta data-inertia="client-only" name="client-only" content="Preserved">',
+                ]),
+                '<div id="app">SSR BODY</div>',
+            );
+        }
+    });
+
+    Inertia::setRootView('app-inertia-head-first');
+
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->withHead(
+        title: 'Dashboard',
+        description: 'Dashboard overview.',
+    );
+
+    $html = $this->get('/dashboard')->assertOk()->getContent();
+
+    expect(substr_count($html, '<title data-inertia="title">Dashboard</title>'))->toBe(1)
+        ->and(substr_count($html, '<meta data-inertia="description" name="description" content="Dashboard overview.">'))->toBe(1)
+        ->and(substr_count($html, '<meta data-inertia="client-only" name="client-only" content="Preserved">'))->toBe(1)
         ->and($html)->toContain('<div id="app">SSR BODY</div>');
 });
 

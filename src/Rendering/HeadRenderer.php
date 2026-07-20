@@ -6,6 +6,7 @@ namespace Laravel\Head\Rendering;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Laravel\Head\HeadData;
 use Laravel\Head\Schema\SchemaValidator;
 use Laravel\Head\TagRegistry;
@@ -57,7 +58,19 @@ class HeadRenderer
      */
     public function toInertiaElements(HeadData $head, ?Request $request = null): array
     {
-        return $this->elements($head, $request, $this->tags->withInertiaAttributes());
+        return $this->uniqueInertiaElements(
+            $this->elements($head, $request, $this->tags->withInertiaAttributes()),
+        );
+    }
+
+    /**
+     * Remove exact Inertia elements from an HTML string.
+     *
+     * @param  array<int, string>  $elements
+     */
+    public function withoutInertiaElements(string $html, array $elements): string
+    {
+        return str_replace($elements, '', $html);
     }
 
     /**
@@ -68,22 +81,43 @@ class HeadRenderer
      */
     public function toInertiaDocumentElements(HeadData $inertiaGlobals, HeadData $head, ?Request $request = null): array
     {
-        $globalHead = new ResolvedHead($inertiaGlobals, $this->registry, $request, $this->schemas);
-        $pageHead = new ResolvedHead($head, $this->registry, $request, $this->schemas);
-        $pageTags = $this->tags->withInertiaAttributes();
-        $elements = [];
+        return [
+            ...$this->toElements($inertiaGlobals, $request),
+            ...$this->toInertiaElements($head, $request),
+        ];
+    }
 
-        foreach ($this->registry->builders() as $builder) {
-            if ($globalBuilder = $this->builder($globalHead, $builder)) {
-                array_push($elements, ...$globalBuilder->toTags($globalHead, $this->tags));
+    /**
+     * Apply Inertia's last-write-wins ownership semantics to rendered elements.
+     *
+     * @param  array<int, string>  $elements
+     * @return array<int, string>
+     */
+    protected function uniqueInertiaElements(array $elements): array
+    {
+        $unique = [];
+        $indexes = [];
+
+        foreach ($elements as $element) {
+            $key = Str::match('/\sdata-inertia="([^"]+)"/', $element);
+
+            if ($key === '') {
+                $unique[] = $element;
+
+                continue;
             }
 
-            if ($pageBuilder = $this->builder($pageHead, $builder)) {
-                array_push($elements, ...$pageBuilder->toTags($pageHead, $pageTags));
+            if (isset($indexes[$key])) {
+                $unique[$indexes[$key]] = $element;
+
+                continue;
             }
+
+            $indexes[$key] = count($unique);
+            $unique[] = $element;
         }
 
-        return array_values(array_filter($elements));
+        return $unique;
     }
 
     /**
@@ -98,22 +132,6 @@ class HeadRenderer
             ->filter()
             ->values()
             ->all();
-    }
-
-    /**
-     * Resolve a builder instance, materializing builders that render when empty.
-     *
-     * @param  class-string<TagBuilder>  $builder
-     */
-    protected function builder(ResolvedHead $head, string $builder): ?TagBuilder
-    {
-        $value = $head->builder($builder);
-
-        if (! $value instanceof TagBuilder && $builder::rendersWhenEmpty($head)) {
-            $value = new $builder;
-        }
-
-        return $value instanceof TagBuilder ? $value : null;
     }
 
     /**

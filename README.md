@@ -622,7 +622,7 @@ When Inertia is installed, Laravel Head automatically shares the page-managed he
 }
 ```
 
-Enable Inertia's `serverHead` option to consume this prop. The option is available in Inertia v3.5 and later:
+Enable Inertia's `serverHead` option wherever your application calls `createInertiaApp()`. The option is available in Inertia v3.5 and later:
 
 ```js
 createInertiaApp({
@@ -631,7 +631,9 @@ createInertiaApp({
 })
 ```
 
-Each page-managed element has a stable `data-inertia` key. `@head` renders the initial document, then Inertia adopts those elements and keeps them in sync on standard visits, [instant visits](https://inertiajs.com/docs/v3/the-basics/instant-visits), and back/forward navigation. SEO and link previews do not depend on JavaScript, and no client-side `<Head>` component is required. This works with or without [SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering); `serverHead` prevents the shared elements from also being emitted by the JavaScript SSR render.
+Each page-managed element has a stable `data-inertia` key. `@head` renders the initial document, then Inertia adopts those elements and keeps them in sync on standard visits, [instant visits](https://inertiajs.com/docs/v3/the-basics/instant-visits), and back/forward navigation. The page-managed elements are present in the initial HTML response, so crawlers and link-preview bots can read them without executing JavaScript. No client-side `<Head>` component is required.
+
+This works with or without [SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering). If your application has a separate SSR entry point, enable `serverHead` there too. Laravel Head automatically deduplicates page-managed elements between `@head` and `<x-inertia::head />` — in whichever order they appear — while preserving any other head elements produced by JavaScript SSR.
 
 > [!NOTE]
 > When adding Laravel Head to an existing Inertia application, remove any title callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title, and move tags managed by Inertia's [`<Head>` component](https://inertiajs.com/docs/v3/the-basics/title-and-meta) into Laravel Head so the two never define the same element.

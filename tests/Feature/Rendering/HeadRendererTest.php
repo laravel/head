@@ -8,6 +8,7 @@ use Laravel\Head\Enums\TwitterCard;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
 use Laravel\Head\HeadBuilder;
+use Laravel\Head\Rendering\HeadRenderer;
 
 it('renders resolved head tags in builder order', function (): void {
     Head::defaults(function (HeadBuilder $head): void {
@@ -72,6 +73,39 @@ it('renders inertia globals in blade html output', function (): void {
         ->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">')
         ->toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">')
         ->not->toContain('data-inertia');
+});
+
+it('deduplicates inertia elements in one finalized list using the last value for each ownership key', function (): void {
+    Head::description('Dedicated description.')
+        ->meta('description', 'Generic description.');
+
+    $elements = Head::toInertiaElements();
+
+    expect($elements)
+        ->not->toContain('<meta data-inertia="description" name="description" content="Dedicated description.">')
+        ->toContain('<meta data-inertia="description" name="description" content="Generic description.">')
+        ->and(array_filter(
+            $elements,
+            fn (string $element): bool => str_contains($element, 'data-inertia="description"'),
+        ))->toHaveCount(1);
+});
+
+it('removes exact finalized inertia elements from an ssr head', function (): void {
+    $html = implode("\n", [
+        '<title data-inertia="title">Laravel title</title>',
+        '<meta data-inertia="description" name="description" content="Laravel description">',
+        '<meta data-inertia="client-only" name="client-only" content="Preserved">',
+    ]);
+
+    $head = app(HeadRenderer::class)->withoutInertiaElements($html, [
+        '<title data-inertia="title">Laravel title</title>',
+        '<meta data-inertia="description" name="description" content="Laravel description">',
+    ]);
+
+    expect($head)
+        ->not->toContain('data-inertia="title"')
+        ->not->toContain('data-inertia="description"')
+        ->toContain('<meta data-inertia="client-only" name="client-only" content="Preserved">');
 });
 
 it('groups link builders under the links key when serialized to an array', function (): void {

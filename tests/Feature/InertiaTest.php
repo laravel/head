@@ -2,14 +2,19 @@
 
 declare(strict_types=1);
 
+use Closure;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Inertia\Ssr\DisablesSsr;
+use Inertia\Ssr\ExcludesSsrPaths;
 use Inertia\Ssr\Gateway;
+use Inertia\Ssr\HasHealthCheck;
 use Inertia\Ssr\Response as SsrResponse;
 use Inertia\Support\Header;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadBuilder;
 use Laravel\Head\HeadManager;
+use LogicException;
 
 it('shares rendered head elements with inertia page objects', function (): void {
     Head::defaults(fn (HeadBuilder $head) => $head->title('Acme', suffix: ' - Acme'));
@@ -132,6 +137,78 @@ it('renders the full inertia document in the legacy directive root template', fu
     expect(substr_count($html, '<title data-inertia="title">Dashboard</title>'))->toBe(1)
         ->and(substr_count($html, '<meta data-inertia="description" name="description" content="Dashboard overview.">'))->toBe(1)
         ->and($html)->toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
+});
+
+it('preserves the decorated inertia ssr gateway capabilities', function (): void {
+    $gateway = new class implements DisablesSsr, ExcludesSsrPaths, Gateway, HasHealthCheck
+    {
+        public Closure|bool|null $disabled = null;
+
+        /** @var array<int, string> */
+        public array $except = [];
+
+        public function dispatch(array $page): ?SsrResponse
+        {
+            return null;
+        }
+
+        public function disable(Closure|bool $condition): void
+        {
+            $this->disabled = $condition;
+        }
+
+        public function except(array|string $paths): void
+        {
+            $this->except = [
+                ...$this->except,
+                ...(is_array($paths) ? $paths : [$paths]),
+            ];
+        }
+
+        public function isHealthy(): bool
+        {
+            return true;
+        }
+    };
+
+    $this->app->bind(Gateway::class, fn () => $gateway);
+
+    $decorated = $this->app->make(Gateway::class);
+    $condition = fn (): bool => true;
+
+    expect($decorated)
+        ->toBeInstanceOf(DisablesSsr::class)
+        ->toBeInstanceOf(ExcludesSsrPaths::class)
+        ->toBeInstanceOf(HasHealthCheck::class);
+
+    assert($decorated instanceof HasHealthCheck);
+
+    Inertia::disableSsr($condition);
+    Inertia::withoutSsr(['/admin', '/internal']);
+
+    expect($gateway->disabled)->toBe($condition)
+        ->and($gateway->except)->toBe(['/admin', '/internal'])
+        ->and($decorated->isHealthy())->toBeTrue();
+});
+
+it('degrades when the decorated inertia ssr gateway lacks capabilities', function (): void {
+    $this->app->bind(Gateway::class, fn () => new class implements Gateway
+    {
+        public function dispatch(array $page): ?SsrResponse
+        {
+            return null;
+        }
+    });
+
+    $decorated = $this->app->make(Gateway::class);
+
+    assert($decorated instanceof HasHealthCheck);
+
+    expect(fn () => Inertia::disableSsr())
+        ->toThrow(LogicException::class, 'The configured SSR gateway does not support disabling server-side rendering conditionally.')
+        ->and(fn () => Inertia::withoutSsr('/admin'))
+        ->toThrow(LogicException::class, 'The configured SSR gateway does not support excluding paths from server-side rendering.')
+        ->and($decorated->isHealthy())->toBeFalse();
 });
 
 it('deduplicates laravel head from the inertia ssr head while preserving other ssr elements', function (): void {

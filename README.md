@@ -7,7 +7,7 @@
 
 ## Introduction
 
-Laravel Head provides a fluent API for managing your application's document `<head>`, with support for title and meta tags, Open Graph, canonical URLs, robots directives, performance hints, and structured data. It works across Blade, Livewire, and Inertia.
+Laravel Head provides a fluent API for managing your application's document `<head>`, including title and meta tags, Open Graph, canonical URLs, robots directives, performance hints, and structured data. It works with Blade, Livewire, and Inertia.
 
 ## Installation
 
@@ -15,9 +15,37 @@ Laravel Head provides a fluent API for managing your application's document `<he
 composer require laravel/head
 ```
 
+## Quick Start
+
+Register site-wide defaults in a service provider:
+
+```php
+use Laravel\Head\Facades\Head;
+use Laravel\Head\HeadBuilder;
+
+Head::defaults(fn (HeadBuilder $head) => $head
+    ->title('Acme', suffix: ' - Acme')
+    ->description('Build something great.'));
+```
+
+Set page-specific metadata at runtime:
+
+```php
+Head::title($post->title)
+    ->description($post->description);
+```
+
+Render the resolved tags in your layout:
+
+```blade
+<head>
+    @head
+</head>
+```
+
 ## Resolution Precedence
 
-Page head data resolves from five layers, listed here from lowest to highest priority:
+Page metadata resolves from five layers, listed from lowest to highest priority:
 
 1. Page defaults
 2. Route group metadata
@@ -47,9 +75,9 @@ Head::defaults(function (HeadBuilder $head) {
 });
 ```
 
-The defaults layer is the lowest-priority page layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `exact: true` for titles that should ignore the inherited prefix or suffix.
+Defaults are the lowest-priority page metadata layer. If no route, runtime, or error metadata sets a title, `Acme` renders as-is. When a higher layer sets a page title, the inherited suffix is applied, so `Head::title('About')` renders `About - Acme`. Pass `exact: true` for titles that should ignore an inherited prefix or suffix.
 
-Canonical URLs are rendered when you call `Head::canonical()`, by using the current request URL. To set an explicit URL you may pass a string, such as `Head::canonical('/about')`. Canonical URLs are normalized to `https` by default; pass `forceHttps: false` to preserve the request scheme.
+Calling `Head::canonical()` renders a canonical URL using the current request URL. To set an explicit URL, pass a string such as `Head::canonical('/about')`. Canonical URLs are normalized to `https` by default; pass `forceHttps: false` to preserve the request scheme.
 
 Robots directives may be passed as a raw string, as `RobotsRule` enum cases, or as a list mixing both forms. Lists are rendered as comma-separated directives, so `Head::robots([RobotsRule::NoIndex, RobotsRule::NoFollow])` renders `noindex, nofollow`.
 
@@ -95,7 +123,7 @@ Route::singleton('profile', ProfileController::class)->withHead(
 );
 ```
 
-`withHead()` stores plain arrays through Laravel's native route metadata API, equivalent to calling `->metadata()` with the attributes nested under a `head` key, so route metadata remains compatible with cached routes.
+`withHead()` stores plain arrays through Laravel's native route metadata API. It is equivalent to calling `->metadata()` with the attributes nested under a `head` key, so the metadata remains compatible with cached routes.
 
 The named arguments are intentionally limited to Laravel Head's built-in route properties so editors and static analysis can catch misspelled names. Route attributes registered by custom tag builders may be passed through `extensions`:
 
@@ -124,9 +152,9 @@ Nested option names use the same camel-case names as the fluent API, such as `fo
 
 Repeatable properties, such as `ogImage`, `preload`, `feed`, `schema`, `icon`, and `appleTouchStartupImage`, accept either a single value or a list.
 
-### Request Metadata
+## Runtime Metadata
 
-When a value isn't known until a request arrives, such as the title of the post being viewed, set it at runtime instead:
+When a value isn't known until a request arrives, such as the title of the post being viewed, set it at runtime:
 
 ```php
 use Laravel\Head\Facades\Head;
@@ -139,9 +167,7 @@ public function __invoke(Post $post): Response
 }
 ```
 
-## Runtime Metadata
-
-Runtime calls to the `Head` facade override route metadata for request dependent data. Controllers and actions are the most common place to set this data:
+Runtime calls to the `Head` facade override route metadata for request-dependent data. Controllers and actions are the most common places to set it:
 
 ```php
 use App\Models\Post;
@@ -220,7 +246,7 @@ Status detection is automatic when Laravel renders an error view and for respond
 
 ## Open Graph
 
-Open Graph properties are set with `og()`. Repeatable media is added through top-level methods that take named arguments directly:
+Set Open Graph properties with `og()`. Add repeatable media with top-level methods that accept named arguments directly:
 
 ```php
 use Laravel\Head\Enums\ImageType;
@@ -271,7 +297,7 @@ Head::defaults(fn (HeadBuilder $head) => $head->twitter(
 ));
 ```
 
-Then page level metadata like this:
+Then set page-level metadata:
 
 ```php
 Head::title('Introducing Laravel Head')
@@ -279,7 +305,7 @@ Head::title('Introducing Laravel Head')
     ->ogImage('https://example.com/social.jpg', alt: 'Introducing Laravel Head');
 ```
 
-Will render matching Twitter tags:
+This renders matching Twitter tags:
 
 ```html
 <meta name="twitter:card" content="summary_large_image">
@@ -386,7 +412,7 @@ Head::pwa(
 );
 ```
 
-This renders the application name, web app manifest link, optional theme color, iOS standalone metadata, optional Apple status bar style, and optional Apple touch icon. The manifest JSON itself and service worker registration still belong to your application.
+This renders the application name, web app manifest link, optional theme color, iOS standalone metadata, optional Apple status bar style, and optional Apple touch icon. The manifest JSON and service worker registration remain your application's responsibility.
 
 Use `pwa()` in defaults or runtime metadata. Route metadata supports the individual properties shown above.
 
@@ -480,7 +506,7 @@ Head::schema(
 );
 ```
 
-The built-in factory methods are `article`, `blogPosting`, `product`, `offer`, `brand`, `breadcrumbs`, `faq`, `organization`, `person`, `webPage`, and `webSite`. Unknown factory methods fall back to a generic schema object so custom schema.org types can still be expressed.
+The built-in factory methods are `article`, `blogPosting`, `product`, `offer`, `brand`, `breadcrumbs`, `faq`, `organization`, `person`, `webPage`, and `webSite`. Unknown factory methods create a generic schema object, so you can still express custom schema.org types.
 
 Invalid JSON-LD schema data throws outside production and is logged as a warning in production.
 
@@ -508,7 +534,7 @@ Schema::breadcrumbs()
 
 ### FAQs
 
-FAQ questions follow the same pattern. Add them one at a time with `question()` or in bulk with `questions()`:
+FAQ entries follow the same pattern. Add them one at a time with `question()` or in bulk with `questions()`:
 
 ```php
 Head::schema(
@@ -554,9 +580,9 @@ Head::schema(
 
 ## Rendering
 
-Laravel Head resolves the page layers into tags for the current response. Where those tags are emitted depends on your stack.
+Laravel Head resolves page metadata into tags for the current response. Where the tags are emitted depends on your stack.
 
-The HTML renderer powers the `@head` directive and the rendered elements Laravel Head shares with Inertia as the `head` prop. The head array renderer powers `Head::toArray()` for applications that want the resolved head as structured data.
+The HTML renderer powers the `@head` directive and the rendered elements Laravel Head shares with Inertia in the `head` prop. The head array renderer powers `Head::toArray()` for applications that need the resolved head as structured data.
 
 ### Blade
 
@@ -622,7 +648,7 @@ When Inertia is installed, Laravel Head automatically shares the page-managed he
 }
 ```
 
-Enable Inertia's `serverHead` option wherever your application calls `createInertiaApp()`. The option is available in Inertia v3.5 and later:
+Enable Inertia's `serverHead` option wherever your application calls `createInertiaApp()`. The option is available in Inertia 3.5 and later:
 
 ```js
 createInertiaApp({
@@ -631,9 +657,9 @@ createInertiaApp({
 })
 ```
 
-Each page-managed element has a stable `data-inertia` key. `@head` renders the initial document, then Inertia adopts those elements and keeps them in sync on standard visits, [instant visits](https://inertiajs.com/docs/v3/the-basics/instant-visits), and back/forward navigation. The page-managed elements are present in the initial HTML response, so crawlers and link-preview bots can read them without executing JavaScript. No client-side `<Head>` component is required.
+Each page-managed element has a stable `data-inertia` key. `@head` renders the initial document, then Inertia adopts those elements and keeps them in sync during standard visits, [instant visits](https://inertiajs.com/docs/v3/the-basics/instant-visits), and back/forward navigation. The elements are present in the initial HTML response, so crawlers and link-preview bots can read them without executing JavaScript. No client-side `<Head>` component is required.
 
-This works with or without [SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering). If your application has a separate SSR entry point, enable `serverHead` there too. Laravel Head automatically deduplicates page-managed elements between `@head` and `<x-inertia::head />` — in whichever order they appear — while preserving any other head elements produced by JavaScript SSR.
+This works with or without [SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering). If your application has a separate SSR entry point, enable `serverHead` there too. Laravel Head automatically deduplicates page-managed elements between `@head` and `<x-inertia::head />`, regardless of their order, while preserving other head elements produced by JavaScript SSR.
 
 > [!NOTE]
 > When adding Laravel Head to an existing Inertia application, remove any title callbacks from `resources/js/app.tsx` and `resources/js/ssr.tsx` so Head can manage the final document title, and move tags managed by Inertia's [`<Head>` component](https://inertiajs.com/docs/v3/the-basics/title-and-meta) into Laravel Head so the two never define the same element.
@@ -653,7 +679,7 @@ Then point Inertia at the same prop with `serverHead: '_head'`.
 
 #### Static Inertia Tags
 
-Most tags should live in defaults, route metadata, or runtime metadata so Laravel Head can resolve the right value for each page. Inertia globals are only for document tags that should be rendered into the first HTML response and then left alone by Inertia for the rest of the session.
+Most tags should live in defaults, route metadata, or runtime metadata so Laravel Head can resolve the right value for each page. Use Inertia globals only for document tags rendered in the first HTML response and left unchanged by Inertia for the rest of the session.
 
 Register them in a service provider with `Head::inertiaGlobals()`:
 
@@ -671,7 +697,7 @@ Head::inertiaGlobals(function (HeadBuilder $head) {
 });
 ```
 
-Inertia globals are excluded from the `head` prop, rendered without `data-inertia` ownership attributes, and never updated after the first response. They are a good fit for stable browser hints like viewport, color scheme, favicons, touch icons, and manifests. If a tag is page-specific, SEO-relevant, or might be overridden later, put it in `defaults`, route metadata, or runtime metadata instead.
+Inertia globals are excluded from the `head` prop, rendered without `data-inertia` ownership attributes, and never updated after the first response. They suit stable browser hints such as viewport, color scheme, favicons, touch icons, and manifests. If a tag is page-specific, SEO-relevant, or may be overridden later, put it in `defaults`, route metadata, or runtime metadata instead.
 
 Applications that want the resolved head as structured data (titles, Open Graph values, JSON-LD schemas, etc.) rather than rendered tags can still call `Head::toArray()`.
 

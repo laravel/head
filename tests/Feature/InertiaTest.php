@@ -38,6 +38,29 @@ it('shares rendered head elements with inertia page objects', function (): void 
         ->toContain('<meta data-inertia="description" name="description" content="Your application overview.">');
 });
 
+it('restores shared head elements after inertia flushes its shared props', function (): void {
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))
+        ->withHead(title: 'Dashboard');
+
+    $headers = [Header::INERTIA => 'true'];
+
+    $this->get('/dashboard', $headers)
+        ->assertOk()
+        ->assertJsonPath(
+            'props.'.HeadManager::INERTIA_PROP.'.0',
+            '<title data-inertia="title">Dashboard</title>',
+        );
+
+    Inertia::flushShared();
+
+    $this->get('/dashboard', $headers)
+        ->assertOk()
+        ->assertJsonPath(
+            'props.'.HeadManager::INERTIA_PROP.'.0',
+            '<title data-inertia="title">Dashboard</title>',
+        );
+});
+
 it('shares stable semantic inertia keys for each head element', function (): void {
     Route::get('/lean', fn () => Inertia::render('Page'))->withHead(
         description: 'Lean page.',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Laravel\Head\Inertia;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Http\Kernel;
 use Inertia\Inertia;
 use Inertia\Ssr\Gateway;
 use Laravel\Head\HeadManager;
@@ -24,14 +25,19 @@ class Integration
         }
 
         $this->decorateSsrGateway();
+        $this->registerMiddleware();
+    }
 
-        $this->app->booted(function (): void {
-            $head = $this->app->make(HeadManager::class);
-
-            // A plain callable (rather than Inertia::always) keeps the elements
-            // off the wire during partial reloads; the client retains the head
-            // from the last full visit.
-            Inertia::share($head->inertiaProp(), fn (): array => $head->toInertiaElements());
+    /**
+     * Share head elements during every request so integrations such as Octane
+     * can safely flush Inertia's shared props between operations.
+     */
+    protected function registerMiddleware(): void
+    {
+        $this->app->afterResolving(Kernel::class, function (object $kernel): void {
+            if (method_exists($kernel, 'pushMiddleware')) {
+                $kernel->pushMiddleware(ShareHead::class);
+            }
         });
     }
 

@@ -82,6 +82,10 @@ class TagRenderer
     {
         return collect($attributes)
             ->map(function (mixed $value, string $name): string {
+                if (! $this->isValidAttributeName($name)) {
+                    return '';
+                }
+
                 if ($value === true) {
                     return e($name);
                 }
@@ -94,6 +98,15 @@ class TagRenderer
             })
             ->filter()
             ->implode(' ');
+    }
+
+    /**
+     * Names aren't HTML-escaped, so reject anything that could break out
+     * and inject another attribute (e.g. a space or "=").
+     */
+    protected function isValidAttributeName(string $name): bool
+    {
+        return preg_match('/^[a-z_:][-\w:.]*$/i', $name) === 1;
     }
 
     /**

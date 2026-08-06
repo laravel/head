@@ -35,6 +35,14 @@ it('renders link aliases', function (): void {
         ->toContain('rel="apple-touch-startup-image" href="/launch.png" media="(orientation: portrait)">');
 });
 
+it('drops link attributes with unsafe names instead of injecting them', function (): void {
+    Head::link('stylesheet', '/theme.css', ['onerror x' => 'alert(1)']);
+
+    expect(Head::toHtml())
+        ->toContain('rel="stylesheet" href="/theme.css">')
+        ->not->toContain('onerror');
+});
+
 it('resolves link aliases from route attributes', function (): void {
     Route::get('/app', fn (): string => Head::toHtml())->withHead(
         icon: [

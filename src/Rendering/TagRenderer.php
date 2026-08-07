@@ -82,16 +82,12 @@ class TagRenderer
     {
         return collect($attributes)
             ->map(function (mixed $value, string $name): string {
-                if (! $this->isValidAttributeName($name)) {
+                if (is_null($value) || $value === false || ! $this->isValidAttributeName($name)) {
                     return '';
                 }
 
                 if ($value === true) {
                     return e($name);
-                }
-
-                if ($value === false || is_null($value)) {
-                    return '';
                 }
 
                 return e($name).'="'.e((string) $value).'"';

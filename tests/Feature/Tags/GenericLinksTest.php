@@ -35,12 +35,11 @@ it('renders link aliases', function (): void {
         ->toContain('rel="apple-touch-startup-image" href="/launch.png" media="(orientation: portrait)">');
 });
 
-it('drops link attributes with unsafe names instead of injecting them', function (): void {
+it('rejects link attributes with unsafe names', function (): void {
     Head::link('stylesheet', '/theme.css', ['onerror x' => 'alert(1)']);
 
-    expect(Head::toHtml())
-        ->toContain('rel="stylesheet" href="/theme.css">')
-        ->not->toContain('onerror');
+    expect(fn (): string => Head::toHtml())
+        ->toThrow(InvalidArgumentException::class, 'Invalid HTML attribute name.');
 });
 
 it('resolves link aliases from route attributes', function (): void {

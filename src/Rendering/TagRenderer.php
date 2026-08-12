@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Laravel\Head\Rendering;
 
+use InvalidArgumentException;
+
 class TagRenderer
 {
     public function __construct(protected bool $withInertiaAttributes = false)
@@ -23,7 +25,7 @@ class TagRenderer
     {
         $inertiaKey ??= 'title';
 
-        return '<title'.$this->inertiaAttribute($inertiaKey).'>'.e($title).'</title>';
+        return $this->element('title', e($title), $this->inertiaAttributes($inertiaKey));
     }
 
     /**
@@ -45,14 +47,23 @@ class TagRenderer
     {
         $inertiaKey ??= $key;
 
-        return '<meta'.$this->inertiaAttribute($inertiaKey).' '.$attribute.'="'.e($key).'" '.$this->attributes($attributes).'>';
+        return $this->voidElement(
+            'meta',
+            $this->inertiaAttributes($inertiaKey),
+            [$attribute => $key],
+            $attributes,
+        );
     }
 
     public function link(string $rel, string $href, ?string $inertiaKey = null): string
     {
         $inertiaKey ??= $this->stableKey($rel, $href);
 
-        return '<link'.$this->inertiaAttribute($inertiaKey).' rel="'.e($rel).'" href="'.e($href).'">';
+        return $this->voidElement(
+            'link',
+            $this->inertiaAttributes($inertiaKey),
+            ['rel' => $rel, 'href' => $href],
+        );
     }
 
     /**
@@ -62,7 +73,12 @@ class TagRenderer
     {
         $inertiaKey ??= $this->stableKey($rel, (string) ($attributes['href'] ?? serialize($attributes)));
 
-        return '<link'.$this->inertiaAttribute($inertiaKey).' rel="'.e($rel).'" '.$this->attributes($attributes).'>';
+        return $this->voidElement(
+            'link',
+            $this->inertiaAttributes($inertiaKey),
+            ['rel' => $rel],
+            $attributes,
+        );
     }
 
     /**
@@ -72,7 +88,12 @@ class TagRenderer
     {
         $inertiaKey ??= $this->stableKey('schema', json_encode($schema, JSON_THROW_ON_ERROR));
 
-        return '<script'.$this->inertiaAttribute($inertiaKey).' type="application/ld+json">'.json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR).'</script>';
+        return $this->element(
+            'script',
+            json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR),
+            $this->inertiaAttributes($inertiaKey),
+            ['type' => 'application/ld+json'],
+        );
     }
 
     /**
@@ -80,20 +101,17 @@ class TagRenderer
      */
     public function attributes(array $attributes): string
     {
-        return collect($attributes)
-            ->map(function (mixed $value, string $name): string {
-                if ($value === true) {
-                    return e($name);
-                }
+        return $this->renderAttributes($attributes);
+    }
 
-                if ($value === false || is_null($value)) {
-                    return '';
-                }
-
-                return e($name).'="'.e((string) $value).'"';
-            })
-            ->filter()
-            ->implode(' ');
+    /**
+     * Attribute names aren't HTML-escaped, so reject anything that could
+     * break out of the attribute position. The "u" modifier also makes
+     * invalid UTF-8 fail the match.
+     */
+    protected function isValidAttributeName(string $name): bool
+    {
+        return preg_match('/^[^\x00-\x20\x7F-\x9F"\'\/=>]+$/u', $name) === 1;
     }
 
     /**
@@ -104,8 +122,75 @@ class TagRenderer
         return $prefix.':'.substr(md5($value), 0, 16);
     }
 
-    protected function inertiaAttribute(?string $key): string
+    /**
+     * @param  array<int|string, bool|float|int|string|null>  ...$attributeSets
+     */
+    protected function renderAttributes(array ...$attributeSets): string
     {
-        return $this->withInertiaAttributes && ! is_null($key) ? ' data-inertia="'.e($key).'"' : '';
+        $rendered = [];
+        $seen = [];
+
+        foreach ($attributeSets as $attributes) {
+            foreach ($attributes as $name => $value) {
+                if ($value === false || is_null($value)) {
+                    continue;
+                }
+
+                $name = (string) $name;
+
+                if (! $this->isValidAttributeName($name)) {
+                    throw new InvalidArgumentException('Invalid HTML attribute name.');
+                }
+
+                $normalizedName = strtolower($name);
+
+                if (isset($seen[$normalizedName])) {
+                    throw new InvalidArgumentException("Duplicate HTML attribute name [{$name}].");
+                }
+
+                $seen[$normalizedName] = true;
+                $rendered[] = $value === true
+                    ? $name
+                    : $name.'="'.e((string) $value).'"';
+            }
+        }
+
+        return implode(' ', $rendered);
+    }
+
+    /**
+     * @param  array<int|string, bool|float|int|string|null>  ...$attributeSets
+     */
+    protected function voidElement(string $name, array ...$attributeSets): string
+    {
+        return '<'.$name.$this->renderedAttributes(...$attributeSets).'>';
+    }
+
+    /**
+     * @param  array<int|string, bool|float|int|string|null>  ...$attributeSets
+     */
+    protected function element(string $name, string $content, array ...$attributeSets): string
+    {
+        return '<'.$name.$this->renderedAttributes(...$attributeSets).'>'.$content.'</'.$name.'>';
+    }
+
+    /**
+     * @param  array<int|string, bool|float|int|string|null>  ...$attributeSets
+     */
+    protected function renderedAttributes(array ...$attributeSets): string
+    {
+        $attributes = $this->renderAttributes(...$attributeSets);
+
+        return $attributes === '' ? '' : ' '.$attributes;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function inertiaAttributes(?string $key): array
+    {
+        return $this->withInertiaAttributes && ! is_null($key)
+            ? ['data-inertia' => $key]
+            : [];
     }
 }

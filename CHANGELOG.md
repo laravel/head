@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v0.2.1 - 2026-08-17
+
+### What's Changed
+
+* Fix Inertia middleware registration for resolved kernels by [@benbjurstrom](https://github.com/benbjurstrom) in https://github.com/laravel/head/pull/12
+
+**Full Changelog**: https://github.com/laravel/head/compare/v0.2.0...v0.2.1
+
 ## v0.2.0 - 2026-08-12
 
 ### What's Changed

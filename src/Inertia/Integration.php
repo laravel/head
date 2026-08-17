@@ -34,11 +34,17 @@ class Integration
      */
     protected function registerMiddleware(): void
     {
-        $this->app->afterResolving(Kernel::class, function (object $kernel): void {
+        $push = static function (object $kernel): void {
             if (method_exists($kernel, 'pushMiddleware')) {
                 $kernel->pushMiddleware(ShareHead::class);
             }
-        });
+        };
+
+        $this->app->afterResolving(Kernel::class, $push);
+
+        if ($this->app->resolved(Kernel::class)) {
+            $push($this->app->make(Kernel::class));
+        }
     }
 
     /**

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Ssr\DisablesSsr;
@@ -13,6 +14,14 @@ use Inertia\Support\Header;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\HeadBuilder;
 use Laravel\Head\HeadManager;
+use Laravel\Head\Inertia\ShareHead;
+use Laravel\Head\Tests\Fixtures\ResolvesHttpKernelEarly;
+
+uses(ResolvesHttpKernelEarly::class);
+
+it('registers the share head middleware when the http kernel was resolved before the package', function (): void {
+    expect($this->app->make(Kernel::class)->hasMiddleware(ShareHead::class))->toBeTrue();
+});
 
 it('shares rendered head elements with inertia page objects', function (): void {
     Head::defaults(fn (HeadBuilder $head) => $head->title('Acme', suffix: ' - Acme'));

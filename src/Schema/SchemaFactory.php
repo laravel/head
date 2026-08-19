@@ -25,6 +25,7 @@ class SchemaFactory
         $this->register(Person::class);
         $this->register(WebPage::class);
         $this->register(WebSite::class);
+        $this->register(Event::class);
     }
 
     /**

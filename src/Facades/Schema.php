@@ -19,6 +19,7 @@ use Laravel\Head\Schema\SchemaFactory;
  * @method static \Laravel\Head\Schema\Person person()
  * @method static \Laravel\Head\Schema\WebPage webPage()
  * @method static \Laravel\Head\Schema\WebSite webSite()
+ * @method static \Laravel\Head\Schema\Event event()
  * @method static ($type is class-string<TSchema> ? TSchema : \Laravel\Head\Schema\SchemaObject) make<TSchema of \Laravel\Head\Schema\SchemaObject>(class-string<TSchema>|string $type)
  * @method static \Laravel\Head\Schema\SchemaFactory register(string $class)
  *

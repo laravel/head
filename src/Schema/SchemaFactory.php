@@ -16,6 +16,7 @@ class SchemaFactory
     {
         $this->register(Article::class);
         $this->register(BlogPosting::class);
+        $this->register(Event::class);
         $this->register(Product::class);
         $this->register(Offer::class);
         $this->register(Brand::class);
@@ -25,7 +26,6 @@ class SchemaFactory
         $this->register(Person::class);
         $this->register(WebPage::class);
         $this->register(WebSite::class);
-        $this->register(Event::class);
     }
 
     /**

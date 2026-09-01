@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Route;
 use Laravel\Head\Enums\ImageType;
 use Laravel\Head\Enums\OgType;
 use Laravel\Head\Facades\Head;
@@ -68,4 +69,55 @@ it('merges og images between page level layers', function (): void {
     expect(Head::toHtml())
         ->toContain('property="og:image" content="https://example.com/first.jpg">')
         ->toContain('property="og:image" content="https://example.com/second.jpg">');
+});
+
+it('falls back from the canonical URL to the og URL', function (): void {
+    Head::canonical('https://example.com/about')->og();
+
+    expect(Head::toHtml())
+        ->toContain('<meta property="og:url" content="https://example.com/about">');
+});
+
+it('resolves a default og URL against each request', function (): void {
+    Head::defaults(fn (HeadBuilder $head): HeadBuilder => $head->canonical()->og());
+
+    Route::get('/about', fn (): string => Head::toHtml());
+    Route::get('/contact', fn (): string => Head::toHtml());
+
+    $this->get('/about')
+        ->assertOk()
+        ->assertSee('<meta property="og:url" content="https://localhost/about">', false);
+
+    $this->get('/contact')
+        ->assertOk()
+        ->assertSee('<meta property="og:url" content="https://localhost/contact">', false);
+});
+
+it('prefers an explicit og URL over the canonical URL', function (): void {
+    Head::canonical('https://example.com/about')
+        ->og(url: 'https://example.com/about?utm_source=og');
+
+    expect(Head::toHtml())
+        ->toContain('<meta property="og:url" content="https://example.com/about?utm_source=og">')
+        ->not->toContain('<meta property="og:url" content="https://example.com/about">');
+});
+
+it('does not render an og URL when no canonical URL is set', function (): void {
+    Head::og(title: 'About');
+
+    expect(Head::toHtml())->not->toContain('og:url');
+});
+
+it('does not render og fallback tags by default', function (): void {
+    Head::canonical('https://example.com/about');
+
+    expect(Head::toHtml())->not->toContain('og:url');
+
+    expect(Head::toArray()['openGraph'])->toBe([]);
+});
+
+it('falls back to the canonical URL in the head array', function (): void {
+    Head::canonical('https://example.com/about')->og();
+
+    expect(Head::toArray()['openGraph']['url'])->toBe('https://example.com/about');
 });

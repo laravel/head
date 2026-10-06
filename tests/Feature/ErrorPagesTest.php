@@ -69,3 +69,27 @@ it('applies error head when an aborted request renders an error view', function 
         ->assertSee('<title>Page Not Found - Acme</title>', false)
         ->assertSee('<meta name="robots" content="noindex, follow">', false);
 });
+
+it('runs error page callbacks when the head is rendered', function (): void {
+    Head::errors(function (ErrorPages $errors): void {
+        $errors->status(404, fn (HeadBuilder $head) => $head->title(Route::currentRouteName() ?? 'No route'));
+    });
+
+    Route::get('/missing', fn (): string => Head::toHtml(404))->name('missing');
+
+    $this->get('/missing')
+        ->assertOk()
+        ->assertSee('<title>missing</title>', false);
+});
+
+it('passes the error status to error page callbacks', function (): void {
+    Head::errors(function (ErrorPages $errors, int $status): void {
+        $errors->defaults(fn (HeadBuilder $head) => $head->title("Error {$status}"));
+    });
+
+    Route::get('/missing', fn (): string => Head::toHtml(404));
+
+    $this->get('/missing')
+        ->assertOk()
+        ->assertSee('<title>Error 404</title>', false);
+});

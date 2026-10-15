@@ -151,6 +151,16 @@ it('renders inertia globals as static tags and page tags as inertia-managed tags
         ->assertDontSee('<link data-inertia="link:icon', false);
 });
 
+it('runs inertia globals callbacks when the inertia root view is rendered', function (): void {
+    Head::inertiaGlobals(fn (HeadBuilder $head) => $head->applicationName(Route::currentRouteName() ?? 'No route'));
+
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
+
+    $this->get('/dashboard')
+        ->assertOk()
+        ->assertSee('<meta name="application-name" content="dashboard">', false);
+});
+
 it('renders the full inertia document in the legacy directive root template', function (): void {
     Inertia::setRootView('app-directives');
 

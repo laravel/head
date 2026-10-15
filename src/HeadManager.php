@@ -30,26 +30,22 @@ class HeadManager implements Arrayable, Htmlable
 
     public const INERTIA_PROP = 'head';
 
-    protected HeadData $inertiaGlobals;
+    /** @var array<int, callable(HeadBuilder): mixed> */
+    protected array $inertiaGlobals = [];
 
-    protected HeadData $defaults;
+    /** @var array<int, callable(HeadBuilder): mixed> */
+    protected array $defaults = [];
 
     protected string $inertiaProp = self::INERTIA_PROP;
 
-    protected ErrorPages $errorPages;
+    /** @var array<int, callable(ErrorPages, int): mixed> */
+    protected array $errors = [];
 
     public function __construct(
         protected Container $app,
         protected HeadRenderer $renderer,
         protected TagRegistry $registry,
-    ) {
-        $this->inertiaGlobals = new HeadData;
-        $this->defaults = new HeadData;
-        $this->errorPages = new ErrorPages(
-            $this->registry,
-            fn (callable $callback): HeadData => $this->define($callback),
-        );
-    }
+    ) {}
 
     /**
      * Define head tags rendered as server-owned tags on every Inertia document.
@@ -58,7 +54,7 @@ class HeadManager implements Arrayable, Htmlable
      */
     public function inertiaGlobals(callable $callback): static
     {
-        $this->inertiaGlobals = $this->inertiaGlobals->merge($this->define($callback));
+        $this->inertiaGlobals[] = $callback;
 
         return $this;
     }
@@ -70,7 +66,7 @@ class HeadManager implements Arrayable, Htmlable
      */
     public function defaults(callable $callback): static
     {
-        $this->defaults = $this->defaults->merge($this->define($callback)->asDefaults());
+        $this->defaults[] = $callback;
 
         return $this;
     }
@@ -78,11 +74,11 @@ class HeadManager implements Arrayable, Htmlable
     /**
      * Define head data for error pages.
      *
-     * @param  callable(ErrorPages): mixed  $callback
+     * @param  callable(ErrorPages, int): mixed  $callback
      */
     public function errors(callable $callback): static
     {
-        $callback($this->errorPages);
+        $this->errors[] = $callback;
 
         return $this;
     }
@@ -164,7 +160,7 @@ class HeadManager implements Arrayable, Htmlable
         }
 
         return new HtmlString($this->renderer->renderInertiaDocument(
-            $this->inertiaGlobals,
+            $this->resolveInertiaGlobals(),
             $this->resolve($status),
             $this->request(),
         ));
@@ -202,7 +198,11 @@ class HeadManager implements Arrayable, Htmlable
      */
     protected function resolve(?int $status = null): HeadData
     {
-        $data = (new HeadData)->merge($this->defaults);
+        $data = new HeadData;
+
+        foreach ($this->defaults as $callback) {
+            $data = $data->merge($this->define($callback)->asDefaults());
+        }
 
         if ($route = $this->route()) {
             foreach (RouteAttributeParser::routeMetadata($route) as $attributes) {
@@ -214,7 +214,7 @@ class HeadManager implements Arrayable, Htmlable
 
         $errorStatus = $status ?? $this->state()->status();
 
-        if (! is_null($errorStatus) && $error = $this->errorPages->forStatus($errorStatus)) {
+        if (! is_null($errorStatus) && $error = $this->errorPages($errorStatus)) {
             $data = $data->merge($error);
         }
 
@@ -223,9 +223,32 @@ class HeadManager implements Arrayable, Htmlable
 
     protected function resolveDocument(?int $status = null): HeadData
     {
-        return (new HeadData)
-            ->merge($this->inertiaGlobals)
-            ->merge($this->resolve($status));
+        return $this->resolveInertiaGlobals()->merge($this->resolve($status));
+    }
+
+    protected function resolveInertiaGlobals(): HeadData
+    {
+        $data = new HeadData;
+
+        foreach ($this->inertiaGlobals as $callback) {
+            $data = $data->merge($this->define($callback));
+        }
+
+        return $data;
+    }
+
+    protected function errorPages(int $status): ?HeadData
+    {
+        $errorPages = new ErrorPages(
+            $this->registry,
+            fn (callable $callback): HeadData => $this->define($callback),
+        );
+
+        foreach ($this->errors as $callback) {
+            $callback($errorPages, $status);
+        }
+
+        return $errorPages->forStatus($status);
     }
 
     /**

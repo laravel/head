@@ -10,7 +10,7 @@ use Laravel\Head\HeadManager;
 /**
  * @method static \Laravel\Head\HeadManager inertiaGlobals(callable(\Laravel\Head\HeadBuilder): mixed $callback)
  * @method static \Laravel\Head\HeadManager defaults(callable(\Laravel\Head\HeadBuilder): mixed $callback)
- * @method static \Laravel\Head\HeadManager errors(callable(\Laravel\Head\ErrorPages): mixed $callback)
+ * @method static \Laravel\Head\HeadManager errors(callable(\Laravel\Head\ErrorPages, int): mixed $callback)
  * @method static \Laravel\Head\HeadManager inertia(string $prop = 'head')
  * @method static \Laravel\Head\HeadManager extend(class-string<\Laravel\Head\Tags\TagBuilder> $builder)
  * @method static \Laravel\Head\HeadManager status(int $status)

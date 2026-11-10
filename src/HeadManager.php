@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Laravel\Head;
 
+use Illuminate\Container\Container as ContainerInstance;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Htmlable;
@@ -236,7 +237,7 @@ class HeadManager implements Arrayable, Htmlable
     protected function renderingInertiaPage(): bool
     {
         return class_exists(SsrState::class)
-            && $this->app->make(SsrState::class)->page !== [];
+            && $this->currentContainer()->make(SsrState::class)->page !== [];
     }
 
     protected function headData(): HeadData
@@ -251,14 +252,30 @@ class HeadManager implements Arrayable, Htmlable
 
     protected function state(): CurrentHead
     {
-        return $this->app->make(CurrentHead::class);
+        return $this->currentContainer()->make(CurrentHead::class);
     }
 
     protected function request(): ?Request
     {
-        $request = $this->app->bound('request') ? $this->app->make('request') : null;
+        $container = $this->currentContainer();
+
+        $request = $container->bound('request') ? $container->make('request') : null;
 
         return $request instanceof Request ? $request : null;
+    }
+
+    /**
+     * Get the container handling the current request.
+     *
+     * The manager is a singleton that may outlive the container it was created
+     * with, for example when Octane clones the application for each request.
+     * Request scoped state must therefore be resolved from the current container
+     * so that it is flushed along with the request instead of leaking into the
+     * next one.
+     */
+    protected function currentContainer(): Container
+    {
+        return ContainerInstance::getInstance();
     }
 
     protected function route(): ?Route

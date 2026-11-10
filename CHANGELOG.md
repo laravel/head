@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v0.3.0 - 2026-11-10
+
+### What's Changed
+
+* Remove security policy in favor of the org-wide default by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/head/pull/19
+* Potential fix for code scanning alert no. 2: Workflow does not contain permissions by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/head/pull/20
+* Potential fix for code scanning alert no. 1: Workflow does not contain permissions by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/head/pull/21
+* Resolve request scoped head state from the current container by [@MrFallen](https://github.com/MrFallen) in https://github.com/laravel/head/pull/17
+* Fall back to the canonical URL for og:url by [@fkrzski](https://github.com/fkrzski) in https://github.com/laravel/head/pull/14
+* Add location, image, performer, status etc to Event schema by [@usamamuneerchaudhary](https://github.com/usamamuneerchaudhary) in https://github.com/laravel/head/pull/15
+* Keep default Open Graph media replaceable when defaults are defined across several calls by [@MrFallen](https://github.com/MrFallen) in https://github.com/laravel/head/pull/16
+
+### New Contributors
+
+* [@pushpak1300](https://github.com/pushpak1300) made their first contribution in https://github.com/laravel/head/pull/19
+* [@MrFallen](https://github.com/MrFallen) made their first contribution in https://github.com/laravel/head/pull/17
+* [@fkrzski](https://github.com/fkrzski) made their first contribution in https://github.com/laravel/head/pull/14
+* [@usamamuneerchaudhary](https://github.com/usamamuneerchaudhary) made their first contribution in https://github.com/laravel/head/pull/15
+
+**Full Changelog**: https://github.com/laravel/head/compare/v0.2.2...v0.3.0
+
 ## v0.2.2 - 2026-08-26
 
 * Add event schema by [@martinbean](https://github.com/martinbean) in https://github.com/laravel/head/pull/13

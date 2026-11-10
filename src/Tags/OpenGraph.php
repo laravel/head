@@ -227,12 +227,7 @@ class OpenGraph extends GroupedTagBuilder
             $this->overlayMedia($base->audios, $this->audios, $base->defaults),
         );
 
-        // The overlaid media remains a replaceable fallback only while all of it
-        // still comes from the defaults layer, which is also the case when the
-        // defaults are defined across several calls.
-        $overlaid->defaults = $this->hasMedia()
-            ? $this->defaults && ($base->defaults || ! $base->hasMedia())
-            : $base->defaults;
+        $overlaid->defaults = $base->defaults && ($this->defaults || ! $this->hasMedia());
 
         return $overlaid;
     }
@@ -259,7 +254,7 @@ class OpenGraph extends GroupedTagBuilder
             return $base;
         }
 
-        return $baseIsDefaults ? $overlay : array_replace($base, $overlay);
+        return $baseIsDefaults && ! $this->defaults ? $overlay : array_replace($base, $overlay);
     }
 
     protected function hasMedia(): bool

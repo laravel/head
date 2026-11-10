@@ -80,3 +80,12 @@ it('replaces default layer og images with page level og images when the defaults
         ->toContain('property="og:image" content="https://example.com/product.jpg">')
         ->not->toContain('https://example.com/brand.png');
 });
+
+it('merges og images from several defaults calls', function (): void {
+    Head::defaults(fn (HeadBuilder $head) => $head->ogImage('https://example.com/first.png'));
+    Head::defaults(fn (HeadBuilder $head) => $head->ogImage('https://example.com/second.png'));
+
+    expect(Head::toHtml())
+        ->toContain('property="og:image" content="https://example.com/first.png">')
+        ->toContain('property="og:image" content="https://example.com/second.png">');
+});

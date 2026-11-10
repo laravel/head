@@ -46,11 +46,11 @@ class Event extends SchemaObject
     }
 
     /**
-     * Set the event location. A string is treated as the name of a physical place.
+     * Google requires an address on a physical location, so this takes a Place (or a VirtualLocation) rather than a bare venue name.
      */
-    public function location(SchemaObject|string $location): static
+    public function location(SchemaObject $location): static
     {
-        return $this->set('location', is_string($location) ? (new Place)->name($location) : $location);
+        return $this->set('location', $location);
     }
 
     public function name(string $name): static

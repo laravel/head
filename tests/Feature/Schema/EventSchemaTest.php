@@ -30,10 +30,10 @@ it('renders an event with the properties required for rich results', function ()
         ->toContain('"location":{"@type":"Place","name":"Music City Center","address":"201 Rep. John Lewis Way S, Nashville, TN"}');
 });
 
-it('treats a string location as the name of a place', function (): void {
-    $event = Schema::event()->location('Music City Center');
+it('accepts a virtual location for online events', function (): void {
+    $event = Schema::event()->location(Schema::virtualLocation()->url('https://example.com/stream'));
 
-    expect($event->toArray()['location'])->toBe(['@type' => 'Place', 'name' => 'Music City Center']);
+    expect($event->toArray()['location'])->toBe(['@type' => 'VirtualLocation', 'url' => 'https://example.com/stream']);
 });
 
 it('sets event status and attendance mode from schema org enum values', function (): void {

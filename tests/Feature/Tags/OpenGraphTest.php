@@ -71,6 +71,26 @@ it('merges og images between page level layers', function (): void {
         ->toContain('property="og:image" content="https://example.com/second.jpg">');
 });
 
+it('replaces default layer og images with page level og images when the defaults are defined across several calls', function (): void {
+    Head::defaults(fn (HeadBuilder $head) => $head->og(siteName: 'Acme'));
+    Head::defaults(fn (HeadBuilder $head) => $head->ogImage('https://example.com/brand.png', alt: 'Brand card'));
+
+    Head::ogImage('https://example.com/product.jpg', alt: 'Product photo');
+
+    expect(Head::toHtml())
+        ->toContain('property="og:image" content="https://example.com/product.jpg">')
+        ->not->toContain('https://example.com/brand.png');
+});
+
+it('merges og images from several defaults calls', function (): void {
+    Head::defaults(fn (HeadBuilder $head) => $head->ogImage('https://example.com/first.png'));
+    Head::defaults(fn (HeadBuilder $head) => $head->ogImage('https://example.com/second.png'));
+
+    expect(Head::toHtml())
+        ->toContain('property="og:image" content="https://example.com/first.png">')
+        ->toContain('property="og:image" content="https://example.com/second.png">');
+});
+
 it('falls back from the canonical URL to the og URL', function (): void {
     Head::canonical('https://example.com/about')->og();
 

@@ -227,7 +227,7 @@ class OpenGraph extends GroupedTagBuilder
             $this->overlayMedia($base->audios, $this->audios, $base->defaults),
         );
 
-        $overlaid->defaults = $base->defaults && ! $this->hasMedia();
+        $overlaid->defaults = $base->defaults && ($this->defaults || ! $this->hasMedia());
 
         return $overlaid;
     }
@@ -254,7 +254,7 @@ class OpenGraph extends GroupedTagBuilder
             return $base;
         }
 
-        return $baseIsDefaults ? $overlay : array_replace($base, $overlay);
+        return $baseIsDefaults && ! $this->defaults ? $overlay : array_replace($base, $overlay);
     }
 
     protected function hasMedia(): bool

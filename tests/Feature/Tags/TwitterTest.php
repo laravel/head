@@ -62,3 +62,27 @@ it('prefers explicit twitter image tags over open graph image tags', function ()
         'alt' => 'Twitter image',
     ]);
 });
+
+it('renders twitter player card tags', function (): void {
+    Head::twitterPlayer(
+        url: 'https://example.com/embed/video-123',
+        width: 1280,
+        height: 720,
+        stream: 'https://example.com/videos/stream.mp4',
+    );
+
+    expect(Head::toHtml())
+        ->toContain('<meta name="twitter:card" content="player">')
+        ->toContain('<meta name="twitter:player" content="https://example.com/embed/video-123">')
+        ->toContain('<meta name="twitter:player:width" content="1280">')
+        ->toContain('<meta name="twitter:player:height" content="720">')
+        ->toContain('<meta name="twitter:player:stream" content="https://example.com/videos/stream.mp4">');
+
+    expect(Head::toArray()['twitter'])->toMatchArray([
+        'card' => 'player',
+        'player' => 'https://example.com/embed/video-123',
+        'player:width' => '1280',
+        'player:height' => '720',
+        'player:stream' => 'https://example.com/videos/stream.mp4',
+    ]);
+});

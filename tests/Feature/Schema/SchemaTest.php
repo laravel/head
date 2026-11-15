@@ -145,3 +145,42 @@ it('makes schema objects directly from class names without registration', functi
         ->toContain('"@type":"JobPosting"')
         ->toContain('"title":"Senior Laravel Developer"');
 });
+
+it('sets product schema identifiers with sanitization and validation', function (): void {
+    Head::schema(
+        Schema::product()
+            ->name('Smart Speaker')
+            ->sku('SKU-12345')
+            ->category('Electronics > Audio')
+            ->mpn('SPK-2026-X')
+            ->gtin('1234-5678-9012') // 12 digits with hyphens (UPC)
+            ->gtin8('12345670')
+            ->gtin13('978-0201379624') // 13 digits with hyphens (EAN)
+            ->gtin14('10012345678902')
+    );
+
+    $html = Head::toHtml();
+
+    expect($html)
+        ->toContain('"sku":"SKU-12345"')
+        ->toContain('"category":"Electronics \\u003E Audio"')
+        ->toContain('"mpn":"SPK-2026-X"')
+        ->toContain('"gtin":"123456789012"')
+        ->toContain('"gtin8":"12345670"')
+        ->toContain('"gtin13":"9780201379624"')
+        ->toContain('"gtin14":"10012345678902"');
+});
+
+it('throws when product gtin has invalid digit length', function (string $invalidGtin): void {
+    Schema::product()->gtin($invalidGtin);
+})->with([
+    'too short' => '1234567', // 7 digits
+    'invalid 9 digits' => '123456789', // 9 digits
+    'invalid 10 digits' => '1234567890', // 10 digits
+    'invalid 11 digits' => '12345678901', // 11 digits
+    'too long' => '123456789012345', // 15 digits
+])->throws(InvalidArgumentException::class);
+
+it('throws when specific gtin method has invalid length', function (): void {
+    Schema::product()->gtin13('12345678');
+})->throws(InvalidArgumentException::class, 'Invalid [gtin13] [12345678]. Must contain exactly 13 digits.');

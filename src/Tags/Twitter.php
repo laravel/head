@@ -76,7 +76,7 @@ class Twitter extends GroupedTagBuilder
      */
     public static function fromAttributes(array $values): self
     {
-        return self::make(
+        $twitter = self::make(
             card: self::twitterCard($values['card'] ?? null),
             site: self::string($values['site'] ?? null),
             creator: self::string($values['creator'] ?? null),
@@ -84,6 +84,17 @@ class Twitter extends GroupedTagBuilder
             description: self::string($values['description'] ?? null),
             image: self::string($values['image'] ?? null),
         );
+
+        if ($player = self::string($values['player'] ?? null)) {
+            $twitter->player(
+                $player,
+                self::int($values['playerWidth'] ?? null) ?? self::int($values['player:width'] ?? null) ?? 1280,
+                self::int($values['playerHeight'] ?? null) ?? self::int($values['player:height'] ?? null) ?? 720,
+                self::string($values['playerStream'] ?? null) ?? self::string($values['player:stream'] ?? null),
+            );
+        }
+
+        return $twitter;
     }
 
     public static function fromImageAttributes(mixed $image): self
@@ -107,6 +118,24 @@ class Twitter extends GroupedTagBuilder
             'url' => $url,
             'alt' => $alt,
         ]);
+
+        return $this;
+    }
+
+    public function player(
+        string $url,
+        int $width,
+        int $height,
+        ?string $stream = null,
+    ): static {
+        $this->properties['card'] ??= TwitterCard::Player->value;
+        $this->properties['player'] = $url;
+        $this->properties['player:width'] = (string) $width;
+        $this->properties['player:height'] = (string) $height;
+
+        if (! is_null($stream)) {
+            $this->properties['player:stream'] = $stream;
+        }
 
         return $this;
     }

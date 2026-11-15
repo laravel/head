@@ -218,6 +218,17 @@ trait BuildsHead
         return $this;
     }
 
+    public function twitterPlayer(
+        string $url,
+        int $width,
+        int $height,
+        ?string $stream = null,
+    ): static {
+        $this->headData()->builder(Twitter::class)->player($url, $width, $height, $stream);
+
+        return $this;
+    }
+
     public function preload(string $href, ?string $as = null, bool|string|null $crossorigin = null, ImageType|string|null $type = null, Media|string|null $media = null): static
     {
         $this->headData()->builder(PerformanceLinks::class)->preload($href, as: $as, crossorigin: $crossorigin, type: $type, media: $media);

@@ -19,8 +19,19 @@ class Organization extends SchemaObject
         return $this->set('url', $url);
     }
 
-    public function logo(string $url): static
+    /**
+     * @param  string|SchemaObject  $logo  The logo URL, or an ImageObject schema object carrying its dimensions.
+     */
+    public function logo(string|SchemaObject $logo): static
     {
-        return $this->set('logo', $url);
+        return $this->set('logo', $logo);
+    }
+
+    /**
+     * @param  string  ...$urls  Authoritative pages for the same organization, such as a social profile or a Wikipedia entry.
+     */
+    public function sameAs(string ...$urls): static
+    {
+        return $this->set('sameAs', count($urls) === 1 ? $urls[0] : $urls);
     }
 }

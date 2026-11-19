@@ -88,6 +88,69 @@ it('sets faq questions in bulk', function (): void {
         ->toContain('"text":"Yes, it is open source."');
 });
 
+it('sets person image, same as and identifier properties', function (): void {
+    Head::schema(
+        Schema::person()
+            ->name('Taylor Otwell')
+            ->url('https://example.com/taylor')
+            ->image('https://example.com/taylor.jpg')
+            ->sameAs('https://twitter.com/taylorotwell', 'https://github.com/taylorotwell')
+            ->identifier('taylorotwell')
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"@type":"Person"')
+        ->toContain('"image":"https://example.com/taylor.jpg"')
+        ->toContain('"sameAs":["https://twitter.com/taylorotwell","https://github.com/taylorotwell"]')
+        ->toContain('"identifier":"taylorotwell"');
+});
+
+it('keeps a single same as url a string and accepts a property value identifier', function (): void {
+    $person = Schema::person()
+        ->sameAs('https://steamcommunity.com/id/example')
+        ->identifier(
+            Schema::make('PropertyValue')
+                ->propertyID('steamId')
+                ->value('76561198000000000')
+        );
+
+    expect($person->toArray())
+        ->toBe([
+            '@type' => 'Person',
+            'sameAs' => 'https://steamcommunity.com/id/example',
+            'identifier' => [
+                '@type' => 'PropertyValue',
+                'propertyID' => 'steamId',
+                'value' => '76561198000000000',
+            ],
+        ]);
+});
+
+it('accepts an image object logo so the organization logo may carry its dimensions', function (): void {
+    $organization = Schema::organization()
+        ->name('Laravel')
+        ->sameAs('https://twitter.com/laravelphp')
+        ->logo(
+            Schema::make('ImageObject')
+                ->url('https://example.com/logo.png')
+                ->width(600)
+                ->height(60)
+        );
+
+    expect($organization->toArray())
+        ->toBe([
+            '@type' => 'Organization',
+            'name' => 'Laravel',
+            'sameAs' => 'https://twitter.com/laravelphp',
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => 'https://example.com/logo.png',
+                'width' => 600,
+                'height' => 60,
+            ],
+        ]);
+});
+
 it('registers custom schema types as first class factory methods', function (): void {
     Schema::register(JobPosting::class);
 

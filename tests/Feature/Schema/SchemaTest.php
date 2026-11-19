@@ -88,6 +88,41 @@ it('sets faq questions in bulk', function (): void {
         ->toContain('"text":"Yes, it is open source."');
 });
 
+it('adds extra properties to a faq question', function (): void {
+    Head::schema(
+        Schema::faq()->question('What is Laravel Head?', 'A fluent API for managing the document head.', [
+            'url' => 'https://example.com/faq#what-is-laravel-head',
+            'datePublished' => '2026-05-13',
+            'inLanguage' => 'en-US',
+            'answerCount' => 1,
+        ])
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"@type":"Question"')
+        ->toContain('"url":"https://example.com/faq#what-is-laravel-head"')
+        ->toContain('"datePublished":"2026-05-13"')
+        ->toContain('"inLanguage":"en-US"')
+        ->toContain('"answerCount":1')
+        ->toContain('"acceptedAnswer":{"@type":"Answer","text":"A fluent API for managing the document head."}');
+});
+
+it('accepts an answer schema object so the answer may carry its own properties', function (): void {
+    $faq = Schema::faq()->question(
+        'What is Laravel Head?',
+        Schema::make('Answer')
+            ->text('A fluent API for managing the document head.')
+            ->date('dateModified', new DateTimeImmutable('2026-05-13T10:00:00+00:00'))
+    );
+
+    expect($faq->toArray()['mainEntity'][0]['acceptedAnswer'])
+        ->toBe([
+            '@type' => 'Answer',
+            'text' => 'A fluent API for managing the document head.',
+            'dateModified' => '2026-05-13T10:00:00+00:00',
+        ]);
+});
+
 it('registers custom schema types as first class factory methods', function (): void {
     Schema::register(JobPosting::class);
 

@@ -27,6 +27,11 @@ class SchemaFactory
         $this->register(WebPage::class);
         $this->register(WebSite::class);
         $this->register(Place::class);
+        $this->register(ImageObject::class);
+        $this->register(ProfilePage::class);
+        $this->register(ItemList::class);
+        $this->register(SoftwareApplication::class);
+        $this->register(WebApplication::class);
     }
 
     /**

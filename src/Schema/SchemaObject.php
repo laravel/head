@@ -8,6 +8,7 @@ use BadMethodCallException;
 use DateTimeInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Conditionable;
 use JsonSerializable;
 use Laravel\Head\SchemaType;
 use ReflectionClass;
@@ -17,6 +18,8 @@ use ReflectionClass;
  */
 abstract class SchemaObject implements Arrayable, JsonSerializable
 {
+    use Conditionable;
+
     protected string $type;
 
     /** @var array<string, mixed> */

@@ -22,6 +22,8 @@ use Laravel\Head\Schema\SchemaFactory;
  * @method static \Laravel\Head\Schema\ImageObject imageObject()
  * @method static \Laravel\Head\Schema\ProfilePage profilePage()
  * @method static \Laravel\Head\Schema\ItemList itemList()
+ * @method static \Laravel\Head\Schema\SoftwareApplication softwareApplication()
+ * @method static \Laravel\Head\Schema\WebApplication webApplication()
  * @method static \Laravel\Head\Schema\WebPage webPage()
  * @method static \Laravel\Head\Schema\WebSite webSite()
  * @method static ($type is class-string<TSchema> ? TSchema : \Laravel\Head\Schema\SchemaObject) make<TSchema of \Laravel\Head\Schema\SchemaObject>(class-string<TSchema>|string $type)

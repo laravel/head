@@ -30,6 +30,8 @@ class SchemaFactory
         $this->register(ImageObject::class);
         $this->register(ProfilePage::class);
         $this->register(ItemList::class);
+        $this->register(SoftwareApplication::class);
+        $this->register(WebApplication::class);
     }
 
     /**

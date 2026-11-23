@@ -163,3 +163,30 @@ it('conditionally sets schema properties with when and unless', function (): voi
         ->not->toContain('"when"')
         ->not->toContain('"unless"');
 });
+
+it('skips null schema property values', function (): void {
+    Head::schema(
+        Schema::article()
+            ->headline('Introducing Laravel Head')
+            ->set('description', null)
+    )->schema(
+        Schema::make('videoObject')
+            ->name('Introducing Laravel Head')
+            ->uploadDate(null)
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"headline":"Introducing Laravel Head"')
+        ->not->toContain('"description"')
+        ->not->toContain('"uploadDate"');
+});
+
+it('sets magic schema properties called without a value to true', function (): void {
+    Head::schema(
+        Schema::make('videoObject')
+            ->name('Introducing Laravel Head')
+            ->isFamilyFriendly()
+    );
+
+    expect(Head::toHtml())->toContain('"isFamilyFriendly":true');
+});

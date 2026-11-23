@@ -29,6 +29,7 @@ class SchemaFactory
         $this->register(Place::class);
         $this->register(ImageObject::class);
         $this->register(ProfilePage::class);
+        $this->register(ItemList::class);
     }
 
     /**

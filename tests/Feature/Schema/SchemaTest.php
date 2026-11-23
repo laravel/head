@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Laravel\Head\Enums\OfferAvailability;
 use Laravel\Head\Facades\Head;
 use Laravel\Head\Facades\Schema;
+use Laravel\Head\Schema\Article;
 use Laravel\Head\Tests\Fixtures\JobPosting;
 
 it('renders built in schema objects as JSON LD', function (): void {
@@ -144,4 +145,48 @@ it('makes schema objects directly from class names without registration', functi
     expect(Head::toHtml())
         ->toContain('"@type":"JobPosting"')
         ->toContain('"title":"Senior Laravel Developer"');
+});
+
+it('conditionally sets schema properties with when and unless', function (): void {
+    Head::schema(
+        Schema::article()
+            ->headline('Introducing Laravel Head')
+            ->when('2026-05-14', fn (Article $schema, string $date): Article => $schema->modifiedAt($date))
+            ->when(null, fn (Article $schema): Article => $schema->publishedAt('2026-05-13'))
+            ->unless(false, fn (Article $schema): Article => $schema->description('A fluent API for the document head.'))
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"dateModified":"2026-05-14"')
+        ->toContain('"description":"A fluent API for the document head."')
+        ->not->toContain('"datePublished"')
+        ->not->toContain('"when"')
+        ->not->toContain('"unless"');
+});
+
+it('skips null schema property values', function (): void {
+    Head::schema(
+        Schema::article()
+            ->headline('Introducing Laravel Head')
+            ->set('description', null)
+    )->schema(
+        Schema::make('videoObject')
+            ->name('Introducing Laravel Head')
+            ->uploadDate(null)
+    );
+
+    expect(Head::toHtml())
+        ->toContain('"headline":"Introducing Laravel Head"')
+        ->not->toContain('"description"')
+        ->not->toContain('"uploadDate"');
+});
+
+it('sets magic schema properties called without a value to true', function (): void {
+    Head::schema(
+        Schema::make('videoObject')
+            ->name('Introducing Laravel Head')
+            ->isFamilyFriendly()
+    );
+
+    expect(Head::toHtml())->toContain('"isFamilyFriendly":true');
 });

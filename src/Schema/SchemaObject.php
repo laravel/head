@@ -8,6 +8,7 @@ use BadMethodCallException;
 use DateTimeInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Conditionable;
 use JsonSerializable;
 use Laravel\Head\SchemaType;
 use ReflectionClass;
@@ -17,6 +18,8 @@ use ReflectionClass;
  */
 abstract class SchemaObject implements Arrayable, JsonSerializable
 {
+    use Conditionable;
+
     protected string $type;
 
     /** @var array<string, mixed> */
@@ -28,10 +31,14 @@ abstract class SchemaObject implements Arrayable, JsonSerializable
     }
 
     /**
-     * Set a schema property, coercing nested schema objects and dates.
+     * Set a schema property, skipping nulls and coercing nested schema objects and dates.
      */
     public function set(string $property, mixed $value): static
     {
+        if (is_null($value)) {
+            return $this;
+        }
+
         $this->properties[$property] = $this->coerce($value);
 
         return $this;
@@ -81,7 +88,7 @@ abstract class SchemaObject implements Arrayable, JsonSerializable
             ));
         }
 
-        return $this->set($method, $parameters[0] ?? true);
+        return $this->set($method, array_key_exists(0, $parameters) ? $parameters[0] : true);
     }
 
     protected function coerce(mixed $value): mixed

@@ -28,6 +28,7 @@ class SchemaFactory
         $this->register(WebSite::class);
         $this->register(Place::class);
         $this->register(ImageObject::class);
+        $this->register(ProfilePage::class);
     }
 
     /**

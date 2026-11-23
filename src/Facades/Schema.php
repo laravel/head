@@ -20,6 +20,7 @@ use Laravel\Head\Schema\SchemaFactory;
  * @method static \Laravel\Head\Schema\Person person()
  * @method static \Laravel\Head\Schema\Place place()
  * @method static \Laravel\Head\Schema\ImageObject imageObject()
+ * @method static \Laravel\Head\Schema\ProfilePage profilePage()
  * @method static \Laravel\Head\Schema\WebPage webPage()
  * @method static \Laravel\Head\Schema\WebSite webSite()
  * @method static ($type is class-string<TSchema> ? TSchema : \Laravel\Head\Schema\SchemaObject) make<TSchema of \Laravel\Head\Schema\SchemaObject>(class-string<TSchema>|string $type)
